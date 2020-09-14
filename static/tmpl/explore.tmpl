@@ -1,0 +1,28 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+	<meta charset="utf-8">
+	<title>{{.Title}}</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="stylesheet" href="css/normalize.css">
+	<link rel="stylesheet" href="css/main.css">
+	<meta name="theme-color" content="#fafafa">
+</head>
+
+<body>
+	{{.Body}}
+	{{range .Projects}}
+	<p><a href="/project/{{.ID}}">{{.Name}}</a></p>
+	<p><a href="{{.RepoURL}}">{{.RepoURL}}</a></p>
+	<p>{{.Description}}</p>
+	<hr>
+	<br>
+	{{else}}
+	<p>Nothing to see here yet, go <a href="/project/new">create</a> something!</p>
+	{{end}}
+</body>
+
+</html>

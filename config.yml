@@ -1,0 +1,23 @@
+server:
+  host: localhost
+  port: 3000
+database:
+  user: postgres
+  pass: postgres
+api:
+  githubtoken: ***REMOVED***
+cache:
+  repo:
+    base: ./tmp/git
+  diff:
+    schema: ./tmp/sch
+    layout: ./tmp/pcb
+auth:
+  kratos:
+  auth0:
+    use: false
+    provider_url: ***REMOVED***
+    client_id: ***REMOVED***
+    client_secret: ***REMOVED***
+    redirect_url: http://localhost:3000/callback
+    session_secret: ***REMOVED***
