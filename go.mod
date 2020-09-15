@@ -14,7 +14,7 @@ require (
 	github.com/gitsight/go-vcsurl v1.0.0
 	github.com/gliderlabs/ssh v0.3.0 // indirect
 	github.com/go-git/go-git/v5 v5.1.0
-	github.com/go-pg/pg/v10 v10.0.5
+	github.com/go-pg/pg/v10 v10.0.6
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/schema v1.2.0
@@ -32,7 +32,7 @@ require (
 	github.com/yuin/goldmark-highlighting v0.0.0-20200307114337-60d527fdb691
 	github.com/yuin/goldmark-meta v0.0.0-20191126180153-f0638e958b60
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
-	golang.org/x/sys v0.0.0-20200909081042-eff7692f9009 // indirect
+	golang.org/x/sys v0.0.0-20200915084602-288bc346aa39 // indirect
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776

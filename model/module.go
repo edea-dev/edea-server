@@ -4,8 +4,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// Project model
-type Project struct {
+// Module model
+type Module struct {
 	ID          string `pg:"type:uuid,default:gen_random_uuid(),pk"`
 	UserID      string `pg:"type:uuid,fk"`
 	User        *User  `pg:"rel:has-one"`
@@ -15,6 +15,6 @@ type Project struct {
 }
 
 // MarshalZerologObject provides the object representation for logging
-func (p *Project) MarshalZerologObject(e *zerolog.Event) {
-	e.Str("project_uuid", p.ID)
+func (p *Module) MarshalZerologObject(e *zerolog.Event) {
+	e.Str("module_uuid", p.ID)
 }

@@ -7,7 +7,8 @@ import (
 	"github.com/gorilla/mux"
 	"gitlab.com/edea-dev/edea/backend/auth"
 	"gitlab.com/edea-dev/edea/backend/view"
-	"gitlab.com/edea-dev/edea/backend/view/project"
+	"gitlab.com/edea-dev/edea/backend/view/bench"
+	"gitlab.com/edea-dev/edea/backend/view/module"
 	"gitlab.com/edea-dev/edea/backend/view/user"
 )
 
@@ -16,13 +17,19 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func routes(r *mux.Router, provider auth.Provider) {
-	r.HandleFunc("/", view.Markdown("index.md"))                  // index
-	r.HandleFunc("/about", view.Markdown("about.md"))             // about EDeA
-	r.HandleFunc("/explore", project.Explore)                     // explore projects
-	r.HandleFunc("/project/new", project.New).Methods("GET")      // new project page
-	r.HandleFunc("/project/new", project.Create).Methods("POST")  // add new project
-	r.HandleFunc("/project/{id}", project.Update).Methods("POST") // view new project or adjust params
-	r.HandleFunc("/project/{id}", project.View).Methods("GET")    // view project
+	r.HandleFunc("/", view.Markdown("index.md"))                // index
+	r.HandleFunc("/about", view.Markdown("about.md"))           // about EDeA
+	r.HandleFunc("/explore", module.Explore)                    // explore modules
+	r.HandleFunc("/module/new", module.New).Methods("GET")      // new module page
+	r.HandleFunc("/module/new", module.Create).Methods("POST")  // add new module
+	r.HandleFunc("/module/{id}", module.Update).Methods("POST") // view new module or adjust params
+	r.HandleFunc("/module/{id}", module.View).Methods("GET")    // view module
+
+	r.HandleFunc("/bench/new", bench.New).Methods("GET")            // new bench form
+	r.HandleFunc("/bench/new", bench.Create).Methods("POST")        // add a new bench
+	r.HandleFunc("/bench/{id}", bench.Update).Methods("POST")       // update a bench
+	r.HandleFunc("/bench/{id}", bench.View).Methods("GET")          // view a bench
+	r.HandleFunc("/bench/add/{id}", bench.AddModule).Methods("GET") // add a module to the active bench
 
 	r.HandleFunc("/favicon.ico", faviconHandler)
 	r.HandleFunc("/debug/pprof/", pprof.Index)
@@ -31,7 +38,7 @@ func routes(r *mux.Router, provider auth.Provider) {
 	r.HandleFunc("/debug/pprof/profile", pprof.Trace)
 
 	// api routes
-	//r.HandleFunc("/api/project", api.REST(&api.Project{}))
+	//r.HandleFunc("/api/module", api.REST(&api.Module{}))
 	//r.HandleFunc("/api/user", api.REST(&api.User{}))
 	//r.HandleFunc("/api/bench", api.REST(&api.Bench{}))
 

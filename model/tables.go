@@ -13,7 +13,7 @@ import (
 type Model interface {
 	MarshalZerologObject(e *zerolog.Event) // logger method to attach important information to potential log output
 	GetMembers() ([]*User, error)          // can return empty list if there's just none
-	GetProjects() ([]*Project, error)      // can return empty list if there's just none
+	GetModules() ([]*Module, error)        // can return empty list if there's just none
 	Validate(u *User) error                // validate if a user is allowed to make those changes and if it makes sense
 }
 
@@ -23,16 +23,16 @@ var DB *pg.DB
 // CreateTables initially creates the tables in the database
 func CreateTables() {
 	// register many2many tables
-	orm.RegisterTable((*BenchProject)(nil))
+	orm.RegisterTable((*BenchModule)(nil))
 
 	// TODO:
 	models := []interface{}{
 		(*Bench)(nil),
 		(*Profile)(nil),
-		(*Project)(nil),
+		(*Module)(nil),
 		(*Repository)(nil),
 		(*User)(nil),
-		(*BenchProject)(nil),
+		(*BenchModule)(nil),
 	}
 
 	for _, model := range models {
@@ -78,14 +78,14 @@ func updateModel(model Model, sub string) error {
 		}
 	}
 
-	// check if it contains projects
-	projects, err := model.GetProjects()
+	// check if it contains modules
+	modules, err := model.GetModules()
 	if err != nil {
 		return err
 	}
 
-	if len(projects) > 0 {
-		// TODO: what do we need to check when a model has projects?
+	if len(modules) > 0 {
+		// TODO: what do we need to check when a model has modules?
 	}
 
 	m := model
@@ -139,14 +139,14 @@ func createModel(model Model, sub string) (interface{}, error) {
 		}
 	}
 
-	// check if it contains projects
-	projects, err := model.GetProjects()
+	// check if it contains modules
+	modules, err := model.GetModules()
 	if err != nil {
 		return nil, err
 	}
 
-	if len(projects) > 0 {
-		// TODO: what do we need to check when a model has projects?
+	if len(modules) > 0 {
+		// TODO: what do we need to check when a model has modules?
 	}
 
 	_, err = DB.Model(&model).Insert()
