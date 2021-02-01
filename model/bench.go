@@ -11,16 +11,16 @@ import (
 // Bench contains a number of modules with their configuration
 type Bench struct {
 	gorm.Model
-	ID          uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
-	UserID      uuid.UUID `gorm:"type:uuid"`
-	User        User
-	Active      bool // i.e. only show current active bench
-	Public      bool
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	Modules     []BenchModule
-	Name        string
-	Description string
+	ID          uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()" schema:"-"`
+	UserID      uuid.UUID     `gorm:"type:uuid" schema:"-"`
+	User        User          `schema:"-"`
+	Active      bool          `schema:"active"` // i.e. only show current active bench
+	Public      bool          `schema:"public"`
+	CreatedAt   time.Time     `schema:"-"`
+	UpdatedAt   time.Time     `schema:"-"`
+	Modules     []BenchModule `schema:"-"`
+	Name        string        `schema:"name,required"`
+	Description string        `schema:"description"`
 }
 
 // MarshalZerologObject provides the object representation for logging

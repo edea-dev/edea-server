@@ -12,7 +12,7 @@ type Module struct {
 	ID          uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
 	UserID      uuid.UUID `gorm:"type:uuid"`
 	User        User
-	Private     bool   `schema:"private,required"`
+	Private     bool   `gorm:"default:false" schema:"private"`
 	RepoURL     string `schema:"repourl,required"`
 	Name        string `schema:"name,required"`
 	Description string `schema:"description"`

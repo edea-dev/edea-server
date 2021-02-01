@@ -6,9 +6,15 @@ Template: index.tmpl
 
 ## Let's add some details and we'll get you all set up :3
 
+{{if .Error}}
+<p>Error: {{.Error}}</p>
+{{end}}
+
 <form action="/module/new" id="moduleform" method="post">
     <label for="name">Module Name</label><br>
     <input type="text" id="name" name="name" size="50" value=""><br><br>
+    <label for="private">Hide from other users?</label><br>
+    <input type="checkbox" id="private" name="private"><br><br>
     <label for="url">Repository URL</label><br>
     <input type="url" id="url" name="repourl" placeholder="https://github.com/..." size="50" value=""><br><br>
     <label for="description">Description</label><br>

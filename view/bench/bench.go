@@ -38,8 +38,15 @@ func View(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// get the bench author name
+	mup := model.Profile{UserID: bench.UserID}
+
+	if result := model.DB.Where(&mup).First(&mup); result.Error != nil {
+		log.Error().Err(result.Error).Msgf("could not fetch bench author profile for user_id %s", bench.UserID)
+	}
+
 	// try to fetch the bench, TODO: join with modules
-	result := model.DB.Where("id = ? and (private = false or user_id = ?)", benchID, user.ID).First(bench)
+	result := model.DB.Preload("Modules").Where("id = ? and (public = true or user_id = ?)", benchID, user.ID).First(bench)
 	if result.Error != nil {
 		log.Panic().Err(result.Error).Msgf("could not get the bench")
 	}
@@ -57,9 +64,10 @@ func View(w http.ResponseWriter, r *http.Request) {
 
 	// all packed up,
 	m := map[string]interface{}{
-		"Bench": bench,
-		"User":  user,
-		"Error": nil,
+		"Bench":  bench,
+		"User":   user,
+		"Author": mup.DisplayName,
+		"Error":  nil,
 	}
 
 	// and ready to go
@@ -69,18 +77,18 @@ func View(w http.ResponseWriter, r *http.Request) {
 // SetActive sets the requested bench as active and inactivates all the others
 func SetActive(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		view.RenderErr(r.Context(), w, "bench/new.md", err)
+		view.RenderErr(r.Context(), w, "bench/view.md", err)
 		return
 	}
 
 	bench := new(model.Bench)
 	if err := util.FormDecoder.Decode(bench, r.Form); err != nil {
-		view.RenderErr(r.Context(), w, "bench/new.md", err)
+		view.RenderErr(r.Context(), w, "bench/view.md", err)
 		return
 	}
 
 	// set other benches as inactive, activate the requested one
-	tx := model.DB.WithContext(r.Context())
+	tx := model.DB.WithContext(r.Context()).Begin()
 
 	tx.Model(bench).Where("user_id = ? and active = true", bench.User.ID).Update("active", false)
 	tx.Where(bench).Update("active", true)
@@ -106,6 +114,8 @@ func Fork(w http.ResponseWriter, r *http.Request) {
 
 // Create inserts a new bench
 func Create(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(util.UserContextKey).(*model.User)
+
 	if err := r.ParseForm(); err != nil {
 		view.RenderErr(r.Context(), w, "bench/new.md", err)
 		return
@@ -119,9 +129,10 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 	bench.ID = uuid.Nil // prevent the client setting an id
 	bench.Active = true
+	bench.UserID = user.ID
 
 	// set other benches as inactive, activate the requested one
-	tx := model.DB.WithContext(r.Context())
+	tx := model.DB.WithContext(r.Context()).Begin()
 
 	tx.Model(bench).Where("user_id = ? and active = true", bench.User.ID).Update("active", false)
 	tx.Create(bench)
@@ -171,5 +182,5 @@ func New(w http.ResponseWriter, r *http.Request) {
 		"User": user,
 	}
 
-	view.RenderMarkdown("module/new.md", data, w)
+	view.RenderMarkdown("bench/new.md", data, w)
 }

@@ -57,7 +57,7 @@ func InitMockAuth() *MockAuth {
 				log.Panic().Err(err).Msg("could not generate private key")
 			}
 
-			priv := jose.JSONWebKey{Key: privKey, Algorithm: "ES256", Use: "sig"}
+			priv = jose.JSONWebKey{Key: privKey, Algorithm: "ES256", Use: "sig"}
 
 			// Generate a canonical kid based on RFC 7638
 			thumb, err := priv.Thumbprint(crypto.SHA256)
@@ -82,8 +82,6 @@ func InitMockAuth() *MockAuth {
 				Priv   jose.JSONWebKey
 				KeySet jose.JSONWebKeySet
 			}{priv, *keySet}
-
-			priv = s.Priv
 
 			if err := enc.Encode(s); err != nil {
 				log.Fatal().Err(err).Msg("could not encode jwks to json")

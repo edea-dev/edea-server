@@ -17,9 +17,7 @@ import (
 func Explore(w http.ResponseWriter, r *http.Request) {
 	var p []model.Module
 
-	result := model.DB.Order("id ASC").
-		Limit(10).
-		Find(&p)
+	result := model.DB.Order("id ASC").Limit(10).Find(&p)
 	if result.Error != nil {
 		log.Panic().Err(result.Error).Msg("could not fetch modules")
 	}

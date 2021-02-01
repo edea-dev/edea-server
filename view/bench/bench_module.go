@@ -27,7 +27,7 @@ func AddModule(w http.ResponseWriter, r *http.Request) {
 	module := new(model.Module)
 
 	// get the module by id but also check if it belongs to the user requesting it in case its a private module
-	result := model.DB.Where("id = ? and (user_id = ? or private = false)", module.ID, user.ID).Find(module)
+	result := model.DB.Where("id = ? and (user_id = ? or private = false)", moduleID, user.ID).Find(module)
 	if result.Error != nil {
 		view.RenderErr(r.Context(), w, "module/add_err.md", util.ErrNoSuchModule)
 		return
@@ -47,7 +47,7 @@ func AddModule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	benchModule := &model.BenchModule{Bench: model.Bench{ID: bench.ID}, Module: model.Module{ID: module.ID}, Name: module.Name}
+	benchModule := &model.BenchModule{BenchID: bench.ID, ModuleID: module.ID, Name: module.Name}
 
 	result = model.DB.Create(benchModule)
 	if result.Error != nil {
