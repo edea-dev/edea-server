@@ -1,6 +1,7 @@
 package bench
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 	"gitlab.com/edea-dev/edea/backend/model"
 	"gitlab.com/edea-dev/edea/backend/util"
 	"gitlab.com/edea-dev/edea/backend/view"
+	"gorm.io/gorm"
 )
 
 // View a Bench
@@ -46,7 +48,7 @@ func View(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// try to fetch the bench, TODO: join with modules
-	result := model.DB.Preload("Modules").Where("id = ? and (public = true or user_id = ?)", benchID, user.ID).First(bench)
+	result := model.DB.Where("id = ? and (public = true or user_id = ?)", benchID, user.ID).First(bench)
 	if result.Error != nil {
 		log.Panic().Err(result.Error).Msgf("could not get the bench")
 	}
@@ -183,4 +185,54 @@ func New(w http.ResponseWriter, r *http.Request) {
 	}
 
 	view.RenderMarkdown("bench/new.md", data, w)
+}
+
+// Current redirects to the users active bench
+func Current(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(util.UserContextKey).(*model.User)
+
+	bench := new(model.Bench)
+
+	result := model.DB.WithContext(r.Context()).Where("user_id = ? and active = true", user.ID).Find(bench)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			http.Redirect(w, r, "/bench/list", http.StatusSeeOther)
+		} else {
+			log.Panic().Err(result.Error).Msg("could not create a new bench")
+		}
+	}
+
+	// redirect to newly created module page
+	http.Redirect(w, r, fmt.Sprintf("/bench/%s", bench.ID), http.StatusSeeOther)
+}
+
+// ListUser lists all Benches belonging to a User
+func ListUser(w http.ResponseWriter, r *http.Request) {
+	user := view.CurrentUser(r)
+	var benches []model.Bench
+
+	// check if we even have a module id
+
+	if user != nil {
+		result := model.DB.Where("user_id = ?", user.ID).Find(&benches)
+		if result.Error != nil {
+			view.RenderErr(r.Context(), w, "bench/404.md", result.Error)
+			return
+		}
+	} else {
+		// a user must be logged in to see their own benches
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	// all packed up,
+	m := map[string]interface{}{
+		"Benches": benches,
+		"User":    user,
+		"Error":   nil,
+	}
+
+	// and ready to go
+	view.RenderMarkdown("bench/list_user.md", m, w)
 }

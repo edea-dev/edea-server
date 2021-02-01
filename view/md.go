@@ -100,6 +100,11 @@ func RenderMarkdown(fn string, data map[string]interface{}, w io.Writer) {
 		log.Panic().Err(err).Msgf("could not read template file referenced in markdown: %v", err)
 	}
 
+	navbarTmpl, err := ioutil.ReadFile(fmt.Sprintf("%s%s", tmplPath, "navbar.tmpl"))
+	if err != nil {
+		log.Panic().Err(err).Msgf("could not read navbar template file: %v", err)
+	}
+
 	metaData["Body"] = buf.String()
 	metaData["Dev"] = true
 
@@ -109,9 +114,12 @@ func RenderMarkdown(fn string, data map[string]interface{}, w io.Writer) {
 
 	sb := new(strings.Builder)
 
+	// parse navbar
+	t := template.Must(template.New("navbar").Parse(string(navbarTmpl)))
+
 	// first pass, render markdown into outer template
-	t1 := template.Must(template.New("pass1").Parse(string(tmpl)))
-	if err := t1.Execute(sb, metaData); err != nil {
+	t = template.Must(t.New("pass1").Parse(string(tmpl)))
+	if err := t.Execute(sb, metaData); err != nil {
 		log.Panic().Err(err).Msg("failed at first pass")
 	}
 

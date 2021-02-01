@@ -25,6 +25,7 @@ func routes(r *mux.Router, provider auth.Provider) {
 	r.Handle("/module/{id}", auth.Middleware(http.HandlerFunc(module.Update))).Methods("POST") // view new module or adjust params
 	r.Handle("/module/{id}", auth.Middleware(http.HandlerFunc(module.View))).Methods("GET")    // view module
 
+	r.Handle("/bench/current", auth.Middleware(http.HandlerFunc(bench.Current))).Methods("GET")    // view current bench
 	r.Handle("/bench/new", auth.Middleware(http.HandlerFunc(bench.New))).Methods("GET")            // new bench form
 	r.Handle("/bench/new", auth.Middleware(http.HandlerFunc(bench.Create))).Methods("POST")        // add a new bench
 	r.Handle("/bench/{id}", auth.Middleware(http.HandlerFunc(bench.Update))).Methods("POST")       // update a bench
