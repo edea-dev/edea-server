@@ -14,14 +14,21 @@
 </head>
 
 <body>
-	{{template "navbar"}}
+	{{template "navbar" .}}
 	<main class="container">
 		{{.Body}}
+		{{if .Modules}}
+		<div class="container">
+			<p>Modules</p>
+			<hr>
 		{{range .Modules}}
-		<p><a href="/module/{{.Module.ID}}">{{.Module.Name}}</a></p>
-		<p><a href="{{.RepoURL}}">{{.Module.RepoURL}}</a></p>
-		<p>{{.Module.Description}}</p>
-		<hr>
+		<div class="container">
+				<p><a href="/module/{{.Module.ID}}">{{.Module.Name}}</a></p>
+				<p><a href="{{.Module.RepoURL}}">{{.Module.RepoURL}}</a></p>
+				<p>{{.Module.Description}}</p>
+		</div>
+		{{end}}
+		</div>
 		{{end}}
 	</main>
 </body>

@@ -60,16 +60,22 @@ func View(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// load further information?
+	// load further information
+	var benchMods []model.BenchModule
+	result = model.DB.Preload("Module").Where("bench_id = ?", benchID).Find(&benchMods)
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msgf("could not get the bench modules")
+	}
 
 	// get bench macro parameters (future)
 
 	// all packed up,
 	m := map[string]interface{}{
-		"Bench":  bench,
-		"User":   user,
-		"Author": mup.DisplayName,
-		"Error":  nil,
+		"Bench":   bench,
+		"User":    user,
+		"Modules": benchMods,
+		"Author":  mup.DisplayName,
+		"Error":   nil,
 	}
 
 	// and ready to go
