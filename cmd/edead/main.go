@@ -13,7 +13,6 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend/config"
-	"gitlab.com/edea-dev/edea/backend/model"
 	"gitlab.com/edea-dev/edea/backend/repo"
 )
 
@@ -34,12 +33,10 @@ func main() {
 	middleware(r)
 
 	// start embedded postgres DB
-	postgres := db()
-	if postgres == nil {
+	err := db()
+	if err != nil {
 		os.Exit(1)
 	}
-
-	defer model.DB.Close()
 
 	// log.Info().Interface("config", config.Cfg)
 	repo.InitCache(config.Cfg.Cache.Repo.Base)
@@ -70,10 +67,6 @@ func main() {
 
 	// Block until we receive our signal.
 	<-c
-
-	if err := postgres.Stop(); err != nil {
-		log.Error().Err(err).Msg("could not stop embedded postgres")
-	}
 
 	// Create a deadline to wait for.
 	ctx, cancel := context.WithTimeout(context.Background(), wait)

@@ -12,6 +12,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend/model"
+	"gorm.io/gorm"
 )
 
 /*
@@ -135,22 +136,22 @@ func (c *RepoCache) Add(url string) (err error) {
 	}
 
 	now := time.Now().UTC()
-	r := &model.Repository{URL: url, Location: path, Created: now, Updated: now, Type: "git"}
-	_, err = model.DB.Model(r).Insert()
-	return err
+	r := &model.Repository{URL: url, Location: path, CreatedAt: now, UpdatedAt: now, Type: "git"}
+	result := model.DB.Create(r)
+	return result.Error
 }
 
 // Has returns true if the repository is already cached
 func (c *RepoCache) Has(url string) (found bool, err error) {
 	r := &model.Repository{URL: url}
 
-	err = model.DB.Model(r).Where("URL = ?", url).Select()
-	if err != nil && err.Error() == "pg: no rows in result set" {
-		return false, nil
-	}
-	if r.ID != "" {
-		found = true
+	result := model.DB.Model(r).Where(r).Find(r)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, result.Error
 	}
 
-	return
+	return true, nil
 }

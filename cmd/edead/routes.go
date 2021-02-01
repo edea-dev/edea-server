@@ -17,19 +17,19 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func routes(r *mux.Router, provider auth.Provider) {
-	r.HandleFunc("/", view.Markdown("index.md"))                // index
-	r.HandleFunc("/about", view.Markdown("about.md"))           // about EDeA
-	r.HandleFunc("/explore", module.Explore)                    // explore modules
-	r.HandleFunc("/module/new", module.New).Methods("GET")      // new module page
-	r.HandleFunc("/module/new", module.Create).Methods("POST")  // add new module
-	r.HandleFunc("/module/{id}", module.Update).Methods("POST") // view new module or adjust params
-	r.HandleFunc("/module/{id}", module.View).Methods("GET")    // view module
+	r.HandleFunc("/", view.Markdown("index.md"))                                               // index
+	r.HandleFunc("/about", view.Markdown("about.md"))                                          // about EDeA
+	r.HandleFunc("/explore", module.Explore)                                                   // explore modules
+	r.Handle("/module/new", auth.Middleware(http.HandlerFunc(module.New))).Methods("GET")      // new module page
+	r.Handle("/module/new", auth.Middleware(http.HandlerFunc(module.Create))).Methods("POST")  // add new module
+	r.Handle("/module/{id}", auth.Middleware(http.HandlerFunc(module.Update))).Methods("POST") // view new module or adjust params
+	r.Handle("/module/{id}", auth.Middleware(http.HandlerFunc(module.View))).Methods("GET")    // view module
 
-	r.HandleFunc("/bench/new", bench.New).Methods("GET")            // new bench form
-	r.HandleFunc("/bench/new", bench.Create).Methods("POST")        // add a new bench
-	r.HandleFunc("/bench/{id}", bench.Update).Methods("POST")       // update a bench
-	r.HandleFunc("/bench/{id}", bench.View).Methods("GET")          // view a bench
-	r.HandleFunc("/bench/add/{id}", bench.AddModule).Methods("GET") // add a module to the active bench
+	r.Handle("/bench/new", auth.Middleware(http.HandlerFunc(bench.New))).Methods("GET")            // new bench form
+	r.Handle("/bench/new", auth.Middleware(http.HandlerFunc(bench.Create))).Methods("POST")        // add a new bench
+	r.Handle("/bench/{id}", auth.Middleware(http.HandlerFunc(bench.Update))).Methods("POST")       // update a bench
+	r.Handle("/bench/{id}", auth.Middleware(http.HandlerFunc(bench.View))).Methods("GET")          // view a bench
+	r.Handle("/bench/add/{id}", auth.Middleware(http.HandlerFunc(bench.AddModule))).Methods("GET") // add a module to the active bench
 
 	r.HandleFunc("/favicon.ico", faviconHandler)
 	r.HandleFunc("/debug/pprof/", pprof.Index)

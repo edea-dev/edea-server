@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edea/backend/auth"
+	"gitlab.com/edea-dev/edea/backend/model"
 )
 
 // REST returns a handler for the given model
@@ -25,9 +25,9 @@ func REST(m API) http.HandlerFunc {
 			var sub string
 
 			// some get methods require you to be logged in, check if we have a subject in the context
-			subValue := r.Context().Value(auth.ContextKey)
+			subValue := r.Context().Value(model.AuthContextKey)
 			if subValue != nil {
-				sub = subValue.(auth.Claims).Subject
+				sub = subValue.(model.AuthClaims).Subject
 			}
 
 			o, err := m.Get(v, sub)
@@ -44,7 +44,7 @@ func REST(m API) http.HandlerFunc {
 
 		// at this point we already know that the subject will be present
 		// due to the middleware authenticating the request
-		sub := r.Context().Value(auth.ContextKey).(auth.Claims).Subject
+		sub := r.Context().Value(model.AuthContextKey).(model.AuthClaims).Subject
 
 		// delete an object, we don't need to validate it first
 		if r.Method == http.MethodDelete {

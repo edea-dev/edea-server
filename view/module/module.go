@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend/model"
@@ -16,12 +17,11 @@ import (
 func Explore(w http.ResponseWriter, r *http.Request) {
 	var p []model.Module
 
-	err := model.DB.Model(&p).
-		OrderExpr("module.uuid ASC").
+	result := model.DB.Order("id ASC").
 		Limit(10).
-		Select()
-	if err != nil {
-		log.Panic().Err(err).Msg("could not fetch modules")
+		Find(&p)
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msg("could not fetch modules")
 	}
 
 	m := map[string]interface{}{
@@ -35,10 +35,10 @@ func Explore(w http.ResponseWriter, r *http.Request) {
 
 // New Module view
 func New(w http.ResponseWriter, r *http.Request) {
-	user := view.CurrentUser(r)
+	user := r.Context().Value(util.UserContextKey)
 
 	if user == nil {
-		log.Panic().Err(util.ErrImSorryDave).Msg("no can do")
+		log.Panic().Err(util.ErrImSorryDave).Msg("user not logged in")
 	}
 
 	data := map[string]interface{}{
@@ -50,6 +50,8 @@ func New(w http.ResponseWriter, r *http.Request) {
 
 // Create a new module
 func Create(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(util.UserContextKey).(*model.User)
+
 	if err := r.ParseForm(); err != nil {
 		view.RenderErr(r.Context(), w, "module/new.md", err)
 		return
@@ -61,23 +63,15 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value(util.UserContextKey).(model.User)
+	module.ID = uuid.Nil // prevent the client setting an id
+	module.UserID = user.ID
 
-	if module.UserID != user.ID {
-		if user.IsAdmin {
-			// TODO: admin changing stuff
-		} else {
-			view.RenderErr(r.Context(), w, "module/new.md", util.ErrImSorryDave)
-			return
-		}
+	result := model.DB.WithContext(r.Context()).Create(module)
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msg("could not create new module")
 	}
 
-	module.ID = "" // prevent the client setting an id
-
-	_, err := model.DB.Model(module).Insert()
-	if err != nil {
-		log.Panic().Err(err).Msg("could not update profile")
-	}
+	log.Info().Msg("redirecting to new module page")
 
 	// redirect to newly created module page
 	http.Redirect(w, r, fmt.Sprintf("/module/%s", module.ID), http.StatusSeeOther)
@@ -98,21 +92,28 @@ func View(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value(util.UserContextKey).(model.User)
+	user := r.Context().Value(util.UserContextKey).(*model.User)
 
 	// try to fetch the module
 	module := &model.Module{}
 
-	err := model.DB.Model(module).Where("id = ? and (private = false or user_id = ?)", moduleID, user.ID).Select()
-	if err != nil {
-		log.Panic().Err(err).Msgf("could not get the module: %v", err)
+	result := model.DB.Where("id = ? and (private = false or user_id = ?)", moduleID, user.ID).Find(module)
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msgf("could not get the module")
 	}
 
 	// nope, no module
-	if module.ID == "" {
+	if module.ID == uuid.Nil {
 		w.WriteHeader(http.StatusNotFound)
 		view.RenderMarkdown("module/404.md", nil, w)
 		return
+	}
+
+	// get the module author name
+	mup := model.Profile{UserID: module.UserID}
+
+	if result := model.DB.Where(&mup).First(&mup); result.Error != nil {
+		log.Error().Err(result.Error).Msgf("could not fetch module author profile for user_id %s", module.UserID)
 	}
 
 	// render the readme real quick
@@ -129,6 +130,7 @@ func View(w http.ResponseWriter, r *http.Request) {
 		"User":   user,
 		"Readme": readme,
 		"Error":  err,
+		"Author": mup.DisplayName,
 	}
 
 	// and ready to go
@@ -148,20 +150,9 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value(util.UserContextKey).(model.User)
-
-	if module.UserID != user.ID {
-		if user.IsAdmin {
-			// TODO: admin changing stuff
-		} else {
-			view.RenderErr(r.Context(), w, "user/profile.md", util.ErrImSorryDave)
-			return
-		}
-	}
-
-	_, err := model.DB.Model(module).Update()
-	if err != nil {
-		log.Panic().Err(err).Msg("could not update profile")
+	result := model.DB.WithContext(r.Context()).Save(module)
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msg("could not update profile")
 	}
 
 	// redirect to updated module page

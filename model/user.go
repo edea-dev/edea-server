@@ -1,11 +1,13 @@
 package model
 
 import (
+	"errors"
 	"time"
 
-	"github.com/go-pg/pg/v10"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 )
 
 // TODO: handle the case where we might want to link multiple users
@@ -14,33 +16,42 @@ import (
 
 // User mapping from IDs to the authentication provider data
 type User struct {
-	ID        string    `pg:"type:uuid,default:gen_random_uuid(),pk"`
-	AuthUUID  string    `pg:",unique,notnull"` // unique id from authentication provider
-	Handle    string    `pg:",unique"`         // user handle as it will be used in the url
-	Created   time.Time `pg:",default:now()"`  // creation date, automatically set to now
-	IsAdmin   bool      `pg:"type:boolean,default:false"`
-	ProfileID string    `pg:"type:uuid,notnull"`
-	Profile   *Profile  `pg:"rel:has-one"`
+	gorm.Model
+	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+	AuthUUID  string    `gorm:"unique"` // unique id from authentication provider
+	Handle    string    `gorm:"unique"` // user handle as it will be used in the url
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	IsAdmin   bool `gorm:"default:false"`
 }
 
 // MarshalZerologObject provides the object representation for logging
 func (u *User) MarshalZerologObject(e *zerolog.Event) {
-	e.Str("uuid", u.ID).
+	e.Str("uuid", u.ID.String()).
 		Str("auth_uuid", u.AuthUUID).
 		Str("handle", u.Handle).
-		Time("created", u.Created)
+		Time("created", u.CreatedAt)
+}
+
+// BeforeUpdate checks if the current user is allowed to do that
+func (u *User) BeforeUpdate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+
+	return isAuthorized(ctx, u.ID, u)
 }
 
 // UserExists returns true if a user with the given auth uuid exists
 func UserExists(authUUID string) bool {
 	u := User{AuthUUID: authUUID}
 
-	if err := DB.Model(&u).Select(); err != nil && err != pg.ErrNoRows {
-		log.Panic().Err(err).Msgf("could not get user")
+	result := DB.Model(&u).First(&u).Where(&u)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return false
+		}
+		log.Panic().Err(result.Error).Msgf("could not get user")
 	}
 
-	if u.ID == "" {
-		return false
-	}
 	return true
 }

@@ -6,7 +6,9 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -24,27 +26,73 @@ var (
 
 // InitMockAuth initialises a keyset and provides a new mock authenticator
 func InitMockAuth() *MockAuth {
+	var priv jose.JSONWebKey
+
 	if keySet == nil {
-		privKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-		if err != nil {
-			log.Panic().Err(err).Msg("could not generate private key")
+		// load existing keyset if it exists
+		info, err := os.Stat("mock-jwks.json")
+		if !os.IsNotExist(err) && !info.IsDir() {
+			s := struct {
+				Priv   jose.JSONWebKey
+				KeySet jose.JSONWebKeySet
+			}{}
+			f, err := os.Open("mock-jwks.json")
+			if err != nil {
+				log.Fatal().Err(err).Msg("could not read jwks from disk")
+			}
+			defer f.Close()
+			dec := json.NewDecoder(f)
+
+			if err := dec.Decode(&s); err != nil {
+				log.Fatal().Err(err).Msg("could not decode jwks from json")
+			}
+
+			priv = s.Priv
+			keySet = new(jose.JSONWebKeySet)
+			*keySet = s.KeySet
+		} else {
+			// or generate a new one if it doesn't
+			privKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+			if err != nil {
+				log.Panic().Err(err).Msg("could not generate private key")
+			}
+
+			priv := jose.JSONWebKey{Key: privKey, Algorithm: "ES256", Use: "sig"}
+
+			// Generate a canonical kid based on RFC 7638
+			thumb, err := priv.Thumbprint(crypto.SHA256)
+			if err != nil {
+				log.Panic().Err(err).Msg("unable to compute thumbprint")
+			}
+			priv.KeyID = base64.URLEncoding.EncodeToString(thumb)
+
+			// build our key set from the private key
+			keySet = &jose.JSONWebKeySet{Keys: []jose.JSONWebKey{priv.Public()}}
+
+			// write the keyset to disk so we can load it later on
+			f, err := os.Create("mock-jwks.json")
+			if err != nil {
+				log.Fatal().Err(err).Msg("could not save jwks to disk")
+			}
+			defer f.Close()
+			enc := json.NewEncoder(f)
+			enc.SetIndent("", "\t")
+
+			s := struct {
+				Priv   jose.JSONWebKey
+				KeySet jose.JSONWebKeySet
+			}{priv, *keySet}
+
+			priv = s.Priv
+
+			if err := enc.Encode(s); err != nil {
+				log.Fatal().Err(err).Msg("could not encode jwks to json")
+			}
 		}
-
-		priv := jose.JSONWebKey{Key: privKey, Algorithm: "ES256", Use: "sig"}
-
-		// Generate a canonical kid based on RFC 7638
-		thumb, err := priv.Thumbprint(crypto.SHA256)
-		if err != nil {
-			log.Panic().Err(err).Msg("unable to compute thumbprint")
-		}
-		priv.KeyID = base64.URLEncoding.EncodeToString(thumb)
-
-		// build our key set from the private key
-		keySet = &jose.JSONWebKeySet{Keys: []jose.JSONWebKey{priv.Public()}}
 
 		// build a signer from our private key
 		opt := (&jose.SignerOptions{}).WithType("JWT").WithHeader("kid", priv.KeyID)
-		mockSigner, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.ES256, Key: privKey}, opt)
+		mockSigner, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.ES256, Key: priv.Key}, opt)
 		if err != nil {
 			log.Panic().Err(err).Msg("could not create new signer")
 		}

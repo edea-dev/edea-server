@@ -1,13 +1,17 @@
 package model
 
 import (
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
+	"gorm.io/gorm"
 )
 
 // Profile data for Users
 type Profile struct {
-	ID          string `pg:"type:uuid,default:gen_random_uuid(),pk"`
-	UserID      string `pg:"type:uuid,fk"`
+	gorm.Model
+	ID          uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+	UserID      uuid.UUID `gorm:"type:uuid"`
+	User        User
 	DisplayName string `schema:"display_name,required"`
 	Location    string
 	Biography   string
@@ -16,5 +20,12 @@ type Profile struct {
 
 // MarshalZerologObject marshaller to log profile objects
 func (p *Profile) MarshalZerologObject(e *zerolog.Event) {
-	e.Str("profile_uuid", p.ID)
+	e.Str("profile_uuid", p.ID.String())
+}
+
+// BeforeUpdate checks if the current user is allowed to do that
+func (p *Profile) BeforeUpdate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+
+	return isAuthorized(ctx, p.UserID, p)
 }

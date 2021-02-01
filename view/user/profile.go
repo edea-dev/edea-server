@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edea/backend/auth"
 	"gitlab.com/edea-dev/edea/backend/model"
 	"gitlab.com/edea-dev/edea/backend/util"
 	"gitlab.com/edea-dev/edea/backend/view"
@@ -12,16 +11,23 @@ import (
 
 // Profile displays the user data
 func Profile(w http.ResponseWriter, r *http.Request) {
-	claims := r.Context().Value(auth.ContextKey).(auth.Claims)
+	claims := r.Context().Value(model.AuthContextKey).(model.AuthClaims)
 	u := model.User{AuthUUID: claims.Subject}
 
-	if err := model.DB.Model(&u).Column("user.*").Relation("Profile").Select(); err != nil {
-		log.Error().Err(err).Msgf("could not fetch user data for %s", claims.Subject)
+	if result := model.DB.First(&u); result.Error != nil {
+		log.Error().Err(result.Error).Msgf("could not fetch user data for %s", claims.Subject)
+	}
+
+	p := model.Profile{UserID: u.ID}
+
+	if result := model.DB.Where(&p).First(&p); result.Error != nil {
+		log.Error().Err(result.Error).Msgf("could not fetch user data for %s", claims.Subject)
 	}
 
 	// TODO: fetch profile data from cache, or more data to display
 	data := map[string]interface{}{
-		"User": u,
+		"User":    u,
+		"Profile": p,
 	}
 
 	view.RenderMarkdown("user/profile.md", data, w)
@@ -33,6 +39,8 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		view.RenderErr(r.Context(), w, "user/profile.md", err)
 		return
 	}
+	// update the id of the current user only
+	u := view.CurrentUser(r)
 
 	profile := new(model.Profile)
 	if err := util.FormDecoder.Decode(profile, r.Form); err != nil {
@@ -40,20 +48,11 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value(util.UserContextKey).(model.User)
+	profile.UserID = u.ID
 
-	if profile.UserID != user.ID {
-		if user.IsAdmin {
-			// TODO: admin changing stuff
-		} else {
-			view.RenderErr(r.Context(), w, "user/profile.md", util.ErrImSorryDave)
-			return
-		}
-	}
-
-	_, err := model.DB.Model(profile).Update()
-	if err != nil {
-		log.Panic().Err(err).Msg("could not update profile")
+	result := model.DB.WithContext(r.Context()).Save(profile)
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msg("could not update profile")
 	}
 
 	http.Redirect(w, r, "/profile", http.StatusSeeOther)

@@ -1,12 +1,12 @@
 ---
-Title: Project Name
+Title: Module Name
 Template: index.tmpl
 ---
-# {{.Project.Name}} by {{.Author}}
+# {{.Module.Name}} by {{.Author}}
 
-{{.Project.Description}}
+{{.Module.Description}}
 
-| [Repository]({{.Project.RepoURL}}) | [Add to Bench](/bench/add/{{.Project.UUID}}) |
+| [Repository]({{.Project.RepoURL}}) | [Add to Bench](/bench/add/{{.Module.UUID}}) |
 
 <div style="border: lightgray 0.1em; border-radius: 0.5em; border-style: solid; padding: 0 0.5em;">
 {{.Readme}}

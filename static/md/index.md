@@ -6,7 +6,7 @@ Template: index.tmpl
 ---
 # Welcome to the mkweb template
 
-- [New Project](/project/new)
+- [New Module](/module/new)
 - [Explore](/explore)
 - [About](/about)
 - [Login](/login)

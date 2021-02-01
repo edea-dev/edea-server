@@ -3,14 +3,13 @@ package repo
 import (
 	"os"
 	"testing"
-	"time"
 
-	epg "github.com/fergusstrange/embedded-postgres"
-	"github.com/go-pg/pg/v10"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend/config"
 	"gitlab.com/edea-dev/edea/backend/model"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var cfg config.Config
@@ -21,30 +20,12 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	postgres := epg.NewDatabase(epg.DefaultConfig().
-		Username("postgres").
-		Password("postgres").
-		Database("edea").
-		Version("12.3.0").
-		RuntimePath("./tmp").
-		Port(9877).
-		StartTimeout(45 * time.Second).
-		Locale("en_US.UTF-8"))
-	if err := postgres.Start(); err != nil {
-		log.Error().Err(err).Msg("could not start embedded postgres")
-		os.Exit(1)
-	}
-
 	// start connection pool
-	model.DB = pg.Connect(&pg.Options{
-		User:     "postgres",
-		Password: "postgres",
-		Database: "edea",
-		Addr:     "127.0.0.1:9877",
-	})
+	dsn := "host=192.168.0.2 user=edea password=edea dbname=edea port=5432 sslmode=disable"
+	model.DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
-	if _, err := model.DB.Exec("CREATE EXTENSION pgcrypto;"); err != nil {
-		log.Error().Err(err).Msg("failed to create pgcrypto extension")
+	if result := model.DB.Exec(`CREATE EXTENSION "uuid-ossp";`); result.Error != nil {
+		log.Error().Err(err).Msg("failed to create uuid-ossp extension")
 		os.Exit(1)
 	}
 
@@ -53,8 +34,6 @@ func TestMain(m *testing.M) {
 	cache = &RepoCache{Base: "./tmp/git"}
 
 	code := m.Run()
-
-	postgres.Stop()
 
 	os.Exit(code)
 }

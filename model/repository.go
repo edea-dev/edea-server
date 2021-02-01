@@ -1,13 +1,17 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // Repository model for the repo cache
 type Repository struct {
-	ID       string    `pg:"type:uuid,default:gen_random_uuid(),pk"`
-	URL      string    // fetch/clone URL
-	Type     string    // VCS type (e.g. git)
-	Location string    // filesystem path
-	Updated  time.Time // time of last fetch
-	Created  time.Time // entry added
+	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+	URL       string    // fetch/clone URL
+	Type      string    // VCS type (e.g. git)
+	Location  string    // filesystem path
+	UpdatedAt time.Time // time of last fetch
+	CreatedAt time.Time // entry added
 }

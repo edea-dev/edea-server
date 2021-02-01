@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-pg/pg/v10"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend/model"
@@ -23,9 +23,9 @@ func View(w http.ResponseWriter, r *http.Request) {
 	// check if we even have a module id
 	if benchID == "" {
 		if user != nil {
-			err := model.DB.Model(bench).Where("user_id = ? and active = true", user.ID).Select()
-			if err != nil {
-				view.RenderErr(r.Context(), w, "bench/404.md", err)
+			result := model.DB.Model(bench).Where("user_id = ? and active = true", user.ID).First(bench)
+			if result.Error != nil {
+				view.RenderErr(r.Context(), w, "bench/404.md", result.Error)
 				return
 			}
 		} else {
@@ -39,13 +39,13 @@ func View(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// try to fetch the bench, TODO: join with modules
-	err := model.DB.Model(bench).Where("id = ? and (private = false or user_id = ?)", benchID, user.ID).Select()
-	if err != nil {
-		log.Panic().Err(err).Msgf("could not get the bench: %v", err)
+	result := model.DB.Where("id = ? and (private = false or user_id = ?)", benchID, user.ID).First(bench)
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msgf("could not get the bench")
 	}
 
 	// nope, no bench
-	if bench.ID == "" {
+	if bench.ID == uuid.Nil {
 		w.WriteHeader(http.StatusNotFound)
 		view.RenderMarkdown("bench/404.md", nil, w)
 		return
@@ -59,7 +59,7 @@ func View(w http.ResponseWriter, r *http.Request) {
 	m := map[string]interface{}{
 		"Bench": bench,
 		"User":  user,
-		"Error": err,
+		"Error": nil,
 	}
 
 	// and ready to go
@@ -79,38 +79,17 @@ func SetActive(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value(util.UserContextKey).(model.User)
-	userID := user.ID
-
-	if bench.UserID != user.ID {
-		if user.IsAdmin {
-			// admin changing stuff
-			userID = bench.UserID
-		} else {
-			view.RenderErr(r.Context(), w, "bench/new.md", util.ErrImSorryDave)
-			return
-		}
-	}
-
 	// set other benches as inactive, activate the requested one
-	err := model.DB.RunInTransaction(r.Context(), func(tx *pg.Tx) error {
-		_, err := tx.Exec("update bench set active = false where user_id = ?", userID)
-		if err != nil {
-			return err
-		}
+	tx := model.DB.WithContext(r.Context())
 
-		res, err := tx.Exec("update bench set active = true where bench_id = ? and user_id = ?", bench.ID, userID)
-		if err != nil {
-			return err
-		}
-		if res.RowsAffected() != 1 {
-			return util.ErrNoSuchBench
-		}
-		return nil
-	})
+	tx.Model(bench).Where("user_id = ? and active = true", bench.User.ID).Update("active", false)
+	tx.Where(bench).Update("active", true)
 
-	if err != nil {
-		log.Panic().Err(err).Msg("could not update benches")
+	if tx.Error != nil {
+		log.Panic().Err(tx.Error).Msg("could not update benches")
+		tx.Rollback()
+	} else {
+		tx.Commit()
 	}
 
 	// redirect to the bench
@@ -138,33 +117,19 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value(util.UserContextKey).(model.User)
-
-	if bench.UserID != user.ID {
-		if user.IsAdmin {
-			// TODO: admin changing stuff
-		} else {
-			view.RenderErr(r.Context(), w, "bench/new.md", util.ErrImSorryDave)
-			return
-		}
-	}
-
-	bench.ID = "" // prevent the client setting an id
+	bench.ID = uuid.Nil // prevent the client setting an id
 	bench.Active = true
 
-	// set other benches as inactive
-	err := model.DB.RunInTransaction(r.Context(), func(tx *pg.Tx) error {
-		_, err := tx.Exec("update bench set active = false where user_id = ?", user.ID)
-		if err != nil {
-			return err
-		}
+	// set other benches as inactive, activate the requested one
+	tx := model.DB.WithContext(r.Context())
 
-		_, err = tx.Model(bench).Insert()
-		return err
-	})
+	tx.Model(bench).Where("user_id = ? and active = true", bench.User.ID).Update("active", false)
+	tx.Create(bench)
+	tx.Commit()
 
-	if err != nil {
-		log.Panic().Err(err).Msg("could not create a new bench")
+	if tx.Error != nil {
+		log.Panic().Err(tx.Error).Msg("could not create a new bench")
+		tx.Rollback()
 	}
 
 	// redirect to newly created module page
@@ -184,21 +149,10 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value(util.UserContextKey).(model.User)
-
-	if bench.UserID != user.ID {
-		if user.IsAdmin {
-			// TODO: admin is changing stuff
-		} else {
-			view.RenderErr(r.Context(), w, "bench/update.md", util.ErrImSorryDave)
-			return
-		}
-	}
-
 	// set other benches as inactive, activate the requested one
-	_, err := model.DB.Model(bench).Update()
-	if err != nil {
-		log.Panic().Err(err).Msg("could not update bench")
+	result := model.DB.Save(bench)
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msg("could not update bench")
 	}
 
 	// redirect to the bench

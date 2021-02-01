@@ -5,33 +5,37 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend/api"
-	"gitlab.com/edea-dev/edea/backend/auth"
 	"gitlab.com/edea-dev/edea/backend/model"
 	"gitlab.com/edea-dev/edea/backend/util"
 )
 
 // CurrentUser returns the full User object when logged in or nil otherwise
 func CurrentUser(r *http.Request) *model.User {
-	sub := CurrentSubject(r)
-
-	if sub == "" {
+	claims, ok := r.Context().Value(model.AuthContextKey).(model.AuthClaims)
+	if !ok {
 		return nil
 	}
 
-	var user = new(model.User)
-	*user = r.Context().Value(util.UserContextKey).(model.User)
-	return user
+	u := &model.User{AuthUUID: claims.Subject}
+
+	if result := model.DB.First(u); result.Error != nil {
+		log.Error().Err(result.Error).Msgf("could not fetch user data for %s", claims.Subject)
+		return nil
+	}
+
+	return u
 }
 
 // CurrentSubject fetches the JWT subject from the request context or returns an empty string if the request is unauthenticated
 func CurrentSubject(r *http.Request) string {
-	claimsValue := r.Context().Value(auth.ContextKey)
+	claimsValue := r.Context().Value(model.AuthContextKey)
 	if claimsValue == nil {
 		return ""
 	}
 
-	claims := claimsValue.(auth.Claims)
+	claims := claimsValue.(model.AuthClaims)
 	return claims.Subject
 }
 
@@ -96,7 +100,7 @@ func GetModel(r *http.Request, m api.API) (interface{}, error) {
 
 // RenderErr renders a page with error information
 func RenderErr(ctx context.Context, w http.ResponseWriter, tmpl string, err error) {
-	user := ctx.Value(util.UserContextKey).(model.User)
+	user := ctx.Value(util.UserContextKey).(*model.User)
 	data := map[string]interface{}{
 		"User":  user,
 		"Error": err.Error(),

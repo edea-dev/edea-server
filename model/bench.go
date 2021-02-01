@@ -3,23 +3,34 @@ package model
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
+	"gorm.io/gorm"
 )
 
 // Bench contains a number of modules with their configuration
 type Bench struct {
-	ID          string `pg:"type:uuid,default:gen_random_uuid(),pk"`
-	UserID      string `pg:"type:uuid,fk"`
-	User        *User  `pg:"rel:has-one"`
-	Active      bool   // i.e. only show current active bench
+	gorm.Model
+	ID          uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+	UserID      uuid.UUID `gorm:"type:uuid"`
+	User        User
+	Active      bool // i.e. only show current active bench
 	Public      bool
-	Created     time.Time      `pg:",default:now()"` // creation date, automatically set to now
-	Modules     []*BenchModule `pg:"many2many:bench_modules,join_fk:id"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	Modules     []BenchModule
 	Name        string
 	Description string
 }
 
 // MarshalZerologObject provides the object representation for logging
 func (b *Bench) MarshalZerologObject(e *zerolog.Event) {
-	e.Str("bench_uuid", b.ID)
+	e.Str("bench_uuid", b.ID.String())
+}
+
+// BeforeUpdate checks if the current user is allowed to do that
+func (b *Bench) BeforeUpdate(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+
+	return isAuthorized(ctx, b.User.ID, b)
 }
