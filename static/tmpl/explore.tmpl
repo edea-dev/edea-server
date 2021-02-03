@@ -1,22 +1,10 @@
-<!doctype html>
-<html class="no-js" lang="">
-
-<head>
-	<meta charset="utf-8">
-	<title>{{.Title}}</title>
-	<meta name="description" content="">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-
-	<link rel="stylesheet" href="css/normalize.css">
-	<link rel="stylesheet" href="css/main.css">
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
-	<meta name="theme-color" content="#fafafa">
-</head>
-
-<body>
-	{{template "navbar" .}}
-	<main class="container">
-		{{.Body}}
+{{template "header" .}}
+	<main role="main">
+	<div class="container" id="content">
+		<div class="jumbotron bg-gradient-secondary">
+			<h1 class="mt-5">Explore modules made by our community</h1>
+			<p class="lead">What are you going to build today?</p>
+		</div>
 		{{range .Modules}}
 		<p><a href="/module/{{.ID}}">{{.Name}}</a> by {{.UserID}}</p>
 		<p><a href="{{.RepoURL}}">{{.RepoURL}}</a></p>
@@ -26,7 +14,6 @@
 		{{else}}
 		<p>Nothing to see here yet, go <a href="/module/new">create</a> something!</p>
 		{{end}}
+	</div>
 	</main>
-</body>
-
-</html>
+{{template "footer" .}}

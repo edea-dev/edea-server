@@ -30,13 +30,13 @@ func Profile(w http.ResponseWriter, r *http.Request) {
 		"Profile": p,
 	}
 
-	view.RenderMarkdown("user/profile.md", data, w)
+	view.RenderTemplate("profile.tmpl", data, w)
 }
 
 // UpdateProfile updates the user data
 func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		view.RenderErr(r.Context(), w, "user/profile.md", err)
+		view.RenderErrTemplate(r.Context(), w, "user/profile.tmpl", err)
 		return
 	}
 	// update the id of the current user only
@@ -44,7 +44,7 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 	profile := new(model.Profile)
 	if err := util.FormDecoder.Decode(profile, r.Form); err != nil {
-		view.RenderErr(r.Context(), w, "user/profile.md", err)
+		view.RenderErrTemplate(r.Context(), w, "user/profile.tmpl", err)
 		return
 	}
 

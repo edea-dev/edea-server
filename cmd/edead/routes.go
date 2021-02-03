@@ -17,8 +17,8 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func routes(r *mux.Router, provider auth.Provider) {
-	r.HandleFunc("/", view.Markdown("index.md"))                                               // index
-	r.HandleFunc("/about", view.Markdown("about.md"))                                          // about EDeA
+	r.HandleFunc("/", view.Template("index.tmpl"))                                             // index
+	r.HandleFunc("/about", view.Template("about.tmpl"))                                        // about EDeA
 	r.HandleFunc("/explore", module.Explore)                                                   // explore modules
 	r.Handle("/module/new", auth.Middleware(http.HandlerFunc(module.New))).Methods("GET")      // new module page
 	r.Handle("/module/new", auth.Middleware(http.HandlerFunc(module.Create))).Methods("POST")  // add new module
@@ -47,6 +47,8 @@ func routes(r *mux.Router, provider auth.Provider) {
 	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("./static/css/"))))
 	r.PathPrefix("/js/").Handler(http.StripPrefix("/js/", http.FileServer(http.Dir("./static/js/"))))
 	r.PathPrefix("/img/").Handler(http.StripPrefix("/img/", http.FileServer(http.Dir("./static/img/"))))
+	r.PathPrefix("/fonts/").Handler(http.StripPrefix("/fonts/", http.FileServer(http.Dir("./static/fonts/"))))
+	r.PathPrefix("/icons/").Handler(http.StripPrefix("/icons/", http.FileServer(http.Dir("./static/icons/"))))
 
 	// TODO: let our IAP do that
 	r.Handle("/profile", auth.Middleware(http.HandlerFunc(user.Profile))).Methods("GET")

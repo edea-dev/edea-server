@@ -1,0 +1,51 @@
+{{template "header" .}}
+  <main role="main"> <!-- min-vh-100 is a hack to make footer stick below the screen. for some reason the standard way (mt-auto) did not work -->
+    <div class="container"  id="content">
+      <div class="jumbotron bg-primary text-white">
+        <h1 class="mt-5">Welcome {{ .Profile.DisplayName }}</h1>
+      </div>
+      <div class="row">
+        <div class="col-sm-12 col-lg-8 offset-lg-0 offset-xl-2 col-xl-6">
+
+        <form action="/profile" method="post">
+            <input type="hidden" id="id" name="id" value="{{ .Profile.ID }}">
+            <div class="row form-group">
+                <label class="col-sm-12 col-md-4 col-form-label" for="display_name">Display Name:</label>
+                <div class="col-sm-12 col-md-8">
+                    <input class="form-control" type="text" id="display_name" name="display_name" value="{{ .Profile.DisplayName }}">
+                </div>
+            </div>
+
+            <div class="row form-group">
+                <label class="col-sm-12 col-md-4 col-form-label" for="location">Location:</label>
+                <div class="col-sm-12 col-md-8">
+                    <input class="form-control" type="text" id="location" name="location" value="{{ .Profile.Location }}">
+                </div>
+            </div>
+
+            <div class="row form-group">
+                <label class="col-sm-12 col-md-4 col-form-label" for="biography">Biography:</label>
+                <div class="col-sm-12 col-md-8">
+                    <textarea class="form-control" type="text" id="biography" name="biography" >{{ .Profile.Biography }}</textarea>
+                </div>
+            </div>
+
+            <div class="row form-group">
+                <label class="col-sm-12 col-md-4 col-form-label" for="avatar">Avatar:</label>
+                <div class="col-sm-12 col-md-8">
+                    <input class="form-control" type="text" id="avatar" name="avatar" value="{{ .Profile.Avatar }}">
+                </div>
+            </div>
+
+            <div class="row form-group">
+                <div class="col-sm-12 col-md-8 offset-sm-0 offset-md-4">
+                  <button type="submit" class="btn btn-primary w-100">Submit</button>
+                </div>
+            </div>
+
+            </form>
+        </div>
+    </div>
+    </div>
+  </main>
+{{template "footer" .}}

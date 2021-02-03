@@ -2,6 +2,7 @@ package view
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -18,15 +19,17 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
+	"gitlab.com/edea-dev/edea/backend/model"
+	"gitlab.com/edea-dev/edea/backend/util"
 )
 
 // TODO: make it settings
 var (
 	markdown goldmark.Markdown
 	readmeMD goldmark.Markdown
-	mdPath   string = "./static/md/"
-	tmplPath string = "./static/tmpl/"
-	chroma   string = "monokai"
+	mdPath   = "./static/md/"
+	tmplPath = "./static/tmpl/"
+	chroma   = "monokai"
 
 	ErrNoTmplReference = errors.New("page template value is nil")
 )
@@ -146,4 +149,15 @@ func Markdown(page string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		RenderMarkdown(page, nil, w)
 	}
+}
+
+// RenderErrMarkdown renders a page with error information
+func RenderErrMarkdown(ctx context.Context, w http.ResponseWriter, tmpl string, err error) {
+	user := ctx.Value(util.UserContextKey).(*model.User)
+	data := map[string]interface{}{
+		"User":  user,
+		"Error": err.Error(),
+	}
+
+	RenderMarkdown(tmpl, data, w)
 }

@@ -27,7 +27,7 @@ func View(w http.ResponseWriter, r *http.Request) {
 		if user != nil {
 			result := model.DB.Model(bench).Where("user_id = ? and active = true", user.ID).First(bench)
 			if result.Error != nil {
-				view.RenderErr(r.Context(), w, "bench/404.md", result.Error)
+				view.RenderErrMarkdown(r.Context(), w, "bench/404.md", result.Error)
 				return
 			}
 		} else {
@@ -79,19 +79,19 @@ func View(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// and ready to go
-	view.RenderMarkdown("bench/view.md", m, w)
+	view.RenderTemplate("bench_view.tmpl", m, w)
 }
 
 // SetActive sets the requested bench as active and inactivates all the others
 func SetActive(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		view.RenderErr(r.Context(), w, "bench/view.md", err)
+		view.RenderErrMarkdown(r.Context(), w, "bench/view.md", err)
 		return
 	}
 
 	bench := new(model.Bench)
 	if err := util.FormDecoder.Decode(bench, r.Form); err != nil {
-		view.RenderErr(r.Context(), w, "bench/view.md", err)
+		view.RenderErrMarkdown(r.Context(), w, "bench/view.md", err)
 		return
 	}
 
@@ -125,13 +125,13 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(util.UserContextKey).(*model.User)
 
 	if err := r.ParseForm(); err != nil {
-		view.RenderErr(r.Context(), w, "bench/new.md", err)
+		view.RenderErrMarkdown(r.Context(), w, "bench/new.md", err)
 		return
 	}
 
 	bench := new(model.Bench)
 	if err := util.FormDecoder.Decode(bench, r.Form); err != nil {
-		view.RenderErr(r.Context(), w, "bench/new.md", err)
+		view.RenderErrMarkdown(r.Context(), w, "bench/new.md", err)
 		return
 	}
 
@@ -158,13 +158,13 @@ func Create(w http.ResponseWriter, r *http.Request) {
 // Update a bench
 func Update(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		view.RenderErr(r.Context(), w, "bench/update.md", err)
+		view.RenderErrMarkdown(r.Context(), w, "bench/update.md", err)
 		return
 	}
 
 	bench := new(model.Bench)
 	if err := util.FormDecoder.Decode(bench, r.Form); err != nil {
-		view.RenderErr(r.Context(), w, "bench/update.md", err)
+		view.RenderErrMarkdown(r.Context(), w, "bench/update.md", err)
 		return
 	}
 
@@ -223,7 +223,7 @@ func ListUser(w http.ResponseWriter, r *http.Request) {
 	if user != nil {
 		result := model.DB.Where("user_id = ?", user.ID).Find(&benches)
 		if result.Error != nil {
-			view.RenderErr(r.Context(), w, "bench/404.md", result.Error)
+			view.RenderErrMarkdown(r.Context(), w, "bench/404.md", result.Error)
 			return
 		}
 	} else {

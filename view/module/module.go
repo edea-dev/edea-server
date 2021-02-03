@@ -26,9 +26,7 @@ func Explore(w http.ResponseWriter, r *http.Request) {
 		"Modules": p,
 	}
 
-	log.Printf("%+v", m)
-
-	view.RenderMarkdown("explore.md", m, w)
+	view.RenderTemplate("explore.tmpl", m, w)
 }
 
 // New Module view
@@ -51,13 +49,13 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(util.UserContextKey).(*model.User)
 
 	if err := r.ParseForm(); err != nil {
-		view.RenderErr(r.Context(), w, "module/new.md", err)
+		view.RenderErrMarkdown(r.Context(), w, "module/new.md", err)
 		return
 	}
 
 	module := new(model.Module)
 	if err := util.FormDecoder.Decode(module, r.Form); err != nil {
-		view.RenderErr(r.Context(), w, "module/new.md", err)
+		view.RenderErrMarkdown(r.Context(), w, "module/new.md", err)
 		return
 	}
 
@@ -138,13 +136,13 @@ func View(w http.ResponseWriter, r *http.Request) {
 // Update a module and reload the page
 func Update(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		view.RenderErr(r.Context(), w, "module/view.md", err)
+		view.RenderErrMarkdown(r.Context(), w, "module/view.md", err)
 		return
 	}
 
 	module := new(model.Module)
 	if err := util.FormDecoder.Decode(module, r.Form); err != nil {
-		view.RenderErr(r.Context(), w, "module/view.md", err)
+		view.RenderErrMarkdown(r.Context(), w, "module/view.md", err)
 		return
 	}
 

@@ -1,14 +1,12 @@
 package view
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend/api"
 	"gitlab.com/edea-dev/edea/backend/model"
-	"gitlab.com/edea-dev/edea/backend/util"
 )
 
 // CurrentUser returns the full User object when logged in or nil otherwise
@@ -96,15 +94,4 @@ func GetModel(r *http.Request, m api.API) (interface{}, error) {
 		return nil, fmt.Errorf("could not update model: %w", err)
 	}
 	return o, nil
-}
-
-// RenderErr renders a page with error information
-func RenderErr(ctx context.Context, w http.ResponseWriter, tmpl string, err error) {
-	user := ctx.Value(util.UserContextKey).(*model.User)
-	data := map[string]interface{}{
-		"User":  user,
-		"Error": err.Error(),
-	}
-
-	RenderMarkdown(tmpl, data, w)
 }
