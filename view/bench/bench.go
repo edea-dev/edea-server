@@ -79,7 +79,7 @@ func View(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// and ready to go
-	view.RenderTemplate("bench_view.tmpl", m, w)
+	view.RenderTemplate("bench/view.tmpl", m, w)
 }
 
 // SetActive sets the requested bench as active and inactivates all the others

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
 	"text/template"
 
 	"github.com/rs/zerolog/log"
@@ -14,16 +15,24 @@ import (
 
 // RenderTemplate renders a go template
 func RenderTemplate(fn string, data map[string]interface{}, w io.Writer) {
-	tmplFile := fmt.Sprintf("%s%s", tmplPath, fn)
+	tmplFile := filepath.Join(tmplPath, fn)
 
 	data["Dev"] = true
 
 	// parse base templates
 	t := template.Must(template.ParseGlob(fmt.Sprintf("%s/fragments/*.tmpl", tmplPath)))
 
-	// read the template to render
-	t = template.Must(t.ParseFiles(tmplFile))
+	// parse the template to render separately and add it with the name given
+	// this is a workaround so that we don't end up with naming conflicts with
+	// templates in different folders.
+	// WARN: the fragments need to retain unique names though as we strip the folder
+	// 		 prefix of them. this would only lead to issues though if there is a naming
+	//		 conflict between the top folder and the fragments (both a page and fragment
+	//       named index.tmpl).
+	tp := template.Must(template.ParseFiles(tmplFile))
+	t.AddParseTree(fn, tp.Tree)
 
+	// run our template with the data to render and the fragments
 	if err := t.ExecuteTemplate(w, fn, data); err != nil {
 		log.Panic().Err(err).Msgf("failed to render template: %s", err)
 	}

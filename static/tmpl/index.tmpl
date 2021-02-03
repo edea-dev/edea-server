@@ -1,11 +1,13 @@
 {{template "header" .}}
   <main role="main"> <!-- min-vh-100 is a hack to make footer stick below the screen. for some reason the standard way (mt-auto) did not work -->
-    <div class="container"  id="content">
-      <div class="jumbotron bg-gradient-secondary">
+    <div class="container" id="content">
+      <div class="jumbotron bg-gradient-secondary d-none d-lg-block mb-2">
         <h1 class="mt-5">Welcome to EDeAhub</h1>
         <p class="lead">Your source for modular OSHW electronics.</p>
-      </div>
-      <p>Once it looks good, this can be used as default view.</p>
+	  </div>
+	  <div class="flex-row">
+		<p>Once it looks good, this can be used as default view.</p>
+	  </div>
     </div>
   </main>
 {{template "footer" .}}

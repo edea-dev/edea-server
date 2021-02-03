@@ -130,7 +130,7 @@ func View(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// and ready to go
-	view.RenderMarkdown("module/view.md", m, w)
+	view.RenderTemplate("module/view.tmpl", m, w)
 }
 
 // Update a module and reload the page

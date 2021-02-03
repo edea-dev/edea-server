@@ -31,6 +31,7 @@ func routes(r *mux.Router, provider auth.Provider) {
 	r.Handle("/bench/{id}", auth.Middleware(http.HandlerFunc(bench.Update))).Methods("POST")       // update a bench
 	r.Handle("/bench/{id}", auth.Middleware(http.HandlerFunc(bench.View))).Methods("GET")          // view a bench
 	r.Handle("/bench/add/{id}", auth.Middleware(http.HandlerFunc(bench.AddModule))).Methods("GET") // add a module to the active bench
+	r.Handle("/bench/remove/{id}", auth.Middleware(http.HandlerFunc(bench.RemoveModule))).Methods("GET")
 
 	r.HandleFunc("/favicon.ico", faviconHandler)
 	r.HandleFunc("/debug/pprof/", pprof.Index)
