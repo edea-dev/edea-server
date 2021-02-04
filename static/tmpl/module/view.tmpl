@@ -10,6 +10,9 @@
       <div class="flex-row d-flex justify-content-end pb-2">
         <a href="/bench/add/{{.Module.ID}}" role="button" class="btn btn-primary mr-2">Add to Bench</a>
         <a href="/bench/add_configure/{{.Module.ID}}" role="button" class="btn btn-secondary">Configure & Add</a>
+        {{if eq .Module.UserID .User.ID}}
+        <a href="/module/delete/{{.Module.ID}}" role="button" class="btn btn-danger ml-2">Delete</a>
+        {{end}}
       </div>
 
       <div class="flex-row">

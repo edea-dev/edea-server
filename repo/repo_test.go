@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 	dsn := "host=192.168.0.2 user=edea password=edea dbname=edea port=5432 sslmode=disable"
 	model.DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
-	if result := model.DB.Exec(`CREATE EXTENSION "uuid-ossp";`); result.Error != nil {
+	if result := model.DB.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`); result.Error != nil {
 		log.Error().Err(err).Msg("failed to create uuid-ossp extension")
 		os.Exit(1)
 	}

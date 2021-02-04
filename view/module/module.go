@@ -1,6 +1,7 @@
 package module
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -12,22 +13,6 @@ import (
 	"gitlab.com/edea-dev/edea/backend/util"
 	"gitlab.com/edea-dev/edea/backend/view"
 )
-
-// Explore modules page
-func Explore(w http.ResponseWriter, r *http.Request) {
-	var p []model.Module
-
-	result := model.DB.Order("id ASC").Limit(10).Find(&p)
-	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not fetch modules")
-	}
-
-	m := map[string]interface{}{
-		"Modules": p,
-	}
-
-	view.RenderTemplate("explore.tmpl", m, w)
-}
 
 // New Module view
 func New(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +26,7 @@ func New(w http.ResponseWriter, r *http.Request) {
 		"User": user,
 	}
 
-	view.RenderMarkdown("module/new.md", data, w)
+	view.RenderTemplate("module/new.tmpl", data, w)
 }
 
 // Create a new module
@@ -61,6 +46,11 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 	module.ID = uuid.Nil // prevent the client setting an id
 	module.UserID = user.ID
+
+	if err := repo.New(module.RepoURL); err != nil && !errors.Is(err, repo.ErrExists) {
+		// TODO: display nice error messages
+		log.Panic().Err(err).Msg("module: something went wrong fetching the repository")
+	}
 
 	result := model.DB.WithContext(r.Context()).Create(module)
 	if result.Error != nil {
@@ -148,9 +138,32 @@ func Update(w http.ResponseWriter, r *http.Request) {
 
 	result := model.DB.WithContext(r.Context()).Save(module)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not update profile")
+		log.Panic().Err(result.Error).Msg("could not update module")
 	}
 
 	// redirect to updated module page
 	http.Redirect(w, r, fmt.Sprintf("/module/%s", module.ID), http.StatusSeeOther)
+}
+
+// Delete a module and redirect to main page
+func Delete(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	moduleID := vars["id"]
+
+	// check if we even have a module id
+	if moduleID == "" {
+		msg := map[string]interface{}{
+			"Error": "Unfortunately you didn't give us much to work with, try again with a module id.",
+		}
+		w.WriteHeader(http.StatusNotFound)
+		view.RenderMarkdown("module/404.md", msg, w)
+		return
+	}
+
+	result := model.DB.WithContext(r.Context()).Delete(&model.Module{ID: uuid.MustParse(moduleID)})
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msg("could not delete module")
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/gitsight/go-vcsurl"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend/model"
 	"gorm.io/gorm"
@@ -135,8 +136,7 @@ func (c *RepoCache) Add(url string) (err error) {
 		}
 	}
 
-	now := time.Now().UTC()
-	r := &model.Repository{URL: url, Location: path, CreatedAt: now, UpdatedAt: now, Type: "git"}
+	r := &model.Repository{URL: url, Location: path, Type: "git"}
 	result := model.DB.Create(r)
 	return result.Error
 }
@@ -151,6 +151,8 @@ func (c *RepoCache) Has(url string) (found bool, err error) {
 			return false, nil
 		}
 		return false, result.Error
+	} else if r.ID == uuid.Nil {
+		return false, nil
 	}
 
 	return true, nil

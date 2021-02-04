@@ -39,11 +39,19 @@
 							<a href="#detail-module-{{.ID}}" class="list-group-item list-group-item-action" role="tab"
 								data-toggle="list" id="detail-module-1-list" aria-controls="detail-module-{{.ID}}">
 								<div class="d-flex w-100 justify-content-between">
+									{{if .Module.Name}}
 									<h5 class="mb-1">{{.Module.Name}}</h5>
 									<small>67 mm²</small>
+									{{else}}
+									<h5 class="mb-1">This module was removed by its author</h5>
+									{{end}}
 								</div>
+								{{if .Module.Name}}
 								<p class="mb-1">{{.Module.Description}}</p>
 								<small>by XY</small>
+								{{else}}
+								<p class="mb-1">Your configuration is still here until you can find a replacement or until you chose to remove this module.</p>
+								{{end}}
 							</a>
 							{{end}}
 						</div>

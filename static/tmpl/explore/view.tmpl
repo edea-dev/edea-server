@@ -1,0 +1,25 @@
+{{template "header" .}}
+	<main role="main">
+	<div class="container" id="content">
+		<div class="jumbotron bg-gradient-secondary">
+			<h1 class="mt-5">Explore modules made by our community</h1>
+		</div>
+		{{range .Modules}}
+		<div class="flex-row pb-2">
+			<div class="card">
+				<div class="card-header">
+					{{.Name}} by <a href="/explore/user/{{.UserID}}" class="card-link">{{.DisplayName}}</a>
+				</div>
+				<div class="card-body">
+					<p class="card-text">{{.Description}}</p>
+					<a href="/module/{{.ID}}" class="card-link">View</a>
+					<a href="{{.RepoURL}}" class="card-link">Repository</a>
+				</div>
+			</div>
+		</div>
+		{{else}}
+		<p>Nothing to see here yet, go <a href="/module/new">create</a> something!</p>
+		{{end}}
+	</div>
+	</main>
+{{template "footer" .}}

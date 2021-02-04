@@ -4,8 +4,8 @@
 
 Tasks for basic module functionality
 
-- Fix add module
-- Add delete module functionality
+- Add new module link
+- Add my modules link
 
 ## Bench
 
