@@ -13,6 +13,9 @@ Tasks for basic bench functions
 
 - Configure module function
 - Delete bench function
+- List user benches
+  - make bench active
+- New bench
 
 ## Login
 

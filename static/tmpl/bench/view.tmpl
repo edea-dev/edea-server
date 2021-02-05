@@ -7,6 +7,14 @@
 			<p class="lead">{{.Bench.Description}}</p>
 		</div>
 
+		<div class="flex-row d-flex justify-content-end pb-2">
+			<a href="/bench/add/{{.Module.ID}}" role="button" class="btn btn-primary">Fork</a>
+			{{if eq .Bench.UserID .User.ID}}
+			<a href="/bench/update/{{.Bench.ID}}" role="button" class="btn btn-secondary ml-2">Update</a>
+			<a href="/bench/delete/{{.Module.ID}}" role="button" class="btn btn-danger ml-2">Delete</a>
+			{{end}}
+		</div>
+
 		{{if gt (len .Modules) 0}}
 		<div class="row mt-2">
 			<div class="col-sm-12 col-md-6 mt-2">

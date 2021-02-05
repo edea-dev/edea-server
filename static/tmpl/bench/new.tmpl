@@ -1,0 +1,44 @@
+{{template "header" .}}
+<main role="main">
+    <!-- min-vh-100 is a hack to make footer stick below the screen. for some reason the standard way (mt-auto) did not work -->
+    <div class="container" id="content">
+        <div class="jumbotron bg-gradient-secondary d-none d-lg-block mb-2">
+            <h1 class="mt-5">Create a new Bench</h1>
+            <p class="lead">beep boop</p>
+        </div>
+        <div class="flex-row">
+            <form action="/bench/new" method="post" id="benchform">
+                <div class="mb-3">
+                    <label class="form-label" for="name">Bench Name</label>
+                    <input class="form-control" type="text" id="name" name="name"
+                        placeholder="My awesome environmental monitor" aria-describedby="nameHelpBlock">
+                    <div id="nameHelpBlock" class="form-text">
+                        Your project name if you already know what it's going to be called or just some keywords to help you quickly remember what it is about.
+                    </div>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input class="form-check-input" type="checkbox" id="public" name="public">
+                    <label class="form-check-label" for="public" aria-describedby="visibilityHelpBlock">Public</label>
+                    <div id="visibilityHelpBlock" class="form-text">
+                        Should your bench be visible to other users? You can always change the visibility setting later on too.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="description">Description</label>
+                    <textarea class="form-control" form="moduleform" type="text" id="description"
+                        name="description" aria-describedby="descriptionHelpBlock"></textarea>
+                    <div id="descriptionHelpBlock" class="form-text">
+                        A short (or long) description of what your bench does, or just notes to help you keep track of what you're building.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+{{template "footer" .}}

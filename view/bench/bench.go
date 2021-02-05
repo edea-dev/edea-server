@@ -113,7 +113,27 @@ func SetActive(w http.ResponseWriter, r *http.Request) {
 }
 
 func Delete(w http.ResponseWriter, r *http.Request) {
-	// Delete a bench
+	vars := mux.Vars(r)
+	benchID := vars["id"]
+	user := view.CurrentUser(r)
+
+	if benchID == "" {
+		view.RenderErrTemplate(r.Context(), w, "404.tmpl", fmt.Errorf(`no such bench: "%s"`, benchID))
+		return
+	}
+
+	if user == nil {
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		return
+	}
+
+	// before delete hook takes care of checking if the action is allowed
+	result := model.DB.Delete(&model.Bench{ID: uuid.MustParse(benchID)})
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msg("could not delete bench")
+	}
+
+	http.Redirect(w, r, "/bench/my", http.StatusTemporaryRedirect)
 }
 
 func Fork(w http.ResponseWriter, r *http.Request) {
@@ -190,7 +210,7 @@ func New(w http.ResponseWriter, r *http.Request) {
 		"User": user,
 	}
 
-	view.RenderMarkdown("bench/new.md", data, w)
+	view.RenderTemplate("bench/new.tmpl", data, w)
 }
 
 // Current redirects to the users active bench

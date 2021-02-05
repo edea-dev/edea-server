@@ -34,3 +34,10 @@ func (b *Bench) BeforeUpdate(tx *gorm.DB) (err error) {
 
 	return isAuthorized(ctx, b.User.ID, b)
 }
+
+// BeforeDelete checks if the current user is allowed to do that
+func (b *Bench) BeforeDelete(tx *gorm.DB) (err error) {
+	ctx := tx.Statement.Context
+
+	return isAuthorized(ctx, b.User.ID, b)
+}
