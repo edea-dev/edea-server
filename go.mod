@@ -22,7 +22,7 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/schema v1.2.0
-	github.com/gorilla/sessions v1.2.1
+	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/jackc/pgmock v0.0.0-20201204152224-4fe30f7445fd // indirect
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
@@ -33,7 +33,7 @@ require (
 	github.com/pquerna/cachecontrol v0.0.0-20201205024021-ac21108117ac // indirect
 	github.com/rs/zerolog v1.20.0
 	github.com/shopspring/decimal v1.2.0 // indirect
-	github.com/square/go-jose v2.5.1+incompatible
+	github.com/square/go-jose v2.5.1+incompatible // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	github.com/yuin/goldmark v1.3.1

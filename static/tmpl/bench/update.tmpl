@@ -18,8 +18,8 @@
                 </div>
 
                 <div class="mb-3 form-check">
-                    <input class="form-check-input" type="checkbox" id="public" name="public">
-                    <label class="form-check-label" for="public" aria-describedby="visibilityHelpBlock" {{if .Bench.Public}}checked{{end}}>Public</label>
+                    <input class="form-check-input" type="checkbox" id="public" name="public" {{if .Bench.Public}}checked{{end}}>
+                    <label class="form-check-label" for="public" aria-describedby="visibilityHelpBlock">Public</label>
                     <div id="visibilityHelpBlock" class="form-text">
                         Should your bench be visible to other users? You can always change the visibility setting later on too.
                     </div>

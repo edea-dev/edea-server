@@ -11,9 +11,13 @@ Tasks for basic module functionality
 
 Tasks for basic bench functions
 
+- Add Explore public benches
+
 ## Login
 
-- Add templates too
+- Integrate the login form in our website for a better experience
+- Integrate Kratos
+- Add logout button
 
 ## Merge tool integration
 

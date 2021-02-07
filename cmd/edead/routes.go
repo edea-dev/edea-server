@@ -18,29 +18,29 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func routes(r *mux.Router) {
-	r.HandleFunc("/", view.Template("index.tmpl"))                                                       // index
-	r.HandleFunc("/about", view.Template("about.tmpl"))                                                  // about EDeA
-	r.HandleFunc("/explore", module.Explore)                                                             // explore modules
-	r.Handle("/explore/user/{id}", auth.Middleware(http.HandlerFunc(module.ExploreUser))).Methods("GET") // view a users modules
+	r.HandleFunc("/", view.Template("index.tmpl"))                        // index
+	r.HandleFunc("/about", view.Template("about.tmpl"))                   // about EDeA
+	r.HandleFunc("/explore", module.Explore)                              // explore modules
+	r.HandleFunc("/explore/user/{id}", module.ExploreUser).Methods("GET") // view a users modules
 
-	r.Handle("/module/new", auth.Middleware(http.HandlerFunc(module.New))).Methods("GET")            // new module page
-	r.Handle("/module/new", auth.Middleware(http.HandlerFunc(module.Create))).Methods("POST")        // add new module
-	r.Handle("/module/{id}", auth.Middleware(http.HandlerFunc(module.Update))).Methods("POST")       // view new module or adjust params
-	r.Handle("/module/{id}", auth.Middleware(http.HandlerFunc(module.View))).Methods("GET")          // view module
-	r.Handle("/module/delete/{id}", auth.Middleware(http.HandlerFunc(module.Delete))).Methods("GET") // delete module
+	r.Handle("/module/new", auth.RequireAuth(http.HandlerFunc(module.New))).Methods("GET")            // new module page
+	r.Handle("/module/new", auth.RequireAuth(http.HandlerFunc(module.Create))).Methods("POST")        // add new module
+	r.Handle("/module/{id}", auth.RequireAuth(http.HandlerFunc(module.Update))).Methods("POST")       // view new module or adjust params
+	r.HandleFunc("/module/{id}", module.View).Methods("GET")                                          // view module
+	r.Handle("/module/delete/{id}", auth.RequireAuth(http.HandlerFunc(module.Delete))).Methods("GET") // delete module
 
-	r.Handle("/bench/current", auth.Middleware(http.HandlerFunc(bench.Current))).Methods("GET")          // view current bench
-	r.Handle("/bench/new", auth.Middleware(http.HandlerFunc(bench.New))).Methods("GET")                  // new bench form
-	r.Handle("/bench/new", auth.Middleware(http.HandlerFunc(bench.Create))).Methods("POST")              // add a new bench
-	r.Handle("/bench/{id}", auth.Middleware(http.HandlerFunc(bench.Update))).Methods("POST")             // update a bench
-	r.Handle("/bench/{id}", auth.Middleware(http.HandlerFunc(bench.View))).Methods("GET")                // view a bench
-	r.Handle("/bench/update/{id}", auth.Middleware(http.HandlerFunc(bench.ViewUpdate))).Methods("GET")   // view a bench
-	r.Handle("/bench/add/{id}", auth.Middleware(http.HandlerFunc(bench.AddModule))).Methods("GET")       // add a module to the active bench
-	r.Handle("/bench/remove/{id}", auth.Middleware(http.HandlerFunc(bench.RemoveModule))).Methods("GET") // remove module from workbench
-	r.Handle("/bench/delete/{id}", auth.Middleware(http.HandlerFunc(bench.Delete))).Methods("GET")       // delete the workbench
-	r.Handle("/bench/user/{id}", auth.Middleware(http.HandlerFunc(bench.ListUser))).Methods("GET")       // list workbenches of a specific user
-	r.Handle("/bench/fork/{id}", auth.Middleware(http.HandlerFunc(bench.Fork))).Methods("GET")           // fork a workbench
-	r.Handle("/bench/activate/{id}", auth.Middleware(http.HandlerFunc(bench.SetActive))).Methods("GET")  // set a workbench as active
+	r.Handle("/bench/current", auth.RequireAuth(http.HandlerFunc(bench.Current))).Methods("GET")          // view current bench
+	r.Handle("/bench/new", auth.RequireAuth(http.HandlerFunc(bench.New))).Methods("GET")                  // new bench form
+	r.Handle("/bench/new", auth.RequireAuth(http.HandlerFunc(bench.Create))).Methods("POST")              // add a new bench
+	r.Handle("/bench/{id}", auth.RequireAuth(http.HandlerFunc(bench.Update))).Methods("POST")             // update a bench
+	r.HandleFunc("/bench/{id}", bench.View).Methods("GET")                                                // view a bench
+	r.Handle("/bench/update/{id}", auth.RequireAuth(http.HandlerFunc(bench.ViewUpdate))).Methods("GET")   // view a bench
+	r.Handle("/bench/add/{id}", auth.RequireAuth(http.HandlerFunc(bench.AddModule))).Methods("GET")       // add a module to the active bench
+	r.Handle("/bench/remove/{id}", auth.RequireAuth(http.HandlerFunc(bench.RemoveModule))).Methods("GET") // remove module from workbench
+	r.Handle("/bench/delete/{id}", auth.RequireAuth(http.HandlerFunc(bench.Delete))).Methods("GET")       // delete the workbench
+	r.HandleFunc("/bench/user/{id}", bench.ListUser).Methods("GET")                                       // list workbenches of a specific user
+	r.Handle("/bench/fork/{id}", auth.RequireAuth(http.HandlerFunc(bench.Fork))).Methods("GET")           // fork a workbench
+	r.Handle("/bench/activate/{id}", auth.RequireAuth(http.HandlerFunc(bench.SetActive))).Methods("GET")  // set a workbench as active
 
 	r.HandleFunc("/favicon.ico", faviconHandler)
 	r.HandleFunc("/debug/pprof/", pprof.Index)
@@ -61,8 +61,8 @@ func routes(r *mux.Router) {
 	r.PathPrefix("/icons/").Handler(http.StripPrefix("/icons/", http.FileServer(http.Dir("./static/icons/"))))
 
 	// TODO: let our IAP do that
-	r.Handle("/profile", auth.Middleware(http.HandlerFunc(user.Profile))).Methods("GET")
-	r.Handle("/profile", auth.Middleware(http.HandlerFunc(user.UpdateProfile))).Methods("POST")
+	r.Handle("/profile", auth.RequireAuth(http.HandlerFunc(user.Profile))).Methods("GET")
+	r.Handle("/profile", auth.RequireAuth(http.HandlerFunc(user.UpdateProfile))).Methods("POST")
 
 	r.HandleFunc("/callback", auth.CallbackHandler)
 	r.HandleFunc("/logout_callback", auth.LogoutCallbackHandler)

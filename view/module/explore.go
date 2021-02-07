@@ -33,6 +33,8 @@ const exploreQuery = `
 func Explore(w http.ResponseWriter, r *http.Request) {
 	var p []ExploreModule
 
+	user := view.CurrentUser(r)
+
 	result := model.DB.Raw(exploreQuery).Scan(&p)
 	if result.Error != nil {
 		log.Panic().Err(result.Error).Msg("could not run explore query")
@@ -40,6 +42,7 @@ func Explore(w http.ResponseWriter, r *http.Request) {
 
 	m := map[string]interface{}{
 		"Modules": p,
+		"User":    user,
 	}
 
 	view.RenderTemplate("explore/view.tmpl", m, w)
