@@ -46,6 +46,7 @@ func isAuthorized(ctx context.Context, userID uuid.UUID, o zerolog.LogObjectMars
 	if u.IsAdmin {
 		log.Info().EmbedObject(o).Str("admin_auth_uuid", claims.Subject).Msg("information changed by admin")
 	} else if userID != u.ID {
+		log.Error().Msgf("user %s tried to change a model of %s", u.ID, userID)
 		return ErrUnauthorized
 	}
 

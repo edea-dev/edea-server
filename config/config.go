@@ -37,15 +37,14 @@ type Config struct {
 			Use  bool   `yaml:"use" envconfig:"USE_KRATOS"`
 			Host string `yaml:"host" envconfig:"KRATOS_HOST"`
 		} `yaml:"kratos"`
-		Auth0 struct {
-			Use           bool   `yaml:"use" envconfig:"USE_AUTH0"`
-			ProviderURL   string `yaml:"provider_url" envconfig:"AUTH0_PROVIDER_URL"`
-			ClientID      string `yaml:"client_id" envconfig:"AUTH0_CLIENT_ID"`
-			ClientSecret  string `yaml:"client_secret" envconfig:"AUTH0_CLIENT_SECRET"`
-			RedirectURL   string `yaml:"redirect_url" envconfig:"AUTH0_REDIRECT_URL"`
-			SessionSecret string `yaml:"session_secret" envconfig:"AUTH0_SESSION_SECRET"`
-		} `yaml:"auth0"`
-		JWKS string `yaml:"jwks" encvonfig:"AUTH_JWKS"`
+		OIDC struct {
+			ProviderURL   string `yaml:"provider_url" envconfig:"AUTH_PROVIDER_URL"`
+			ClientID      string `yaml:"client_id" envconfig:"AUTH_CLIENT_ID"`
+			ClientSecret  string `yaml:"client_secret" envconfig:"AUTH_CLIENT_SECRET"`
+			RedirectURL   string `yaml:"redirect_url" envconfig:"AUTH_REDIRECT_URL"`
+			SessionSecret string `yaml:"session_secret" envconfig:"AUTH_SESSION_SECRET"`
+		} `yaml:"oidc"`
+		UseMock bool `yaml:"use_mock" envconfig:"USE_AUTH_MOCK"`
 	} `yaml:"auth"`
 }
 

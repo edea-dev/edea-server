@@ -25,10 +25,8 @@ func main() {
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.Parse()
 
-	ap := initAuth()
-
 	r := mux.NewRouter()
-	routes(r, ap)
+	routes(r)
 	logger(r)
 	middleware(r)
 
@@ -59,6 +57,10 @@ func main() {
 			log.Print(err)
 		}
 	}()
+
+	// start out auth provider after the http server is running
+	// it needs the mock auth paths already available in case it is used
+	initAuth()
 
 	c := make(chan os.Signal, 1)
 	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)

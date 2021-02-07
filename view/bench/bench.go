@@ -14,8 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// View a Bench
-func View(w http.ResponseWriter, r *http.Request) {
+func viewHelper(tmpl string, w http.ResponseWriter, r *http.Request) {
 	// View the current active bench or another bench if a parameter is supplied
 	vars := mux.Vars(r)
 	benchID := vars["id"]
@@ -79,27 +78,34 @@ func View(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// and ready to go
-	view.RenderTemplate("bench/view.tmpl", m, w)
+	view.RenderTemplate(tmpl, m, w)
+}
+
+// View a Bench
+func View(w http.ResponseWriter, r *http.Request) {
+	viewHelper("bench/view.tmpl", w, r)
+}
+
+// ViewUpdate is the same as view but renders the update form for a bench
+func ViewUpdate(w http.ResponseWriter, r *http.Request) {
+	// TODO: implement authorization checks for even viewing this page
+	log.Info().Msg("ohai")
+	viewHelper("bench/update.tmpl", w, r)
 }
 
 // SetActive sets the requested bench as active and inactivates all the others
 func SetActive(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		view.RenderErrMarkdown(r.Context(), w, "bench/view.md", err)
-		return
-	}
+	vars := mux.Vars(r)
+	benchID := vars["id"]
+	user := view.CurrentUser(r)
 
-	bench := new(model.Bench)
-	if err := util.FormDecoder.Decode(bench, r.Form); err != nil {
-		view.RenderErrMarkdown(r.Context(), w, "bench/view.md", err)
-		return
-	}
+	// TODO: more error checking and input validation
 
 	// set other benches as inactive, activate the requested one
 	tx := model.DB.WithContext(r.Context()).Begin()
 
-	tx.Model(bench).Where("user_id = ? and active = true", bench.User.ID).Update("active", false)
-	tx.Where(bench).Update("active", true)
+	tx.Model(&model.Bench{}).Where("user_id = ? and active = true", user.ID).Update("active", false)
+	tx.Model(&model.Bench{}).Where("id = ? and user_id = ?", benchID, user.ID).Update("active", true)
 
 	if tx.Error != nil {
 		log.Panic().Err(tx.Error).Msg("could not update benches")
@@ -109,9 +115,10 @@ func SetActive(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// redirect to the bench
-	http.Redirect(w, r, fmt.Sprintf("/bench/%s", bench.ID), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/bench/%s", benchID), http.StatusSeeOther)
 }
 
+// Delete a bench
 func Delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	benchID := vars["id"]
@@ -127,8 +134,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// before delete hook takes care of checking if the action is allowed
-	result := model.DB.Delete(&model.Bench{ID: uuid.MustParse(benchID)})
+	result := model.DB.Where("user_id = ?", user.ID).Delete(&model.Bench{}, uuid.MustParse(benchID))
 	if result.Error != nil {
 		log.Panic().Err(result.Error).Msg("could not delete bench")
 	}
@@ -188,8 +194,10 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// set other benches as inactive, activate the requested one
-	result := model.DB.Save(bench)
+	log.Debug().Msgf("%+v", bench)
+
+	// make sure that we update only the fields a user should be able to change
+	result := model.DB.Model(bench).Select("Name", "Description", "Public").Updates(bench)
 	if result.Error != nil {
 		log.Panic().Err(result.Error).Msg("could not update bench")
 	}
@@ -235,30 +243,48 @@ func Current(w http.ResponseWriter, r *http.Request) {
 
 // ListUser lists all Benches belonging to a User
 func ListUser(w http.ResponseWriter, r *http.Request) {
-	user := view.CurrentUser(r)
+	var result *gorm.DB
 	var benches []model.Bench
 
-	// check if we even have a module id
+	vars := mux.Vars(r)
+	userID := vars["id"]
+	user := view.CurrentUser(r)
 
-	if user != nil {
-		result := model.DB.Where("user_id = ?", user.ID).Find(&benches)
-		if result.Error != nil {
-			view.RenderErrMarkdown(r.Context(), w, "bench/404.md", result.Error)
+	m := make(map[string]interface{})
+
+	if userID == "me" {
+		if user != nil {
+			// select a users own benches
+			result = model.DB.Where("user_id = ?", user.ID, userID).Find(&benches)
+		} else {
+			// a user must be logged in to see their own benches
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 	} else {
-		// a user must be logged in to see their own benches
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		// list another users public benches
+		uid := uuid.MustParse(userID)
+		mup := model.Profile{UserID: uid}
+
+		if result := model.DB.Where(&mup).First(&mup); result.Error != nil {
+			log.Error().Err(result.Error).Msgf("could not fetch bench author profile for user_id %s", uid)
+		}
+
+		m["Author"] = mup
+
+		result = model.DB.Where("user_id = ? and public = true", user.ID, userID).Find(&benches)
+	}
+
+	if result.Error != nil {
+		view.RenderErrMarkdown(r.Context(), w, "bench/404.md", result.Error)
 		return
 	}
 
 	// all packed up,
-	m := map[string]interface{}{
-		"Benches": benches,
-		"User":    user,
-		"Error":   nil,
-	}
+	m["Benches"] = benches
+	m["User"] = user
+	m["Error"] = nil
 
 	// and ready to go
-	view.RenderMarkdown("bench/list_user.md", m, w)
+	view.RenderTemplate("bench/list_user.tmpl", m, w)
 }

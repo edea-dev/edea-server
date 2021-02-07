@@ -1,0 +1,33 @@
+{{template "header" .}}
+	<main role="main">
+	<div class="container" id="content">
+		<div class="jumbotron bg-gradient-secondary">
+			{{if .Author}}
+			<h1 class="mt-5">Explore workbenches made by {{.Author.DisplayName}}</h1>
+			{{else}}
+			<h1 class="mt-5">My workbenches</h1>
+			{{end}}
+			<p class="lead">What are you going to build today?</p>
+		</div>
+		{{range .Benches}}
+		<div class="flex-row pb-2">
+			<div class="card">
+				<div class="card-header">
+					{{if .Public}}
+					{{icon "globe2"}}&nbsp;{{.Name}} <small class="text-muted">Public</small>
+					{{else}}
+					{{icon "lock-fill"}}&nbsp;{{.Name}} <small class="text-muted">Private</small>
+					{{end}}
+				</div>
+				<div class="card-body">
+					<p class="card-text">{{.Description}}</p>
+					<a href="/bench/{{.ID}}" class="card-link">View</a>
+				</div>
+			</div>
+		</div>
+		{{else}}
+		<p>Nothing to see here yet, go <a href="/bench/new">create</a> something!</p>
+		{{end}}
+	</div>
+	</main>
+{{template "footer" .}}

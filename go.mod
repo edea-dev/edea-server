@@ -1,6 +1,6 @@
 module gitlab.com/edea-dev/edea/backend
 
-go 1.15
+go 1.16
 
 require (
 	github.com/Microsoft/go-winio v0.4.16 // indirect
@@ -8,7 +8,8 @@ require (
 	github.com/alecthomas/colour v0.1.0 // indirect
 	github.com/alecthomas/repr v0.0.0-20201120212035-bb82daffcca2 // indirect
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
-	github.com/coreos/go-oidc v2.2.1+incompatible
+	github.com/coreos/go-oidc v2.2.1+incompatible // indirect
+	github.com/coreos/go-oidc/v3 v3.0.0
 	github.com/denisenkom/go-mssqldb v0.9.0 // indirect
 	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/gitsight/go-vcsurl v1.0.0
@@ -38,6 +39,7 @@ require (
 	github.com/yuin/goldmark v1.3.1
 	github.com/yuin/goldmark-highlighting v0.0.0-20200307114337-60d527fdb691
 	github.com/yuin/goldmark-meta v1.0.0
+	golang.org/dl v0.0.0-20210204224843-1557c60ec592 // indirect
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
 	golang.org/x/oauth2 v0.0.0-20210201163806-010130855d6c

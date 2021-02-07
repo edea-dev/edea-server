@@ -10,8 +10,13 @@
 		<div class="flex-row d-flex justify-content-end pb-2">
 			<a href="/bench/add/{{.Module.ID}}" role="button" class="btn btn-primary">Fork</a>
 			{{if eq .Bench.UserID .User.ID}}
+			{{if .Bench.Active}}
+			<a href="#" role="button" class="btn btn-success ml-2">Active</a>
+			{{else}}
+			<a href="/bench/activate/{{.Bench.ID}}" role="button" class="btn btn-info ml-2">Set Active</a>
+			{{end}}
 			<a href="/bench/update/{{.Bench.ID}}" role="button" class="btn btn-secondary ml-2">Update</a>
-			<a href="/bench/delete/{{.Module.ID}}" role="button" class="btn btn-danger ml-2">Delete</a>
+			<a href="/bench/delete/{{.Bench.ID}}" role="button" class="btn btn-danger ml-2">Delete</a>
 			{{end}}
 		</div>
 

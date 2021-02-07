@@ -14,10 +14,17 @@ cache:
     layout: ./tmp/pcb
 auth:
   kratos:
-  auth0:
-    use: false
+  oidc: # rename to oidc for auth0
+    use: true
     provider_url: ***REMOVED***
     client_id: ***REMOVED***
     client_secret: ***REMOVED***
     redirect_url: http://localhost:3000/callback
     session_secret: ***REMOVED***
+  mock_oidc: # rename to oidc to use mock auth
+    provider_url: http://localhost:3000/
+    client_id: ***REMOVED***
+    client_secret: ***REMOVED***
+    redirect_url: http://localhost:3000/callback
+    session_secret: ***REMOVED***
+  use_mock: false

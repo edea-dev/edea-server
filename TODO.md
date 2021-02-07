@@ -11,17 +11,15 @@ Tasks for basic module functionality
 
 Tasks for basic bench functions
 
-- Configure module function
-- Delete bench function
-- List user benches
-  - make bench active
-- New bench
-
 ## Login
 
-- Setup and test Auth0 integration
 - Add templates too
 
 ## Merge tool integration
 
 - Code to run the merge on modules specified in a bench
+
+### Plan
+
+1. use ID tokens for now
+2. implement a minimal OIDC server for mock auth

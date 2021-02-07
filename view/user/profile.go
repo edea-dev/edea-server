@@ -14,7 +14,7 @@ func Profile(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value(model.AuthContextKey).(model.AuthClaims)
 	u := model.User{AuthUUID: claims.Subject}
 
-	if result := model.DB.First(&u); result.Error != nil {
+	if result := model.DB.Where(&u).First(&u); result.Error != nil {
 		log.Error().Err(result.Error).Msgf("could not fetch user data for %s", claims.Subject)
 	}
 

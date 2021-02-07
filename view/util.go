@@ -18,7 +18,7 @@ func CurrentUser(r *http.Request) *model.User {
 
 	u := &model.User{AuthUUID: claims.Subject}
 
-	if result := model.DB.First(u); result.Error != nil {
+	if result := model.DB.Where(u).First(u); result.Error != nil {
 		log.Error().Err(result.Error).Msgf("could not fetch user data for %s", claims.Subject)
 		return nil
 	}

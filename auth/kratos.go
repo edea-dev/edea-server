@@ -57,17 +57,6 @@ func GetIdentity(id string) (error, *Identity) {
 	return err, i
 }
 
-func InitKratos() (*Kratos, error) {
-	return nil, fmt.Errorf("TODO")
-}
-
-func (k *Kratos) CallbackHandler(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func (k *Kratos) LoginHandler(w http.ResponseWriter, r *http.Request) {
-
-}
-func (k *Kratos) LogoutHandler(w http.ResponseWriter, r *http.Request) {
-
+func InitKratos() error {
+	return fmt.Errorf("TODO")
 }

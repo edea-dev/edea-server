@@ -41,10 +41,20 @@ func AddModule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: create a new bench in this case for convenience. a user should *usually* have a bench active
+	// create a new bench in this case for convenience. a user should *usually* have a bench active
 	if bench.ID == uuid.Nil {
-		view.RenderErrMarkdown(r.Context(), w, "module/add_err.md", util.ErrNoActiveBench)
-		return
+		bench.Active = true
+		bench.Name = "New Bench"
+		bench.UserID = user.ID
+
+		// set other benches as inactive, activate the requested one
+		result := model.DB.WithContext(r.Context()).Create(bench)
+
+		if result.Error != nil {
+			log.Panic().Err(result.Error).Msg("could not create a new bench")
+		}
+
+		log.Debug().Msgf("new bench: %+v", bench)
 	}
 
 	benchModule := &model.BenchModule{BenchID: bench.ID, ModuleID: module.ID, Name: module.Name}

@@ -44,7 +44,7 @@ func (u *User) BeforeUpdate(tx *gorm.DB) (err error) {
 func UserExists(authUUID string) bool {
 	u := User{AuthUUID: authUUID}
 
-	result := DB.Model(&u).First(&u).Where(&u)
+	result := DB.Model(&u).Where(&u).First(&u)
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {

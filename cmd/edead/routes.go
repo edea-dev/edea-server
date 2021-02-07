@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"gitlab.com/edea-dev/edea/backend/auth"
+	"gitlab.com/edea-dev/edea/backend/config"
 	"gitlab.com/edea-dev/edea/backend/view"
 	"gitlab.com/edea-dev/edea/backend/view/bench"
 	"gitlab.com/edea-dev/edea/backend/view/module"
@@ -16,7 +17,7 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./static/img/favicon.ico")
 }
 
-func routes(r *mux.Router, provider auth.Provider) {
+func routes(r *mux.Router) {
 	r.HandleFunc("/", view.Template("index.tmpl"))                                                       // index
 	r.HandleFunc("/about", view.Template("about.tmpl"))                                                  // about EDeA
 	r.HandleFunc("/explore", module.Explore)                                                             // explore modules
@@ -28,13 +29,18 @@ func routes(r *mux.Router, provider auth.Provider) {
 	r.Handle("/module/{id}", auth.Middleware(http.HandlerFunc(module.View))).Methods("GET")          // view module
 	r.Handle("/module/delete/{id}", auth.Middleware(http.HandlerFunc(module.Delete))).Methods("GET") // delete module
 
-	r.Handle("/bench/current", auth.Middleware(http.HandlerFunc(bench.Current))).Methods("GET")    // view current bench
-	r.Handle("/bench/new", auth.Middleware(http.HandlerFunc(bench.New))).Methods("GET")            // new bench form
-	r.Handle("/bench/new", auth.Middleware(http.HandlerFunc(bench.Create))).Methods("POST")        // add a new bench
-	r.Handle("/bench/{id}", auth.Middleware(http.HandlerFunc(bench.Update))).Methods("POST")       // update a bench
-	r.Handle("/bench/{id}", auth.Middleware(http.HandlerFunc(bench.View))).Methods("GET")          // view a bench
-	r.Handle("/bench/add/{id}", auth.Middleware(http.HandlerFunc(bench.AddModule))).Methods("GET") // add a module to the active bench
-	r.Handle("/bench/remove/{id}", auth.Middleware(http.HandlerFunc(bench.RemoveModule))).Methods("GET")
+	r.Handle("/bench/current", auth.Middleware(http.HandlerFunc(bench.Current))).Methods("GET")          // view current bench
+	r.Handle("/bench/new", auth.Middleware(http.HandlerFunc(bench.New))).Methods("GET")                  // new bench form
+	r.Handle("/bench/new", auth.Middleware(http.HandlerFunc(bench.Create))).Methods("POST")              // add a new bench
+	r.Handle("/bench/{id}", auth.Middleware(http.HandlerFunc(bench.Update))).Methods("POST")             // update a bench
+	r.Handle("/bench/{id}", auth.Middleware(http.HandlerFunc(bench.View))).Methods("GET")                // view a bench
+	r.Handle("/bench/update/{id}", auth.Middleware(http.HandlerFunc(bench.ViewUpdate))).Methods("GET")   // view a bench
+	r.Handle("/bench/add/{id}", auth.Middleware(http.HandlerFunc(bench.AddModule))).Methods("GET")       // add a module to the active bench
+	r.Handle("/bench/remove/{id}", auth.Middleware(http.HandlerFunc(bench.RemoveModule))).Methods("GET") // remove module from workbench
+	r.Handle("/bench/delete/{id}", auth.Middleware(http.HandlerFunc(bench.Delete))).Methods("GET")       // delete the workbench
+	r.Handle("/bench/user/{id}", auth.Middleware(http.HandlerFunc(bench.ListUser))).Methods("GET")       // list workbenches of a specific user
+	r.Handle("/bench/fork/{id}", auth.Middleware(http.HandlerFunc(bench.Fork))).Methods("GET")           // fork a workbench
+	r.Handle("/bench/activate/{id}", auth.Middleware(http.HandlerFunc(bench.SetActive))).Methods("GET")  // set a workbench as active
 
 	r.HandleFunc("/favicon.ico", faviconHandler)
 	r.HandleFunc("/debug/pprof/", pprof.Index)
@@ -58,7 +64,18 @@ func routes(r *mux.Router, provider auth.Provider) {
 	r.Handle("/profile", auth.Middleware(http.HandlerFunc(user.Profile))).Methods("GET")
 	r.Handle("/profile", auth.Middleware(http.HandlerFunc(user.UpdateProfile))).Methods("POST")
 
-	r.Handle("/callback", auth.Middleware(http.HandlerFunc(provider.CallbackHandler)))
-	r.HandleFunc("/login", provider.LoginHandler)
-	r.HandleFunc("/logout", provider.LogoutHandler)
+	r.HandleFunc("/callback", auth.CallbackHandler)
+	r.HandleFunc("/logout_callback", auth.LogoutCallbackHandler)
+	r.HandleFunc("/login", auth.LoginHandler)
+	r.HandleFunc("/logout", auth.LogoutHandler)
+
+	// the login action redirects to the OIDC provider, with mock auth we have to provide this ourselves
+	if config.Cfg.Auth.UseMock {
+		r.HandleFunc("/auth", auth.LoginFormHandler).Methods("GET")
+		r.HandleFunc("/auth", auth.LoginPostHandler).Methods("POST")
+		r.HandleFunc("/.well-known/openid-configuration", auth.WellKnown)
+		r.HandleFunc("/keys", auth.Keys)
+		r.HandleFunc("/userinfo", auth.Userinfo)
+		r.HandleFunc("/token", auth.Token).Methods("POST")
+	}
 }

@@ -2,16 +2,14 @@ package auth
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/rs/zerolog/log"
-	"github.com/square/go-jose/jwt"
 	"gitlab.com/edea-dev/edea/backend/model"
 	"gitlab.com/edea-dev/edea/backend/util"
-	"gopkg.in/square/go-jose.v2"
 )
 
 // Provider interface to be implemented by Identity Providers
@@ -19,10 +17,12 @@ type Provider interface {
 	CallbackHandler(w http.ResponseWriter, r *http.Request)
 	LoginHandler(w http.ResponseWriter, r *http.Request)
 	LogoutHandler(w http.ResponseWriter, r *http.Request)
+	LogoutCallbackHandler(w http.ResponseWriter, r *http.Request)
+	Init() error
 }
 
 var (
-	keySet *jose.JSONWebKeySet
+	verifier *oidc.IDTokenVerifier
 )
 
 // Middleware checks if there is a valid json web token in the request
@@ -46,18 +46,11 @@ func Middleware(next http.Handler) http.Handler {
 			raw = s.Value
 		}
 
-		tok, err := jwt.ParseSigned(raw)
-		if err != nil {
-			log.Panic().Err(err).Msg("could not parse jwt")
-		}
-
 		claims := model.AuthClaims{}
-		scopes := struct {
-			Scopes []string
-		}{}
 
 		// verify claims
-		if err := tok.Claims(keySet, &claims, &scopes); err != nil {
+		idToken, err := verifier.Verify(r.Context(), raw)
+		if err != nil {
 			log.Error().Err(err).Msgf("could not verify jwt")
 
 			// remove offending jwt cookie
@@ -72,6 +65,11 @@ func Middleware(next http.Handler) http.Handler {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Error verifying JWT token: " + err.Error()))
 			return
+		}
+
+		if err := idToken.Claims(&claims); err != nil {
+			// claims aren't there?
+			log.Panic().Err(err).Msg("TODO: id token is valid but does not have the necessary claims")
 		}
 
 		// get the current user object from the database
@@ -89,23 +87,15 @@ func Middleware(next http.Handler) http.Handler {
 	})
 }
 
-// InitJWKS unmarshals the keyset
-func InitJWKS(doc []byte) error {
-	return json.Unmarshal(doc, keySet)
-}
-
-func createUserIfNotExist(w http.ResponseWriter, r *http.Request) {
-	claims := r.Context().Value(model.AuthContextKey).(model.AuthClaims)
-	if model.UserExists(claims.Subject) {
-		log.Info().Msg("user already exists")
-		return
-	}
-
-	// create a new user in the database if they're logging in for the first time
-
+func createUser(claims *model.AuthClaims) {
 	u := model.User{
 		AuthUUID: claims.Subject,
-		Handle:   claims.Subject, // TODO: figure that one out. we need to handle that better (handle, get it?)
+		Handle:   claims.Subject,
+	}
+
+	// set
+	if claims.Nickname != "" {
+		u.Handle = claims.Nickname
 	}
 
 	if result := model.DB.Model(&u).Create(&u); result.Error != nil {
