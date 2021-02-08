@@ -9,9 +9,12 @@ Tasks for basic module functionality
 
 ## Bench
 
-Tasks for basic bench functions
+- Add new bench link
+- Add my benches link
 
-- Add Explore public benches
+## Bench Modules
+
+- Add edit function
 
 ## Login
 
@@ -22,8 +25,3 @@ Tasks for basic bench functions
 ## Merge tool integration
 
 - Code to run the merge on modules specified in a bench
-
-### Plan
-
-1. use ID tokens for now
-2. implement a minimal OIDC server for mock auth

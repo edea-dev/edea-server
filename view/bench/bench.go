@@ -180,15 +180,23 @@ func Fork(w http.ResponseWriter, r *http.Request) {
 	b.ID = uuid.Nil
 	b.UserID = user.ID
 	b.Public = false
+	b.Active = true
 
-	// create the new bench
-	if result := model.DB.Create(b); result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not create the new bench")
+	tx := model.DB.WithContext(r.Context()).Begin()
+
+	tx.Model(&model.Bench{}).Where("user_id = ? and active = true", user.ID).Update("active", false)
+	tx.Create(b)
+
+	if tx.Error != nil {
+		tx.Rollback()
+		log.Panic().Err(tx.Error).Msg("could not create the new benche")
+	} else {
+		tx.Commit()
 	}
 
 	var err error
 
-	tx := model.DB.Begin()
+	tx = model.DB.Begin()
 	for _, m := range benchMods {
 		m.ID = uuid.Nil
 		m.BenchID = b.ID
