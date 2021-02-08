@@ -8,7 +8,14 @@
 		<div class="flex-row pb-2">
 			<div class="card">
 				<div class="card-header">
-					{{.Name}} by <a href="/explore/user/{{.UserID}}" class="card-link">{{.DisplayName}}</a>
+					<div class="flex-row d-flex justify-content-between">
+						<div class="flex-col">
+							{{.Name}} by <a href="/explore/user/{{.UserID}}" class="card-link">{{.DisplayName}}</a>
+						</div>
+						<div class="flex-col">
+							<span class="badge bg-light">{{.Category}}</span>
+						</div>
+					</div>					
 				</div>
 				<div class="card-body">
 					<p class="card-text">{{.Description}}</p>

@@ -22,10 +22,11 @@ var DB *gorm.DB
 
 // CreateTables initially creates the tables in the database
 func CreateTables() {
-	err := DB.AutoMigrate(&User{}, &Profile{}, &Module{}, &Repository{}, &BenchModule{})
+	err := DB.AutoMigrate(&User{}, &Profile{}, &Module{}, &Repository{}, &BenchModule{}, &Category{}, &Bench{})
 	if err != nil {
 		log.Fatal().Err(err).Msgf("could not run automigrations")
 	}
+
 }
 
 func isAuthorized(ctx context.Context, userID uuid.UUID, o zerolog.LogObjectMarshaler) error {

@@ -19,13 +19,13 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(util.UserContextKey).(*model.User)
 
 	if err := r.ParseForm(); err != nil {
-		view.RenderErrMarkdown(r.Context(), w, "module/new.md", err)
+		view.RenderErrTemplate(r.Context(), w, "module/new.tmpl", err)
 		return
 	}
 
 	module := new(model.Module)
 	if err := util.FormDecoder.Decode(module, r.Form); err != nil {
-		view.RenderErrMarkdown(r.Context(), w, "module/new.md", err)
+		view.RenderErrTemplate(r.Context(), w, "module/new.tmpl", err)
 		return
 	}
 
@@ -69,7 +69,7 @@ func View(w http.ResponseWriter, r *http.Request) {
 	// try to fetch the module
 	module := &model.Module{}
 
-	result := model.DB.Where("id = ? and (private = false or user_id = ?)", moduleID, user.ID).Find(module)
+	result := model.DB.Where("id = ? and (private = false or user_id = ?)", moduleID, user.ID).Preload("Category").Find(module)
 	if result.Error != nil {
 		log.Panic().Err(result.Error).Msgf("could not get the module")
 	}
@@ -152,4 +152,20 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+// New module form
+func New(w http.ResponseWriter, r *http.Request) {
+	categories := []model.Category{}
+
+	result := model.DB.Model(&model.Category{}).Find(&categories)
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msg("could not fetch categories")
+	}
+
+	m := map[string]interface{}{
+		"Categories": categories,
+	}
+
+	view.RenderTemplate(r.Context(), "module/new.tmpl", m, w)
 }

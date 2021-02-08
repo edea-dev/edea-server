@@ -18,11 +18,8 @@ type Config struct {
 		Port string `yaml:"port" envconfig:"SERVER_PORT"`
 		Host string `yaml:"host" envconfig:"SERVER_HOST"`
 	} `yaml:"server"`
-	Dev      bool `yaml:"dev" envconfig:"IS_DEV"`
-	Database struct {
-		Username string `yaml:"user" envconfig:"DB_USERNAME"`
-		Password string `yaml:"pass" envconfig:"DB_PASSWORD"`
-	} `yaml:"database"`
+	Dev bool   `yaml:"dev" envconfig:"IS_DEV"`
+	DSN string `yaml:"dsn" envconfig:"DB_DSN"`
 	JWT struct {
 		PublicKey string `yaml:"publickey" envconfig:"JWT_PUBLIC_KEY"`
 	} `yaml:"jwt"`

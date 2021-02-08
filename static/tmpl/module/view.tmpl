@@ -7,12 +7,17 @@
 		<p class="lead">{{.Module.Description}}</p>
       </div>
 
-      <div class="flex-row d-flex justify-content-end pb-2">
-        <a href="/bench/add/{{.Module.ID}}" role="button" class="btn btn-primary mr-2">Add to Bench</a>
-        <a href="/bench/add_configure/{{.Module.ID}}" role="button" class="btn btn-secondary">Configure & Add</a>
-        {{if eq .Module.UserID .User.ID}}
-        <a href="/module/delete/{{.Module.ID}}" role="button" class="btn btn-danger ml-2">Delete</a>
-        {{end}}
+      <div class="flex-row d-flex justify-content-between">
+        <div class="flex-col">
+          <h4><span class="badge bg-light">{{.Module.Category.Name}}</span></h4>
+        </div>
+        <div class="flex-col pb-2">
+          <a href="/bench/add/{{.Module.ID}}" role="button" class="btn btn-primary mr-2">Add to Bench</a>
+          <a href="/bench/add_configure/{{.Module.ID}}" role="button" class="btn btn-secondary">Configure & Add</a>
+          {{if eq .Module.UserID .User.ID}}
+          <a href="/module/delete/{{.Module.ID}}" role="button" class="btn btn-danger ml-2">Delete</a>
+          {{end}}
+        </div>
       </div>
 
       <div class="flex-row">

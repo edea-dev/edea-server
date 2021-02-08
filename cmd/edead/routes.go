@@ -21,7 +21,7 @@ func routes(r *mux.Router) {
 	r.HandleFunc("/", view.Template("index.tmpl"))      // index
 	r.HandleFunc("/about", view.Template("about.tmpl")) // about EDeA
 
-	r.Handle("/module/new", auth.RequireAuth(view.Template("module/new.tmpl"))).Methods("GET")        // new module page
+	r.Handle("/module/new", auth.RequireAuth(http.HandlerFunc(module.New))).Methods("GET")            // new module page
 	r.Handle("/module/new", auth.RequireAuth(http.HandlerFunc(module.Create))).Methods("POST")        // add new module
 	r.HandleFunc("/module/explore", module.Explore).Methods("GET")                                    // explore public modules
 	r.HandleFunc("/module/user/{id}", module.ExploreUser).Methods("GET")                              // view a users modules

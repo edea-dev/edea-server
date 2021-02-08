@@ -1,9 +1,7 @@
 server:
   host: localhost
   port: 3000
-database:
-  user: postgres
-  pass: postgres
+dsn: host=192.168.0.2 user=edea password=edea dbname=edea port=5432 sslmode=disable
 api:
   githubtoken: ***REMOVED***
 cache:

@@ -19,13 +19,16 @@ type ExploreModule struct {
 	Name        string
 	Description string
 	RepoURL     string
+	Category    string
 }
 
 const exploreQuery = `
-	SELECT m.id, m.user_id, p.display_name, m.name, m.description, m.repo_url
+	SELECT m.id, m.user_id, p.display_name, m.name, m.description, m.repo_url, c.name as category
 	FROM modules m
 	JOIN profiles p
 		ON p.user_id = m.user_id
+	JOIN categories c
+		ON c.id = m.category_id
 	WHERE m.private = false
 		AND m.deleted_at IS NULL
 	ORDER BY m.updated_at;`

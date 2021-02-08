@@ -12,10 +12,12 @@ type Module struct {
 	ID          uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
 	UserID      uuid.UUID `gorm:"type:uuid"`
 	User        User
-	Private     bool   `gorm:"default:false" schema:"private"`
-	RepoURL     string `schema:"repourl,required"`
-	Name        string `schema:"name,required"`
-	Description string `schema:"description"`
+	Private     bool      `gorm:"default:false" schema:"private"`
+	RepoURL     string    `schema:"repourl,required"`
+	Name        string    `schema:"name,required"`
+	Description string    `schema:"description"`
+	CategoryID  uuid.UUID `gorm:"type:uuid" schema:"category"`
+	Category    Category
 }
 
 // MarshalZerologObject provides the object representation for logging
