@@ -8,7 +8,7 @@
 		</div>
 
 		<div class="flex-row d-flex justify-content-end pb-2">
-			<a href="/bench/add/{{.Module.ID}}" role="button" class="btn btn-primary">Fork</a>
+			<a href="/bench/fork/{{.Bench.ID}}" role="button" class="btn btn-primary">Fork</a>
 			{{if eq .Bench.UserID .User.ID}}
 			{{if .Bench.Active}}
 			<a href="#" role="button" class="btn btn-success ml-2">Active</a>

@@ -14,21 +14,6 @@ import (
 	"gitlab.com/edea-dev/edea/backend/view"
 )
 
-// New Module view
-func New(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value(util.UserContextKey)
-
-	if user == nil {
-		log.Panic().Err(util.ErrImSorryDave).Msg("user not logged in")
-	}
-
-	data := map[string]interface{}{
-		"User": user,
-	}
-
-	view.RenderTemplate("module/new.tmpl", data, w)
-}
-
 // Create a new module
 func Create(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(util.UserContextKey).(*model.User)
@@ -67,6 +52,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 func View(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	moduleID := vars["id"]
+	ctx := r.Context()
 
 	// check if we even have a module id
 	if moduleID == "" {
@@ -78,7 +64,7 @@ func View(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value(util.UserContextKey).(*model.User)
+	user := ctx.Value(util.UserContextKey).(*model.User)
 
 	// try to fetch the module
 	module := &model.Module{}
@@ -120,7 +106,7 @@ func View(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// and ready to go
-	view.RenderTemplate("module/view.tmpl", m, w)
+	view.RenderTemplate(ctx, "module/view.tmpl", m, w)
 }
 
 // Update a module and reload the page

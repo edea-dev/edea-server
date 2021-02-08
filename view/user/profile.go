@@ -11,26 +11,21 @@ import (
 
 // Profile displays the user data
 func Profile(w http.ResponseWriter, r *http.Request) {
-	claims := r.Context().Value(model.AuthContextKey).(model.AuthClaims)
-	u := model.User{AuthUUID: claims.Subject}
-
-	if result := model.DB.Where(&u).First(&u); result.Error != nil {
-		log.Error().Err(result.Error).Msgf("could not fetch user data for %s", claims.Subject)
-	}
+	ctx := r.Context()
+	u := ctx.Value(util.UserContextKey).(*model.User)
 
 	p := model.Profile{UserID: u.ID}
 
 	if result := model.DB.Where(&p).First(&p); result.Error != nil {
-		log.Error().Err(result.Error).Msgf("could not fetch user data for %s", claims.Subject)
+		log.Panic().Err(result.Error).Msgf("could not fetch profile data for sub %s", u.AuthUUID)
 	}
 
 	// TODO: fetch profile data from cache, or more data to display
 	data := map[string]interface{}{
-		"User":    u,
 		"Profile": p,
 	}
 
-	view.RenderTemplate("profile.tmpl", data, w)
+	view.RenderTemplate(ctx, "profile.tmpl", data, w)
 }
 
 // UpdateProfile updates the user data
@@ -40,17 +35,18 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// update the id of the current user only
-	u := view.CurrentUser(r)
+	ctx := r.Context()
+	u := ctx.Value(util.UserContextKey).(*model.User)
 
 	profile := new(model.Profile)
 	if err := util.FormDecoder.Decode(profile, r.Form); err != nil {
-		view.RenderErrTemplate(r.Context(), w, "user/profile.tmpl", err)
+		view.RenderErrTemplate(ctx, w, "user/profile.tmpl", err)
 		return
 	}
 
 	profile.UserID = u.ID
 
-	result := model.DB.WithContext(r.Context()).Save(profile)
+	result := model.DB.WithContext(ctx).Save(profile)
 	if result.Error != nil {
 		log.Panic().Err(result.Error).Msg("could not update profile")
 	}

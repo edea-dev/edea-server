@@ -3,9 +3,9 @@
 	<div class="container" id="content">
 		<div class="jumbotron bg-gradient-secondary">
 			{{if .Self}}
-			<h1 class="mt-5">Explore modules made by {{.Profile.DisplayName}}</h1>
-			{{else}}
 			<h1 class="mt-5">Explore modules made by you</h1>
+			{{else}}
+			<h1 class="mt-5">Explore modules made by {{.Profile.DisplayName}}</h1>
 			{{end}}
 			<p class="lead">What are you going to build today?</p>
 		</div>

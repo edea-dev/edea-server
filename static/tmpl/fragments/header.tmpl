@@ -50,6 +50,22 @@
           <li class="nav-item">
             <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/module/explore">Browse Modules</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/bench/explore">Browse Workbenches</a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="/bench/current">My Bench<span
+                class="badge badge-pill badge-danger align-top ml-1">{{if .BenchModCount}}{{.BenchModCount}}{{end}}</span><span class="sr-only">modules currently on
+                the bench
+                <!-- what's the best practice for screen readers?? -->
+              </span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/help">Help</a>
+          </li>
           {{if .User}}
           <li class="nav-item">
             <a class="nav-link" href="/profile">Profile</a>
@@ -59,19 +75,6 @@
             <a class="nav-link" href="/login">Login</a>
           </li>
           {{end}}
-          <li class="nav-item">
-            <a class="nav-link" href="/explore">Browse Modules</a>
-          </li>
-          <li class="nav-item active">
-            <a class="nav-link" href="/bench/current">My Bench<span
-                class="badge badge-pill badge-danger align-top ml-1">4</span><span class="sr-only">modules currently on
-                the bench
-                <!-- what's the best practice for screen readers?? -->
-              </span></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link disabled" href="#help">Help</a>
-          </li>
         </ul>
         <form class="form-inline mt-2 mt-md-0 flex-nowrap">
           <input class="form-control mr-sm-1" type="text" id="search" placeholder="Search for Modules"

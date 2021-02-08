@@ -11,6 +11,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend"
+	"gitlab.com/edea-dev/edea/backend/config"
 	"gitlab.com/edea-dev/edea/backend/model"
 	"gitlab.com/edea-dev/edea/backend/util"
 )
@@ -33,10 +34,31 @@ func Icon(name string) (html string, err error) {
 }
 
 // RenderTemplate renders a go template
-func RenderTemplate(fn string, data map[string]interface{}, w io.Writer) {
+func RenderTemplate(ctx context.Context, fn string, data map[string]interface{}, w io.Writer) {
 	tmplFile := filepath.Join(tmplPath, fn)
 
-	data["Dev"] = true
+	if data == nil {
+		data = make(map[string]interface{})
+	}
+
+	data["Dev"] = config.Cfg.Dev
+
+	u, ok := ctx.Value(util.UserContextKey).(*model.User)
+	if ok {
+		data["User"] = u
+		var moduleCount int64
+		result := model.DB.
+			Model(&model.Bench{}).
+			Joins(`JOIN bench_modules bm ON "benches".id = bm.bench_id`).
+			Where(`"benches".user_id = ? AND "benches".active = true AND bm.deleted_at IS NULL`, u.ID).
+			Count(&moduleCount)
+
+		if result.Error != nil {
+			log.Panic().Err(result.Error).Msg("could not query active bench module count")
+		} else {
+			data["BenchModCount"] = moduleCount
+		}
+	}
 
 	// create an empty template to associate our own functions to
 	t := template.New("base").Funcs(tmplFunctions)
@@ -66,30 +88,18 @@ func RenderTemplate(fn string, data map[string]interface{}, w io.Writer) {
 	}
 }
 
-// Template returns a http handler for templates which only need the current user information
+// Template returns a http.HandlerFunc to render a specific template w/o further parameters
 func Template(tmplName string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// vars := mux.Vars(r)
-		user := CurrentUser(r)
-
-		// all packed up,
-		m := map[string]interface{}{
-			"User":  user,
-			"Error": nil,
-		}
-
-		// and ready to go
-		RenderTemplate(tmplName, m, w)
+		RenderTemplate(r.Context(), tmplName, nil, w)
 	}
 }
 
 // RenderErrTemplate renders a page with error information
 func RenderErrTemplate(ctx context.Context, w http.ResponseWriter, tmpl string, err error) {
-	user := ctx.Value(util.UserContextKey).(*model.User)
 	data := map[string]interface{}{
-		"User":  user,
 		"Error": err.Error(),
 	}
 
-	RenderTemplate(tmpl, data, w)
+	RenderTemplate(ctx, tmpl, data, w)
 }

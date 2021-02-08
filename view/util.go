@@ -4,22 +4,15 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend/api"
 	"gitlab.com/edea-dev/edea/backend/model"
+	"gitlab.com/edea-dev/edea/backend/util"
 )
 
 // CurrentUser returns the full User object when logged in or nil otherwise
 func CurrentUser(r *http.Request) *model.User {
-	claims, ok := r.Context().Value(model.AuthContextKey).(model.AuthClaims)
+	u, ok := r.Context().Value(util.UserContextKey).(*model.User)
 	if !ok {
-		return nil
-	}
-
-	u := &model.User{AuthUUID: claims.Subject}
-
-	if result := model.DB.Where(u).First(u); result.Error != nil {
-		log.Error().Err(result.Error).Msgf("could not fetch user data for %s", claims.Subject)
 		return nil
 	}
 

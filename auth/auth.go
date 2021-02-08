@@ -81,7 +81,7 @@ func processAuth(w http.ResponseWriter, r *http.Request) (context.Context, error
 	return ctx, nil
 }
 
-// Authenticated checks if there is a valid json web token in the request
+// RequireAuth checks if there is a valid json web token in the request
 func RequireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if v := r.Context().Value(model.AuthContextKey); v == nil {
@@ -100,15 +100,18 @@ func Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx, err := processAuth(w, r)
 		if err != nil {
-			if !errors.Is(err, model.ErrUnauthorized) {
+			// only show an error if something is wrong with the token (expired tokens are not an error)
+			if !errors.Is(err, model.ErrUnauthorized) && !strings.Contains(err.Error(), "expired") {
 				log.Error().Err(err).Msg("could not process authentication cookie/header")
 				w.WriteHeader(http.StatusInternalServerError)
 				fmt.Fprintln(w, err)
 			}
 		}
-
-		// everything went fine
-		next.ServeHTTP(w, r.WithContext(ctx))
+		if ctx == nil {
+			next.ServeHTTP(w, r)
+		} else {
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}
 	})
 }
 

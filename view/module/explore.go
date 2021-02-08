@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend/model"
+	"gitlab.com/edea-dev/edea/backend/util"
 	"gitlab.com/edea-dev/edea/backend/view"
 )
 
@@ -33,8 +34,6 @@ const exploreQuery = `
 func Explore(w http.ResponseWriter, r *http.Request) {
 	var p []ExploreModule
 
-	user := view.CurrentUser(r)
-
 	result := model.DB.Raw(exploreQuery).Scan(&p)
 	if result.Error != nil {
 		log.Panic().Err(result.Error).Msg("could not run explore query")
@@ -42,22 +41,22 @@ func Explore(w http.ResponseWriter, r *http.Request) {
 
 	m := map[string]interface{}{
 		"Modules": p,
-		"User":    user,
 	}
 
-	view.RenderTemplate("explore/view.tmpl", m, w)
+	view.RenderTemplate(r.Context(), "explore/view.tmpl", m, w)
 }
 
 // ExploreUser lists all the public modules by a specific user
 func ExploreUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["id"]
+	ctx := r.Context()
+	currentUser := ctx.Value(util.UserContextKey).(*model.User)
 
 	if userID == "" {
 		log.Panic().Msg("explore_user: no user id specified")
 	}
 
-	currentUser := view.CurrentUser(r)
 	var id uuid.UUID
 
 	// /explore/user/me should return your own modules
@@ -97,5 +96,5 @@ func ExploreUser(w http.ResponseWriter, r *http.Request) {
 	m["Modules"] = modules
 	m["Profile"] = p
 
-	view.RenderTemplate("explore/user.tmpl", m, w)
+	view.RenderTemplate(ctx, "explore/user.tmpl", m, w)
 }

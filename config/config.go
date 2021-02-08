@@ -8,6 +8,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Cfg global config state
 var Cfg Config
 
 // Config holds all the keys which should be available in the conig.yml or as
@@ -17,6 +18,7 @@ type Config struct {
 		Port string `yaml:"port" envconfig:"SERVER_PORT"`
 		Host string `yaml:"host" envconfig:"SERVER_HOST"`
 	} `yaml:"server"`
+	Dev      bool `yaml:"dev" envconfig:"IS_DEV"`
 	Database struct {
 		Username string `yaml:"user" envconfig:"DB_USERNAME"`
 		Password string `yaml:"pass" envconfig:"DB_PASSWORD"`
@@ -48,6 +50,7 @@ type Config struct {
 	} `yaml:"auth"`
 }
 
+// ReadConfig reads the configuration yaml file and overrides it with any set environment variables
 func ReadConfig() {
 	readFile(&Cfg)
 	readEnv(&Cfg)

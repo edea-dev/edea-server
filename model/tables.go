@@ -1,11 +1,10 @@
 package model
 
 import (
-	"errors"
-
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"gitlab.com/edea-dev/edea/backend/util"
 	"golang.org/x/net/context"
 	"gorm.io/gorm"
 )
@@ -30,21 +29,11 @@ func CreateTables() {
 }
 
 func isAuthorized(ctx context.Context, userID uuid.UUID, o zerolog.LogObjectMarshaler) error {
-	claims := ctx.Value(AuthContextKey).(AuthClaims)
-	u := &User{AuthUUID: claims.Subject}
-
-	result := DB.Model(u).Where(u).Find(u)
-	if result.Error != nil {
-		log.Warn().Err(result.Error).Msg("error while querying user by auth_uuid")
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return ErrUnauthorized
-		}
-		return result.Error
-	}
+	u := ctx.Value(util.UserContextKey).(*User)
 
 	// log if it's done by an admin
 	if u.IsAdmin {
-		log.Info().EmbedObject(o).Str("admin_auth_uuid", claims.Subject).Msg("information changed by admin")
+		log.Info().EmbedObject(o).Str("admin_auth_uuid", u.AuthUUID).Msg("information changed by admin")
 	} else if userID != u.ID {
 		log.Error().Msgf("user %s tried to change a model of %s", u.ID, userID)
 		return ErrUnauthorized
