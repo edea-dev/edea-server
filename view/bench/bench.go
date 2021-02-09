@@ -1,13 +1,16 @@
 package bench
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
+	"gitlab.com/edea-dev/edea/backend/merge"
 	"gitlab.com/edea-dev/edea/backend/model"
 	"gitlab.com/edea-dev/edea/backend/util"
 	"gitlab.com/edea-dev/edea/backend/view"
@@ -359,4 +362,40 @@ func ListUser(w http.ResponseWriter, r *http.Request) {
 
 	// and ready to go
 	view.RenderTemplate(ctx, "bench/list_user.tmpl", m, w)
+}
+
+// Merge a bench into a new kicad project
+func Merge(w http.ResponseWriter, r *http.Request) {
+	var userID uuid.UUID
+
+	vars := mux.Vars(r)
+	id := vars["id"]
+	ctx := r.Context()
+
+	bench := new(model.Bench)
+
+	user, ok := ctx.Value(util.UserContextKey).(*model.User)
+	if ok {
+		userID = user.ID
+	}
+
+	// try to fetch all the benchmodules
+	result := model.DB.WithContext(ctx).Preload("Modules.Module").Where("id = ? AND (user_id = ? OR public = true)", id, userID).Find(bench)
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msg("could not create a new bench")
+	}
+
+	if bench.ID == uuid.Nil {
+		log.Panic().Msg("could not find bench")
+	}
+
+	// and merge it together
+	b, err := merge.Merge(bench.Modules)
+	if err != nil {
+		log.Panic().Err(err).Msg("something went wrong during merge")
+	}
+
+	buf := bytes.NewReader(b)
+
+	http.ServeContent(w, r, fmt.Sprintf("%s.zip", bench.Name), time.Now(), buf)
 }

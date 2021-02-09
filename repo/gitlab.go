@@ -94,7 +94,7 @@ func (r *GitLab) Readme() (string, error) {
 
 	if readmeResp.StatusCode == http.StatusSeeOther ||
 		readmeResp.StatusCode == http.StatusPermanentRedirect {
-		return "", ErrNoReadme // redirect of an empty repository
+		return "", ErrNoFile // redirect of an empty repository
 	}
 
 	if readmeResp.StatusCode != http.StatusOK {
@@ -105,7 +105,7 @@ func (r *GitLab) Readme() (string, error) {
 	b, err := ioutil.ReadAll(readmeResp.Body)
 
 	if len(b) == 0 {
-		return "", ErrNoReadme
+		return "", ErrNoFile
 	}
 
 	// TODO: implement size checks and timeouts, don't want to deal with unresponsive remotes

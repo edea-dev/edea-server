@@ -35,7 +35,7 @@ func TestGitHub_GetReadmeFail_NoReadme(t *testing.T) {
 	}
 
 	_, err := g.Readme()
-	if err != nil && !errors.Is(err, ErrNoReadme) {
+	if err != nil && !errors.Is(err, ErrNoFile) {
 		t.Fatal(err)
 		return
 	}

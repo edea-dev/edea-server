@@ -13,7 +13,13 @@ type Git struct {
 	URL string
 }
 
+// Readme searches for a readme.md file in the repository and returns it if found
 func (g *Git) Readme() (string, error) {
+	return g.File("readme.md", false)
+}
+
+// File searches for a given file in the git respository
+func (g *Git) File(name string, caseSensitive bool) (string, error) {
 	if found, err := cache.Has(g.URL); err != nil {
 		return "", err
 	} else if !found {
@@ -52,30 +58,36 @@ func (g *Git) Readme() (string, error) {
 		return "", err
 	}
 
-	var readme *object.File
+	var file *object.File
 
 	// ... get the files iterator and print the file
 	tree.Files().ForEach(func(f *object.File) error {
-		if strings.ToLower(f.Name) == "readme.md" {
-			readme = f
+		if caseSensitive {
+			if f.Name == name {
+				file = f
+				return storer.ErrStop
+			}
+		}
+		if strings.ToLower(f.Name) == name {
+			file = f
 			return storer.ErrStop
 		}
 		return nil
 	})
 
-	if readme != nil {
-		bin, err := readme.IsBinary()
+	if file != nil {
+		bin, err := file.IsBinary()
 		if bin {
-			return "", ErrNoReadme
+			return "", ErrNoFile
 		} else if err != nil {
 			return "", err
 		}
-		s, err := readme.Contents()
+		s, err := file.Contents()
 		if err != nil {
 			return "", err
 		}
 		return s, nil
 	}
 
-	return "", ErrNoReadme
+	return "", ErrNoFile
 }

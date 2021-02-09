@@ -101,7 +101,7 @@ func (r *GitHub) Readme() (string, error) {
 	}
 
 	if s, ok := m["message"]; ok && s == "Not Found" {
-		return "", ErrNoReadme
+		return "", ErrNoFile
 	}
 
 	if m["encoding"] == "base64" {

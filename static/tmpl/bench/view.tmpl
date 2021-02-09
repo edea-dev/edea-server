@@ -15,6 +15,7 @@
 			{{else}}
 			<a href="/bench/activate/{{.Bench.ID}}" role="button" class="btn btn-info ml-2">Set Active</a>
 			{{end}}
+			<a href="/bench/merge/{{.Bench.ID}}" role="button" class="btn btn-warning ml-2">{{icon "download"}}&nbsp;Merge</a>
 			<a href="/bench/update/{{.Bench.ID}}" role="button" class="btn btn-secondary ml-2">Update</a>
 			<a href="/bench/delete/{{.Bench.ID}}" role="button" class="btn btn-danger ml-2">Delete</a>
 			{{end}}

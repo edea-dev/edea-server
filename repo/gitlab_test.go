@@ -33,7 +33,7 @@ func TestGitLab_GetReadmeFail_NoReadme(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected an error")
 	}
-	if err != nil && !errors.Is(err, ErrNoReadme) {
+	if err != nil && !errors.Is(err, ErrNoFile) {
 		t.Fatal(err)
 		return
 	}

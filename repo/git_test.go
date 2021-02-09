@@ -43,7 +43,7 @@ func Test_Git_Readme_NoReadme(t *testing.T) {
 	r := Git{URL: "https://github.com/tachiniererin/ma-updater"}
 	_, err := r.Readme()
 	if err != nil {
-		if errors.Is(err, ErrNoReadme) {
+		if errors.Is(err, ErrNoFile) {
 			return
 		}
 		t.Error(err)

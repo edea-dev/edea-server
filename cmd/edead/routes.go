@@ -42,6 +42,7 @@ func routes(r *mux.Router) {
 	r.HandleFunc("/bench/user/{id}", bench.ListUser).Methods("GET")                                       // list workbenches of a specific user
 	r.Handle("/bench/fork/{id}", auth.RequireAuth(http.HandlerFunc(bench.Fork))).Methods("GET")           // fork a workbench
 	r.Handle("/bench/activate/{id}", auth.RequireAuth(http.HandlerFunc(bench.SetActive))).Methods("GET")  // set a workbench as active
+	r.HandleFunc("/bench/merge/{id}", bench.Merge).Methods("GET")
 
 	r.HandleFunc("/favicon.ico", faviconHandler)
 	r.HandleFunc("/debug/pprof/", pprof.Index)

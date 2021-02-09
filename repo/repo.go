@@ -15,7 +15,7 @@ type Info struct {
 
 var (
 	ErrExists             = errors.New("repository already added")
-	ErrNoReadme           = errors.New("no readme found")
+	ErrNoFile             = errors.New("no file found")
 	ErrBadCredentials     = errors.New("bad credentials")
 	ErrUnexpectedResponse = errors.New("unexpected http response")
 	ErrUncachedRepo       = errors.New("repository not cached")
