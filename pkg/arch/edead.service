@@ -1,0 +1,9 @@
+[Unit]
+Description=edead web service
+
+[Service]
+WorkingDirectory=/usr/share/edead
+ExecStart=/usr/bin/edead
+
+[Install]
+WantedBy=multi-user.target

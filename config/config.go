@@ -62,7 +62,10 @@ func processError(err error) {
 func readFile(cfg *Config) {
 	f, err := os.Open("config.yml")
 	if err != nil {
-		processError(err)
+		f, err = os.Open("/etc/edead.yml")
+		if err != nil {
+			processError(err)
+		}
 	}
 	defer f.Close()
 

@@ -1,0 +1,53 @@
+# EDeA minimal PKGBUILD
+
+# Maintainer: Elen Eisendle <ln@calcifer.ee>
+pkgname=edead
+pkgver=0.1
+pkgrel=1
+epoch=
+pkgdesc=""
+arch=('x86_64')
+url="https://github.com/edea-dev/edea"
+license=('AGPL')
+groups=()
+depends=('go')
+makedepends=()
+checkdepends=()
+optdepends=()
+provides=('edead')
+conflicts=()
+replaces=()
+backup=()
+options=()
+install=
+changelog=
+source=('edead::git+https://gitlab.com/edea-dev/edea#branch=main', 'edead.service')
+noextract=()
+sha256sums=('SKIP'
+            '65c885f06f6365e1cc4e10e479e56f0fb900dcfdf05b86c4d8429418a5068d79')
+validpgpkeys=()
+
+prepare() {
+    cd "$pkgname/backend"
+}
+
+build() {
+	cd "$pkgname/backend"
+	go1.16rc1 build -o edead ./cmd/edead
+}
+
+check() {
+    cd "$pkgname/backend"
+}
+
+package() {
+	cd "$pkgname/backend"
+    mkdir -p $pkgdir/etc
+    mkdir -p $pkgdir/usr/bin
+    mkdir -p $pkgdir/usr/share/edead/
+    mkdir -p $pkgdir/usr/lib/systemd/system/
+    cp config.yml $pkgdir/etc/edead.yml
+    cp edead $pkgdir/usr/bin/
+    cp pkg/arch/edead.service $pkgdir/usr/lib/systemd/system/
+	cp -r static $pkgdir/usr/share/edead/
+}
