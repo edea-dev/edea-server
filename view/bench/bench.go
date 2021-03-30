@@ -253,7 +253,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	// set other benches as inactive, activate the requested one
 	tx := model.DB.WithContext(ctx).Begin()
 
-	tx.Model(bench).Where("user_id = ? and active = true", bench.User.ID).Update("active", false)
+	tx.Model(&model.Bench{}).Where("user_id = ? and active = true", user.ID).Update("active", false)
 	tx.Create(bench)
 	tx.Commit()
 

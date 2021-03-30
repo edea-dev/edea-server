@@ -29,8 +29,6 @@ Tasks for basic module functionality
 
 # Bugs noticed while testing
 
-When adding a new bench, it doesn't set it to active when there is no bench active at the moment.
-
 /explore/user/{id} return 404.
 
 /help returns 404
