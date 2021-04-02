@@ -26,6 +26,9 @@ Tasks for basic module functionality
 
 - Code to run the merge on modules specified in a bench
 
+## Search
+
+Integrate with meilisearch to search through modules/benches.
 
 # Bugs noticed while testing
 

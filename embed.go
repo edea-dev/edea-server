@@ -1,5 +1,7 @@
 package backend
 
+// SPDX-License-Identifier: EUPL-1.2
+
 import "embed"
 
 // BootstrapIcons holds the bootstrap-icons svg files to render them directly into the

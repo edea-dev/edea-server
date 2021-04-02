@@ -1,5 +1,7 @@
 package main
 
+// SPDX-License-Identifier: EUPL-1.2
+
 import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/rs/zerolog/log"

@@ -1,5 +1,7 @@
 package middleware
 
+// SPDX-License-Identifier: EUPL-1.2
+
 import (
 	"io"
 	"net/http"

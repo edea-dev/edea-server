@@ -1,9 +1,9 @@
 # generated files and build artifacts
 modd
-vendor/
-tmp/
-edea
-edead
+/vendor/
+/tmp/
+/edea
+/edead
 
 # don't ignore folders named that way
 !edea/
@@ -13,10 +13,14 @@ edead
 mock-jwks.json
 
 # static files compiled from the frontend sources
-static/favicon.ico
-static/site.webmanifest
-static/icons/*
-static/css/*
-static/img/*
-static/fonts/*
-static/js/*
+/static/favicon.ico
+/static/site.webmanifest
+/static/icons/*
+/static/css/*
+/static/img/*
+/static/fonts/*
+/static/js/*
+
+# pkgbuild artifacts
+/pkg/arch/edead
+/pkg/arch/src

@@ -1,5 +1,7 @@
 package main
 
+// SPDX-License-Identifier: EUPL-1.2
+
 import (
 	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend/config"

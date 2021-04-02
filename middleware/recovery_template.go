@@ -1,5 +1,7 @@
 package middleware
 
+// SPDX-License-Identifier: EUPL-1.2
+
 var devErrorTmpl = `
   <div class="container content">
     <div class="row">

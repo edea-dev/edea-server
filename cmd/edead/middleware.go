@@ -1,5 +1,7 @@
 package main
 
+// SPDX-License-Identifier: EUPL-1.2
+
 import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"

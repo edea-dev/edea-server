@@ -1,5 +1,7 @@
 package bench
 
+// SPDX-License-Identifier: EUPL-1.2
+
 import (
 	"bytes"
 	"errors"
@@ -76,6 +78,7 @@ func viewHelper(id, tmpl string, w http.ResponseWriter, r *http.Request) {
 		"User":    user,
 		"Modules": benchMods,
 		"Author":  mup.DisplayName,
+		"Title":   fmt.Sprintf("EDeA - %s", bench.Name),
 		"Error":   nil,
 	}
 

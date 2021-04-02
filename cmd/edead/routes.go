@@ -1,5 +1,7 @@
 package main
 
+// SPDX-License-Identifier: EUPL-1.2
+
 import (
 	"net/http"
 	"net/http/pprof"
@@ -65,6 +67,7 @@ func routes(r *mux.Router) {
 	// TODO: let our IAP do that
 	r.Handle("/profile", auth.RequireAuth(http.HandlerFunc(user.Profile))).Methods("GET")
 	r.Handle("/profile", auth.RequireAuth(http.HandlerFunc(user.UpdateProfile))).Methods("POST")
+	r.Handle("/profile/export", auth.RequireAuth(http.HandlerFunc(user.DataExport))).Methods("GET")
 
 	r.HandleFunc("/callback", auth.CallbackHandler)
 	r.HandleFunc("/logout_callback", auth.LogoutCallbackHandler)

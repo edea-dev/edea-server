@@ -1,5 +1,7 @@
 package api
 
+// SPDX-License-Identifier: EUPL-1.2
+
 import (
 	"encoding/json"
 	"net/http"

@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+// SPDX-License-Identifier: EUPL-1.2
+
 option go_package = "gitlab.com/edea-dev/edea/backend/grpc";
 
 package edea;

@@ -1,5 +1,7 @@
 package bench
 
+// SPDX-License-Identifier: EUPL-1.2
+
 import (
 	"net/http"
 

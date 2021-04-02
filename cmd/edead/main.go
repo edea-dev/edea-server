@@ -1,5 +1,7 @@
 package main
 
+// SPDX-License-Identifier: EUPL-1.2
+
 import (
 	"context"
 	"flag"

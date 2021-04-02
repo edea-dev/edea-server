@@ -1,5 +1,7 @@
 package repo
 
+// SPDX-License-Identifier: EUPL-1.2
+
 import (
 	"errors"
 	"time"

@@ -1,5 +1,7 @@
 package auth
 
+// SPDX-License-Identifier: EUPL-1.2
+
 import (
 	"encoding/json"
 	"fmt"

@@ -1,5 +1,7 @@
 package module
 
+// SPDX-License-Identifier: EUPL-1.2
+
 import (
 	"errors"
 	"fmt"
