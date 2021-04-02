@@ -83,7 +83,7 @@ func viewHelper(id, tmpl string, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// and ready to go
-	view.RenderTemplate(ctx, tmpl, m, w)
+	view.RenderTemplate(ctx, tmpl, "", m, w)
 }
 
 // View a Bench
@@ -364,7 +364,7 @@ func ListUser(w http.ResponseWriter, r *http.Request) {
 	m["Error"] = nil
 
 	// and ready to go
-	view.RenderTemplate(ctx, "bench/list_user.tmpl", m, w)
+	view.RenderTemplate(ctx, "bench/list_user.tmpl", "", m, w)
 }
 
 // Merge a bench into a new kicad project

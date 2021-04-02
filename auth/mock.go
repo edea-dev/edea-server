@@ -124,7 +124,7 @@ func LoginFormHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: show a simple login form
-	view.RenderTemplate(r.Context(), "mock_login.tmpl", m, w)
+	view.RenderTemplate(r.Context(), "mock_login.tmpl", "EDeA - Login", m, w)
 }
 
 // LoginPostHandler processes the login request

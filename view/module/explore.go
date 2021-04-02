@@ -48,7 +48,7 @@ func Explore(w http.ResponseWriter, r *http.Request) {
 		"Modules": p,
 	}
 
-	view.RenderTemplate(r.Context(), "explore/view.tmpl", m, w)
+	view.RenderTemplate(r.Context(), "explore/view.tmpl", "EDeA - Explore Modules", m, w)
 }
 
 // ExploreUser lists all the public modules by a specific user
@@ -101,5 +101,5 @@ func ExploreUser(w http.ResponseWriter, r *http.Request) {
 	m["Modules"] = modules
 	m["Profile"] = p
 
-	view.RenderTemplate(ctx, "explore/user.tmpl", m, w)
+	view.RenderTemplate(ctx, "explore/user.tmpl", "EDeA - User Modules", m, w)
 }

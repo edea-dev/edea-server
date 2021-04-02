@@ -20,8 +20,8 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func routes(r *mux.Router) {
-	r.HandleFunc("/", view.Template("index.tmpl"))      // index
-	r.HandleFunc("/about", view.Template("about.tmpl")) // about EDeA
+	r.HandleFunc("/", view.Template("index.tmpl", "EDeA"))              // index
+	r.HandleFunc("/about", view.Template("about.tmpl", "EDeA - About")) // about EDeA
 
 	r.Handle("/module/new", auth.RequireAuth(http.HandlerFunc(module.New))).Methods("GET")            // new module page
 	r.Handle("/module/new", auth.RequireAuth(http.HandlerFunc(module.Create))).Methods("POST")        // add new module
@@ -31,19 +31,19 @@ func routes(r *mux.Router) {
 	r.HandleFunc("/module/{id}", module.View).Methods("GET")                                          // view module
 	r.Handle("/module/delete/{id}", auth.RequireAuth(http.HandlerFunc(module.Delete))).Methods("GET") // delete module
 
-	r.Handle("/bench/current", auth.RequireAuth(http.HandlerFunc(bench.Current))).Methods("GET")          // view current bench
-	r.Handle("/bench/new", auth.RequireAuth(view.Template("bench/new.tmpl"))).Methods("GET")              // new bench form
-	r.Handle("/bench/new", auth.RequireAuth(http.HandlerFunc(bench.Create))).Methods("POST")              // add a new bench
-	r.HandleFunc("/bench/explore", bench.Explore).Methods("GET")                                          // explore public workbenches
-	r.Handle("/bench/{id}", auth.RequireAuth(http.HandlerFunc(bench.Update))).Methods("POST")             // update a bench
-	r.HandleFunc("/bench/{id}", bench.View).Methods("GET")                                                // view a bench
-	r.Handle("/bench/update/{id}", auth.RequireAuth(http.HandlerFunc(bench.ViewUpdate))).Methods("GET")   // update form view of a bench
-	r.Handle("/bench/add/{id}", auth.RequireAuth(http.HandlerFunc(bench.AddModule))).Methods("GET")       // add a module to the active bench
-	r.Handle("/bench/remove/{id}", auth.RequireAuth(http.HandlerFunc(bench.RemoveModule))).Methods("GET") // remove module from workbench
-	r.Handle("/bench/delete/{id}", auth.RequireAuth(http.HandlerFunc(bench.Delete))).Methods("GET")       // delete the workbench
-	r.HandleFunc("/bench/user/{id}", bench.ListUser).Methods("GET")                                       // list workbenches of a specific user
-	r.Handle("/bench/fork/{id}", auth.RequireAuth(http.HandlerFunc(bench.Fork))).Methods("GET")           // fork a workbench
-	r.Handle("/bench/activate/{id}", auth.RequireAuth(http.HandlerFunc(bench.SetActive))).Methods("GET")  // set a workbench as active
+	r.Handle("/bench/current", auth.RequireAuth(http.HandlerFunc(bench.Current))).Methods("GET")                 // view current bench
+	r.Handle("/bench/new", auth.RequireAuth(view.Template("bench/new.tmpl", "EDeA - New Bench"))).Methods("GET") // new bench form
+	r.Handle("/bench/new", auth.RequireAuth(http.HandlerFunc(bench.Create))).Methods("POST")                     // add a new bench
+	r.HandleFunc("/bench/explore", bench.Explore).Methods("GET")                                                 // explore public workbenches
+	r.Handle("/bench/{id}", auth.RequireAuth(http.HandlerFunc(bench.Update))).Methods("POST")                    // update a bench
+	r.HandleFunc("/bench/{id}", bench.View).Methods("GET")                                                       // view a bench
+	r.Handle("/bench/update/{id}", auth.RequireAuth(http.HandlerFunc(bench.ViewUpdate))).Methods("GET")          // update form view of a bench
+	r.Handle("/bench/add/{id}", auth.RequireAuth(http.HandlerFunc(bench.AddModule))).Methods("GET")              // add a module to the active bench
+	r.Handle("/bench/remove/{id}", auth.RequireAuth(http.HandlerFunc(bench.RemoveModule))).Methods("GET")        // remove module from workbench
+	r.Handle("/bench/delete/{id}", auth.RequireAuth(http.HandlerFunc(bench.Delete))).Methods("GET")              // delete the workbench
+	r.HandleFunc("/bench/user/{id}", bench.ListUser).Methods("GET")                                              // list workbenches of a specific user
+	r.Handle("/bench/fork/{id}", auth.RequireAuth(http.HandlerFunc(bench.Fork))).Methods("GET")                  // fork a workbench
+	r.Handle("/bench/activate/{id}", auth.RequireAuth(http.HandlerFunc(bench.SetActive))).Methods("GET")         // set a workbench as active
 	r.HandleFunc("/bench/merge/{id}", bench.Merge).Methods("GET")
 
 	r.HandleFunc("/favicon.ico", faviconHandler)

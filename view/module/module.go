@@ -105,10 +105,11 @@ func View(w http.ResponseWriter, r *http.Request) {
 		"Readme": readme,
 		"Error":  err,
 		"Author": mup.DisplayName,
+		"Title":  fmt.Sprintf("EDeA - %s", module.Name),
 	}
 
 	// and ready to go
-	view.RenderTemplate(ctx, "module/view.tmpl", m, w)
+	view.RenderTemplate(ctx, "module/view.tmpl", "", m, w)
 }
 
 // Update a module and reload the page
@@ -169,5 +170,5 @@ func New(w http.ResponseWriter, r *http.Request) {
 		"Categories": categories,
 	}
 
-	view.RenderTemplate(r.Context(), "module/new.tmpl", m, w)
+	view.RenderTemplate(r.Context(), "module/new.tmpl", "EDeA - New Module", m, w)
 }

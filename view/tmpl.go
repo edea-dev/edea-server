@@ -36,7 +36,7 @@ func Icon(name string) (html string, err error) {
 }
 
 // RenderTemplate renders a go template
-func RenderTemplate(ctx context.Context, fn string, data map[string]interface{}, w io.Writer) {
+func RenderTemplate(ctx context.Context, fn, title string, data map[string]interface{}, w io.Writer) {
 	tmplFile := filepath.Join(tmplPath, fn)
 
 	if data == nil {
@@ -44,6 +44,9 @@ func RenderTemplate(ctx context.Context, fn string, data map[string]interface{},
 	}
 
 	data["Dev"] = config.Cfg.Dev
+	if _, ok := data["Title"]; !ok {
+		data["Title"] = title
+	}
 
 	u, ok := ctx.Value(util.UserContextKey).(*model.User)
 	if ok {
@@ -91,9 +94,9 @@ func RenderTemplate(ctx context.Context, fn string, data map[string]interface{},
 }
 
 // Template returns a http.HandlerFunc to render a specific template w/o further parameters
-func Template(tmplName string) http.HandlerFunc {
+func Template(tmplName, title string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		RenderTemplate(r.Context(), tmplName, nil, w)
+		RenderTemplate(r.Context(), tmplName, title, nil, w)
 	}
 }
 
@@ -103,5 +106,5 @@ func RenderErrTemplate(ctx context.Context, w http.ResponseWriter, tmpl string, 
 		"Error": err.Error(),
 	}
 
-	RenderTemplate(ctx, tmpl, data, w)
+	RenderTemplate(ctx, tmpl, "EDeA - Error", data, w)
 }

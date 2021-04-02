@@ -41,5 +41,5 @@ func Explore(w http.ResponseWriter, r *http.Request) {
 		"Benches": p,
 	}
 
-	view.RenderTemplate(r.Context(), "bench/explore.tmpl", m, w)
+	view.RenderTemplate(r.Context(), "bench/explore.tmpl", "EDeA - Explore Benches", m, w)
 }

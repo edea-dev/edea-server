@@ -27,7 +27,7 @@ func Profile(w http.ResponseWriter, r *http.Request) {
 		"Profile": p,
 	}
 
-	view.RenderTemplate(ctx, "profile.tmpl", data, w)
+	view.RenderTemplate(ctx, "profile.tmpl", "EDeA - Profile", data, w)
 }
 
 // UpdateProfile updates the user data
