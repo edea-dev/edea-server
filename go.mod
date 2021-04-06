@@ -31,11 +31,11 @@ require (
 	github.com/yuin/goldmark v1.3.3
 	github.com/yuin/goldmark-highlighting v0.0.0-20200307114337-60d527fdb691
 	github.com/yuin/goldmark-meta v1.0.0
-	golang.org/x/net v0.0.0-20210330075724-22f4162a9025
-	golang.org/x/oauth2 v0.0.0-20210323180902-22b0adad7558
-	golang.org/x/sys v0.0.0-20210326220804-49726bf1d181 // indirect
+	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
+	golang.org/x/oauth2 v0.0.0-20210402161424-2e8d93401602
+	golang.org/x/sys v0.0.0-20210403161142-5e06dd20ab57 // indirect
 	golang.org/x/term v0.0.0-20210317153231-de623e64d2a6 // indirect
-	golang.org/x/text v0.3.5 // indirect
+	golang.org/x/text v0.3.6 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v2 v2.4.0 // indirect
