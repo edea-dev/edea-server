@@ -82,7 +82,7 @@ func Merge(benchName string, modules []model.BenchModule) ([]byte, error) {
 	argv := []string{"edea_merge_tool", "--output", projectDir, "--module"}
 	argv = append(argv, moduleSpec...)
 
-	mergeCmd := exec.CommandContext(ctx, "/usr/bin/python", argv...)
+	mergeCmd := exec.CommandContext(ctx, "/usr/bin/python3", argv...)
 
 	mergeCmd.Dir = config.Cfg.MergeTool
 
