@@ -4,9 +4,10 @@ server:
 dsn: host=192.168.0.2 user=edea password=edea dbname=edea port=5432 sslmode=disable
 api:
   githubtoken: ***REMOVED***
+merge_tool: /home/elen/automated/edea/tool/edea_merge_tool
 cache:
   repo:
-    base: ./tmp/git
+    base: /home/elen/automated/edea/backend/tmp/git
   diff:
     schema: ./tmp/sch
     layout: ./tmp/pcb

@@ -92,7 +92,14 @@ func View(w http.ResponseWriter, r *http.Request) {
 
 	// render the readme real quick
 	g := &repo.Git{URL: module.RepoURL}
-	readme, err := g.Readme()
+	var readme string
+	var err error
+
+	if module.Sub != "" {
+		readme, err = g.SubModuleReadme(module.Sub)
+	} else {
+		readme, err = g.Readme()
+	}
 
 	if err == nil {
 		readme, err = view.RenderReadme(readme)
@@ -171,4 +178,48 @@ func New(w http.ResponseWriter, r *http.Request) {
 	}
 
 	view.RenderTemplate(r.Context(), "module/new.tmpl", "EDeA - New Module", m, w)
+}
+
+// Pull a module repository
+func Pull(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	moduleID := vars["id"]
+	ctx := r.Context()
+
+	// check if we even have a module id
+	if moduleID == "" {
+		msg := map[string]interface{}{
+			"Error": "Unfortunately you didn't give us much to work with, try again with a module id.",
+		}
+		w.WriteHeader(http.StatusNotFound)
+		view.RenderMarkdown("module/404.md", msg, w)
+		return
+	}
+
+	user := ctx.Value(util.UserContextKey).(*model.User)
+
+	// try to fetch the module
+	module := &model.Module{}
+
+	result := model.DB.Where("id = ? and user_id = ?", moduleID, user.ID).Find(module)
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msgf("could not get the module")
+	}
+
+	// nope, no module
+	if module.ID == uuid.Nil {
+		w.WriteHeader(http.StatusNotFound)
+		view.RenderMarkdown("module/404.md", nil, w)
+		return
+	}
+
+	g := &repo.Git{URL: module.RepoURL}
+	if err := g.Pull(); err != nil {
+		log.Panic().Err(err).Msgf("could not pull latest changes")
+	}
+
+	log.Info().Msgf("pulled repo %s for module %s", module.RepoURL, module.ID)
+
+	// redirect to updated module page
+	http.Redirect(w, r, fmt.Sprintf("/module/%s", module.ID), http.StatusSeeOther)
 }

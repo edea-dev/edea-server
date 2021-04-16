@@ -393,12 +393,15 @@ func Merge(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// and merge it together
-	b, err := merge.Merge(bench.Modules)
+	b, err := merge.Merge(bench.Name, bench.Modules)
 	if err != nil {
 		log.Panic().Err(err).Msg("something went wrong during merge")
 	}
 
 	buf := bytes.NewReader(b)
 
-	http.ServeContent(w, r, fmt.Sprintf("%s.zip", bench.Name), time.Now(), buf)
+	fileName := fmt.Sprintf("%s.zip", bench.Name)
+
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	http.ServeContent(w, r, fileName, time.Now(), buf)
 }

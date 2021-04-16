@@ -17,6 +17,7 @@ type Module struct {
 	Private     bool      `gorm:"default:false" schema:"private"`
 	RepoURL     string    `schema:"repourl,required"`
 	Name        string    `schema:"name,required"`
+	Sub         string    `schema:"sub"`
 	Description string    `schema:"description"`
 	CategoryID  uuid.UUID `gorm:"type:uuid" schema:"category"`
 	Category    Category
