@@ -88,8 +88,10 @@ func Merge(benchName string, modules []model.BenchModule) ([]byte, error) {
 
 	// run the merge
 	logOutput, err := mergeCmd.CombinedOutput()
+
+	// return the output of the tool and the error for the user to debug issues
 	if err != nil {
-		log.Panic().Err(err).Msg("error while running merge-tool")
+		return logOutput, err
 	}
 
 	// now we need to create a zip archive of the merged project

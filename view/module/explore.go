@@ -56,7 +56,7 @@ func ExploreUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["id"]
 	ctx := r.Context()
-	currentUser := ctx.Value(util.UserContextKey).(*model.User)
+	currentUser, _ := ctx.Value(util.UserContextKey).(*model.User)
 
 	if userID == "" {
 		log.Panic().Msg("explore_user: no user id specified")

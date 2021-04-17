@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,7 +24,7 @@ func viewHelper(id, tmpl string, w http.ResponseWriter, r *http.Request) {
 	// View the current active bench or another bench if a parameter is supplied
 	bench := &model.Bench{}
 	ctx := r.Context()
-	user := ctx.Value(util.UserContextKey).(*model.User)
+	user, _ := ctx.Value(util.UserContextKey).(*model.User)
 
 	// check if we even have a module id
 	if id == "" {
@@ -51,7 +52,12 @@ func viewHelper(id, tmpl string, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// try to fetch the bench, TODO: join with modules
-	result := model.DB.Where("id = ? and (public = true or user_id = ?)", id, user.ID).First(bench)
+	var result *gorm.DB
+	if user == nil {
+		result = model.DB.Where("id = ? and (public = true)", id).First(bench)
+	} else {
+		result = model.DB.Where("id = ? and (public = true or user_id = ?)", id, user.ID).First(bench)
+	}
 	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		log.Panic().Err(result.Error).Msgf("could not get the bench")
 	}
@@ -59,7 +65,7 @@ func viewHelper(id, tmpl string, w http.ResponseWriter, r *http.Request) {
 	// nope, no bench
 	if bench.ID == uuid.Nil {
 		w.WriteHeader(http.StatusNotFound)
-		view.RenderMarkdown("bench/404.md", nil, w)
+		view.RenderErrTemplate(ctx, w, "bench/404.tmpl", errors.New("Bench was not found or is private"))
 		return
 	}
 
@@ -334,7 +340,7 @@ func ListUser(w http.ResponseWriter, r *http.Request) {
 	if userID == "me" {
 		if user != nil {
 			// select a users own benches
-			result = model.DB.Where("user_id = ?", user.ID, userID).Find(&benches)
+			result = model.DB.Where("user_id = ?", user.ID).Find(&benches)
 		} else {
 			// a user must be logged in to see their own benches
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -351,7 +357,7 @@ func ListUser(w http.ResponseWriter, r *http.Request) {
 
 		m["Author"] = mup
 
-		result = model.DB.Where("user_id = ? and public = true", user.ID, userID).Find(&benches)
+		result = model.DB.Where("user_id = ? and public = true", userID).Find(&benches)
 	}
 
 	if result.Error != nil {
@@ -394,8 +400,15 @@ func Merge(w http.ResponseWriter, r *http.Request) {
 
 	// and merge it together
 	b, err := merge.Merge(bench.Name, bench.Modules)
+
+	// show the user the tool output in case of an error while merging
 	if err != nil {
-		log.Panic().Err(err).Msg("something went wrong during merge")
+		m := map[string]interface{}{
+			"Error":  err,
+			"Output": strings.ReplaceAll(string(b), "\n", "<br>"),
+		}
+		view.RenderTemplate(ctx, "bench/merge_error.tmpl", "Merge Error", m, w)
+		return
 	}
 
 	buf := bytes.NewReader(b)

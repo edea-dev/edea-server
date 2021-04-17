@@ -8,6 +8,7 @@
 		</div>
 
 		<div class="flex-row d-flex justify-content-end pb-2">
+			{{if .User}}
 			<a href="/bench/fork/{{.Bench.ID}}" role="button" class="btn btn-primary">Fork</a>
 			{{if eq .Bench.UserID .User.ID}}
 			{{if .Bench.Active}}
@@ -15,9 +16,14 @@
 			{{else}}
 			<a href="/bench/activate/{{.Bench.ID}}" role="button" class="btn btn-info ml-2">Set Active</a>
 			{{end}}
+			{{end}}
+			{{end}}
 			<a href="/bench/merge/{{.Bench.ID}}" role="button" class="btn btn-warning ml-2">{{icon "download"}}&nbsp;Merge</a>
+			{{if .User}}
+			{{if eq .Bench.UserID .User.ID}}
 			<a href="/bench/update/{{.Bench.ID}}" role="button" class="btn btn-secondary ml-2">Update</a>
 			<a href="/bench/delete/{{.Bench.ID}}" role="button" class="btn btn-danger ml-2">Delete</a>
+			{{end}}
 			{{end}}
 		</div>
 
@@ -92,12 +98,16 @@
 							<div class="col">
 								<a href="#content" class="btn btn-secondary d-md-none mx-4">Jump to top</a>
 							</div>
+							{{if $.User}}
+							{{if eq $.Bench.UserID $.User.ID}}
 							<div class="col">
 								<a href="/bench/configure/{{.ID}}" class="btn btn-secondary mx-4">Configure Module</a>
 							</div>
 							<div class="col">
 								<a href="/bench/remove/{{.ID}}" class="btn btn-danger mx-4">Remove Module</a>
 							</div>
+							{{end}}
+							{{end}}
 						</div>
 					</div>
 					{{end}}

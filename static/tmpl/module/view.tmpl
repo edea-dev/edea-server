@@ -12,11 +12,13 @@
           <h4><span class="badge bg-light">{{.Module.Category.Name}}</span></h4>
         </div>
         <div class="flex-col pb-2">
+          {{if .User}}
           <a href="/bench/add/{{.Module.ID}}" role="button" class="btn btn-primary mr-2">Add to Bench</a>
           <a href="/bench/add_configure/{{.Module.ID}}" role="button" class="btn btn-secondary">Configure & Add</a>
           {{if eq .Module.UserID .User.ID}}
           <a href="/module/pull/{{.Module.ID}}" role="button" class="btn btn-warning ml-2">Pull</a>
           <a href="/module/delete/{{.Module.ID}}" role="button" class="btn btn-danger ml-2">Delete</a>
+          {{end}}
           {{end}}
         </div>
       </div>

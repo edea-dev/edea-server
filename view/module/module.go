@@ -14,6 +14,7 @@ import (
 	"gitlab.com/edea-dev/edea/backend/repo"
 	"gitlab.com/edea-dev/edea/backend/util"
 	"gitlab.com/edea-dev/edea/backend/view"
+	"gorm.io/gorm"
 )
 
 // Create a new module
@@ -66,12 +67,18 @@ func View(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := ctx.Value(util.UserContextKey).(*model.User)
+	user, _ := ctx.Value(util.UserContextKey).(*model.User)
 
 	// try to fetch the module
 	module := &model.Module{}
+	var result *gorm.DB
 
-	result := model.DB.Where("id = ? and (private = false or user_id = ?)", moduleID, user.ID).Preload("Category").Find(module)
+	if user == nil {
+		result = model.DB.Where("id = ? and private = false", moduleID).Preload("Category").Find(module)
+	} else {
+		result = model.DB.Where("id = ? and (private = false or user_id = ?)", moduleID, user.ID).Preload("Category").Find(module)
+	}
+
 	if result.Error != nil {
 		log.Panic().Err(result.Error).Msgf("could not get the module")
 	}

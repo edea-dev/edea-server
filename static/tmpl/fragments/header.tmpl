@@ -56,6 +56,7 @@
           <li class="nav-item">
             <a class="nav-link" href="/bench/explore">Browse Workbenches</a>
           </li>
+          {{if .User}}
           <li class="nav-item active">
             <a class="nav-link" href="/bench/current">My Bench<span
                 class="badge badge-pill badge-danger align-top ml-1">{{if .BenchModCount}}{{.BenchModCount}}{{end}}</span><span class="sr-only">modules currently on
@@ -63,6 +64,7 @@
                 <!-- what's the best practice for screen readers?? -->
               </span></a>
           </li>
+          {{end}}
           <li class="nav-item">
             <a class="nav-link" href="/help">Help</a>
           </li>
