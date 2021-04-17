@@ -129,16 +129,17 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// add the jwt as session cookie
-	// there is an issue in Firefox (https://bugzilla.mozilla.org/show_bug.cgi?id=1465402) which prevents
-	// us from currently simply using strict mode. we need the user to navigate away from the site we redirected
-	// them to so that we lose the cross-origin flag.
-	// I'm open for better ideas than just using javascript to do this.
-	http.SetCookie(w, &http.Cookie{Name: "jwt", Value: rawIDToken, SameSite: http.SameSiteLaxMode})
+	http.SetCookie(w, &http.Cookie{Name: "jwt", Value: rawIDToken, SameSite: http.SameSiteStrictMode})
 
-	w.Header().Add("Authorization", rawIDToken)
-
-	// Redirect to logged in page
-	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	// do a meta-refresh redirect so that we lose the cross-origin flag
+	var html = `<html>
+	<head>
+	<meta http-equiv="refresh" content="0;URL='/'"/>
+	</head>
+	<body><p>Moved to <a href="/">Home</a>. This is just a redirect for OpenID Connect.</p></body>
+	</html>
+	`
+	fmt.Fprintf(w, "%s", html)
 }
 
 // LoginHandler http handler
