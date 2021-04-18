@@ -64,19 +64,20 @@
                 <!-- what's the best practice for screen readers?? -->
               </span></a>
           </li>
-          {{end}}
-          <li class="nav-item">
-            <a class="nav-link" href="/help">Help</a>
-          </li>
-          {{if .User}}
           <li class="nav-item">
             <a class="nav-link" href="/profile">Profile</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/logout">Logout</a>
           </li>
           {{else}}
           <li class="nav-item">
             <a class="nav-link" href="/login">Login</a>
           </li>
           {{end}}
+          <li class="nav-item">
+            <a class="nav-link" href="/help">Help</a>
+          </li>
         </ul>
         <form class="form-inline mt-2 mt-md-0 flex-nowrap">
           <input class="form-control mr-sm-1" type="text" id="search" placeholder="Search for Modules"

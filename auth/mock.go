@@ -246,3 +246,15 @@ func Token(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 	}
 }
+
+// LogoutEndpoint handles logging out the user, e.g. this should invalidate
+// the token auth-side so that if it is presented to us again we know that it
+// has been invalidated
+func LogoutEndpoint(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	u := r.Form.Get("post_logout_redirect_uri")
+
+	log.Info().Msgf("got to logout, redirecting to: %s", u)
+
+	http.Redirect(w, r, u, http.StatusTemporaryRedirect)
+}

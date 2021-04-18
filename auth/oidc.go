@@ -208,18 +208,18 @@ func LogoutCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	state, err := r.Cookie("state")
 	if err == nil {
 		if r.URL.Query().Get("state") != state.Value {
-			http.Error(w, "Invalid state parameter", http.StatusBadRequest)
-			return
+			//http.Error(w, "Invalid state parameter", http.StatusBadRequest)
+			log.Debug().Msgf("unexpected state value from client")
+		} else {
+			// remove state cookie
+			cookie := http.Cookie{
+				Name:     "state",
+				Value:    "",
+				Expires:  time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC),
+				SameSite: http.SameSiteStrictMode,
+			}
+			http.SetCookie(w, &cookie)
 		}
-
-		// remove state cookie
-		cookie := http.Cookie{
-			Name:     "state",
-			Value:    "",
-			Expires:  time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC),
-			SameSite: http.SameSiteStrictMode,
-		}
-		http.SetCookie(w, &cookie)
 	}
 
 	// remove session cookie

@@ -45,6 +45,8 @@ type Config struct {
 			ClientSecret  string `yaml:"client_secret" envconfig:"AUTH_CLIENT_SECRET"`
 			RedirectURL   string `yaml:"redirect_url" envconfig:"AUTH_REDIRECT_URL"`
 			SessionSecret string `yaml:"session_secret" envconfig:"AUTH_SESSION_SECRET"`
+			LogoutURL     string `yaml:"logout_url" envconfig:"AUTH_LOGOUT_URL"`
+			PostLogoutURL string `yaml:"post_logout_url" envconfig:"AUTH_POST_LOGOUT_URL"`
 		} `yaml:"oidc"`
 		UseMock bool `yaml:"use_mock" envconfig:"USE_AUTH_MOCK"`
 	} `yaml:"auth"`

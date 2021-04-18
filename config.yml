@@ -20,6 +20,8 @@ auth:
     client_secret: ***REMOVED***
     redirect_url: http://localhost:3000/callback
     session_secret: ***REMOVED***
+    logout_url: http://localhost:3000/logout_callback
+    post_logout_url: http://localhost:3000/
   mock_oidc: # rename to oidc to use mock auth
     provider_url: http://localhost:3000/
     client_id: ***REMOVED***

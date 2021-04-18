@@ -49,6 +49,13 @@ $GOPATH/bin/modd
 
 That's it.
 
+## Deployment
+
+```sh
+rsync -avz static edea.dev:~/edea-test/
+scp -C edead edea.dev:~/edea-test/
+```
+
 ## Administration
 
 We'll add any routine administrative tasks to the documentation as they arise after the portal goes live on [edea.dev](https://edea.dev).
