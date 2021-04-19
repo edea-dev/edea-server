@@ -29,3 +29,7 @@ auth:
     redirect_url: http://localhost:3000/callback
     session_secret: ***REMOVED***
   use_mock: false
+search:
+  host: http://localhost:7700
+  index: edea
+  api_key: 

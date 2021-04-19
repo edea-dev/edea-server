@@ -100,6 +100,13 @@ func Template(tmplName, title string) http.HandlerFunc {
 	}
 }
 
+// TemplateM returns a http.HandlerFunc to render a specific template w/ a statically allocated map as parameters
+func TemplateM(tmplName string, m map[string]interface{}) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		RenderTemplate(r.Context(), tmplName, "", m, w)
+	}
+}
+
 // RenderErrTemplate renders a page with error information
 func RenderErrTemplate(ctx context.Context, w http.ResponseWriter, tmpl string, err error) {
 	data := map[string]interface{}{

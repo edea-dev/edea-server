@@ -26,11 +26,11 @@ require (
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
 	github.com/lib/pq v1.10.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.6 // indirect
+	github.com/meilisearch/meilisearch-go v0.14.1
 	github.com/rs/xid v1.3.0 // indirect
 	github.com/rs/zerolog v1.21.0
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
-	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/yuin/goldmark v1.3.5
 	github.com/yuin/goldmark-highlighting v0.0.0-20200307114337-60d527fdb691
 	github.com/yuin/goldmark-meta v1.0.0

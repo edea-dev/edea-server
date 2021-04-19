@@ -16,6 +16,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend/config"
 	"gitlab.com/edea-dev/edea/backend/repo"
+	"gitlab.com/edea-dev/edea/backend/search"
 )
 
 func main() {
@@ -40,6 +41,10 @@ func main() {
 
 	// log.Info().Interface("config", config.Cfg)
 	repo.InitCache(config.Cfg.Cache.Repo.Base)
+
+	if err := search.Init(config.Cfg.Search.Host, config.Cfg.Search.Index, config.Cfg.Search.APIKey); err != nil {
+		log.Error().Err(err).Msg("could not init search")
+	}
 
 	addr := fmt.Sprintf("%s:%s", config.Cfg.Server.Host, config.Cfg.Server.Port)
 

@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"gitlab.com/edea-dev/edea/backend/auth"
 	"gitlab.com/edea-dev/edea/backend/config"
+	"gitlab.com/edea-dev/edea/backend/search"
 	"gitlab.com/edea-dev/edea/backend/view"
 	"gitlab.com/edea-dev/edea/backend/view/bench"
 	"gitlab.com/edea-dev/edea/backend/view/module"
@@ -23,6 +24,8 @@ func routes(r *mux.Router) {
 	r.HandleFunc("/", view.Template("index.tmpl", "EDeA"))              // index
 	r.HandleFunc("/about", view.Template("about.tmpl", "EDeA - About")) // about EDeA
 
+	r.HandleFunc("/search", view.Template("search.tmpl", "EDeA - Search")) // Search page
+
 	r.Handle("/module/new", auth.RequireAuth(http.HandlerFunc(module.New))).Methods("GET")            // new module page
 	r.Handle("/module/new", auth.RequireAuth(http.HandlerFunc(module.Create))).Methods("POST")        // add new module
 	r.HandleFunc("/module/explore", module.Explore).Methods("GET")                                    // explore public modules
@@ -31,6 +34,7 @@ func routes(r *mux.Router) {
 	r.HandleFunc("/module/{id}", module.View).Methods("GET")                                          // view module
 	r.Handle("/module/delete/{id}", auth.RequireAuth(http.HandlerFunc(module.Delete))).Methods("GET") // delete module
 	r.Handle("/module/pull/{id}", auth.RequireAuth(http.HandlerFunc(module.Pull))).Methods("GET")     // pull repo of module
+	r.HandleFunc("/module/history/{id}", module.ViewHistory).Methods("GET")                           // show revision history of a module
 
 	r.Handle("/bench/current", auth.RequireAuth(http.HandlerFunc(bench.Current))).Methods("GET")                 // view current bench
 	r.Handle("/bench/new", auth.RequireAuth(view.Template("bench/new.tmpl", "EDeA - New Bench"))).Methods("GET") // new bench form
@@ -74,6 +78,8 @@ func routes(r *mux.Router) {
 	r.HandleFunc("/logout_callback", auth.LogoutCallbackHandler)
 	r.HandleFunc("/login", auth.LoginHandler)
 	r.HandleFunc("/logout", auth.LogoutHandler)
+
+	r.HandleFunc("/search/_bulk_update", search.ReIndexDB)
 
 	// the login action redirects to the OIDC provider, with mock auth we have to provide this ourselves
 	if config.Cfg.Auth.UseMock {

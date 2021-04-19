@@ -50,6 +50,11 @@ type Config struct {
 		} `yaml:"oidc"`
 		UseMock bool `yaml:"use_mock" envconfig:"USE_AUTH_MOCK"`
 	} `yaml:"auth"`
+	Search struct {
+		Host   string `yaml:"host" envconfig:"SEARCH_HOST"`
+		Index  string `yaml:"index" envconfig:"SEARCH_INDEX"`
+		APIKey string `yaml:"api_key" envconfig:"SEARCH_API_KEY"`
+	} `yaml:"search"`
 }
 
 // ReadConfig reads the configuration yaml file and overrides it with any set environment variables

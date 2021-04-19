@@ -19,7 +19,9 @@ mock-jwks.json
 /static/css/*
 /static/img/*
 /static/fonts/*
-/static/js/*
+/static/js/bootstrap*
+/static/js/jquery*
+/static/js/popper*
 
 # pkgbuild artifacts
 /pkg/arch/edead

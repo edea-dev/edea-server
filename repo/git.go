@@ -7,10 +7,13 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
 )
 
@@ -29,6 +32,11 @@ type Module struct {
 	Readme    string `yaml:"readme"`
 	Directory string `yaml:"dir"`
 	// TODO: add configuration here
+}
+
+type Commit struct {
+	Message string
+	Ref     string
 }
 
 // Readme searches for a readme.md file in the repository and returns it if found
@@ -65,28 +73,8 @@ func (g *Git) SubModuleReadme(sub string) (string, error) {
 
 // File searches for a given file in the git respository
 func (g *Git) File(name string, caseSensitive bool) (string, error) {
-	if found, err := cache.Has(g.URL); err != nil {
-		return "", err
-	} else if !found {
-		return "", ErrUncachedRepo
-	}
-
-	if cache == nil {
-		return "", fmt.Errorf("cache is not initialized")
-	}
-
-	path, err := cache.urlToRepoPath(g.URL)
-	if err != nil {
-		return "", err
-	}
-
-	r, err := git.PlainOpen(path)
-	if err != nil {
-		return "", err
-	}
-
 	// ... retrieves the branch pointed by HEAD
-	ref, err := r.Head()
+	r, ref, err := g.head()
 	if err != nil {
 		return "", err
 	}
@@ -154,22 +142,7 @@ func (g *Git) Dir() (string, error) {
 
 // Pull the latest changes from the origin
 func (g *Git) Pull() error {
-	if found, err := cache.Has(g.URL); err != nil {
-		return err
-	} else if !found {
-		return ErrUncachedRepo
-	}
-
-	if cache == nil {
-		return fmt.Errorf("cache is not initialized")
-	}
-
-	path, err := cache.urlToRepoPath(g.URL)
-	if err != nil {
-		return err
-	}
-
-	r, err := git.PlainOpen(path)
+	r, err := g.open()
 	if err != nil {
 		return err
 	}
@@ -181,7 +154,71 @@ func (g *Git) Pull() error {
 
 	if err := w.Pull(&git.PullOptions{RemoteName: "origin"}); err == git.NoErrAlreadyUpToDate {
 		return nil
-	} else {
-		return err
 	}
+
+	return err
+}
+
+func (g *Git) open() (*git.Repository, error) {
+	if found, err := cache.Has(g.URL); err != nil {
+		return nil, err
+	} else if !found {
+		return nil, ErrUncachedRepo
+	}
+
+	if cache == nil {
+		return nil, fmt.Errorf("cache is not initialized")
+	}
+
+	path, err := cache.urlToRepoPath(g.URL)
+	if err != nil {
+		return nil, err
+	}
+
+	return git.PlainOpen(path)
+}
+
+func (g *Git) head() (*git.Repository, *plumbing.Reference, error) {
+	r, err := g.open()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// retrieves the branch pointed by HEAD
+	ref, err := r.Head()
+	return r, ref, err
+}
+
+// History returns the commits and the reference hash for a repository or submodule
+func (g *Git) History(folder string) ([]*Commit, error) {
+	r, ref, err := g.head()
+	if err != nil {
+		return nil, err
+	}
+
+	since := time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC)
+	until := time.Now()
+	options := &git.LogOptions{From: ref.Hash(), Since: &since, Until: &until}
+	if folder != "" {
+		options.PathFilter = func(path string) bool {
+			return strings.HasPrefix(path, folder)
+		}
+	}
+	var commits []*Commit
+
+	cIter, err := r.Log(options)
+	if err != nil {
+		log.Panic().Err(err).Msg("could not retrieve history of repo")
+	}
+	err = cIter.ForEach(func(c *object.Commit) error {
+		msg := strings.ReplaceAll(c.String(), "\n", "<br>")
+		v := &Commit{Message: msg, Ref: c.Hash.String()}
+		commits = append(commits, v)
+
+		fmt.Println(c.String())
+
+		return nil
+	})
+
+	return commits, err
 }

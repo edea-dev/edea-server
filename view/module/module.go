@@ -47,6 +47,8 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 	log.Info().Msg("redirecting to new module page")
 
+	// TODO: create search record here
+
 	// redirect to newly created module page
 	http.Redirect(w, r, fmt.Sprintf("/module/%s", module.ID), http.StatusSeeOther)
 }
@@ -229,4 +231,71 @@ func Pull(w http.ResponseWriter, r *http.Request) {
 
 	// redirect to updated module page
 	http.Redirect(w, r, fmt.Sprintf("/module/%s", module.ID), http.StatusSeeOther)
+}
+
+// ViewHistory provides a commit log of a module
+func ViewHistory(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	moduleID := vars["id"]
+	ctx := r.Context()
+
+	// check if we even have a module id
+	if moduleID == "" {
+		msg := map[string]interface{}{
+			"Error": "Unfortunately you didn't give us much to work with, try again with a module id.",
+		}
+		w.WriteHeader(http.StatusNotFound)
+		view.RenderMarkdown("module/404.md", msg, w)
+		return
+	}
+
+	user, _ := ctx.Value(util.UserContextKey).(*model.User)
+
+	// try to fetch the module
+	module := &model.Module{}
+	var result *gorm.DB
+
+	if user == nil {
+		result = model.DB.Where("id = ? and private = false", moduleID).Preload("Category").Find(module)
+	} else {
+		result = model.DB.Where("id = ? and (private = false or user_id = ?)", moduleID, user.ID).Preload("Category").Find(module)
+	}
+
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msgf("could not get the module")
+	}
+
+	// nope, no module
+	if module.ID == uuid.Nil {
+		w.WriteHeader(http.StatusNotFound)
+		view.RenderMarkdown("module/404.md", nil, w)
+		return
+	}
+
+	// get the module author name
+	mup := model.Profile{UserID: module.UserID}
+
+	if result := model.DB.Where(&mup).First(&mup); result.Error != nil {
+		log.Error().Err(result.Error).Msgf("could not fetch module author profile for user_id %s", module.UserID)
+	}
+
+	// render the readme real quick
+	g := &repo.Git{URL: module.RepoURL}
+	history, err := g.History(module.Sub)
+	if err != nil {
+		log.Error().Err(err).Msg("could not get history of repo")
+	}
+
+	// all packed up,
+	m := map[string]interface{}{
+		"Module":  module,
+		"User":    user,
+		"History": history,
+		"Error":   err,
+		"Author":  mup.DisplayName,
+		"Title":   fmt.Sprintf("EDeA - %s", module.Name),
+	}
+
+	// and ready to go
+	view.RenderTemplate(ctx, "module/view_history.tmpl", "", m, w)
 }
