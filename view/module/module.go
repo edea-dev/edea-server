@@ -112,6 +112,8 @@ func View(w http.ResponseWriter, r *http.Request) {
 
 	if err == nil {
 		readme, err = view.RenderReadme(readme)
+	} else {
+		log.Debug().Err(err).Msg("could not render readme")
 	}
 
 	// all packed up,

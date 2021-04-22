@@ -65,7 +65,8 @@ func (g *Git) SubModuleReadme(sub string) (string, error) {
 	// sanitise the filepaths a bit, we only expect single level nesting
 	// if the git library already does it, we could skip this, but needs verification
 	if m.Readme != "" {
-		return g.File(filepath.Join(filepath.Base(m.Directory), filepath.Base(m.Readme)), false)
+		path := filepath.Join(filepath.Base(m.Directory), filepath.Base(m.Readme))
+		return g.File(path, true)
 	}
 
 	return g.File(filepath.Join(filepath.Base(m.Directory), "readme.md"), false)
