@@ -407,6 +407,11 @@ func Merge(w http.ResponseWriter, r *http.Request) {
 			"Error":  err,
 			"Output": strings.ReplaceAll(string(b), "\n", "<br>"),
 		}
+		if err, ok := err.(util.HintError); ok {
+			log.Info().Msg("is error with hint")
+			m["Error"] = err.Err
+			m["Hint"] = err.Hint
+		}
 		view.RenderTemplate(ctx, "bench/merge_error.tmpl", "Merge Error", m, w)
 		return
 	}

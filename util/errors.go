@@ -17,3 +17,18 @@ var (
 	// ErrNoActiveBench is returned if there is no bench currently set to active
 	ErrNoActiveBench = errors.New("no currently active bench")
 )
+
+// HintError wraps an error with a descriptive hint for the user
+type HintError struct {
+	Hint string
+	Err  error
+}
+
+func (e HintError) Error() string {
+	return e.Hint + ": " + e.Err.Error()
+}
+
+// Unwrap the error
+func (e HintError) Unwrap() error {
+	return e.Err
+}

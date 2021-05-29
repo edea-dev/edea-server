@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -19,6 +20,7 @@ import (
 	"gitlab.com/edea-dev/edea/backend/config"
 	"gitlab.com/edea-dev/edea/backend/model"
 	"gitlab.com/edea-dev/edea/backend/repo"
+	"gitlab.com/edea-dev/edea/backend/util"
 	"gopkg.in/yaml.v3"
 )
 
@@ -64,7 +66,10 @@ func Merge(benchName string, modules []model.BenchModule) ([]byte, error) {
 			continue
 		}
 		if err := yaml.Unmarshal([]byte(s), p); err != nil {
-			return nil, err
+			return nil, util.HintError{
+				Hint: fmt.Sprintf("Could not parse edea.yml for \"%s\"\nTry checking if the syntax is correct.", mod.Name),
+				Err:  err,
+			}
 		}
 
 		v, ok := p.Modules[mod.Module.Sub]
@@ -91,7 +96,10 @@ func Merge(benchName string, modules []model.BenchModule) ([]byte, error) {
 
 	// return the output of the tool and the error for the user to debug issues
 	if err != nil {
-		return logOutput, err
+		return logOutput, util.HintError{
+			Hint: "Something went wrong during the merge process, below is the log which should provide more information.",
+			Err:  err,
+		}
 	}
 
 	// now we need to create a zip archive of the merged project
