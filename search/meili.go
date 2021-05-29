@@ -41,6 +41,29 @@ func Init(host, index, apiKey string) error {
 	return nil
 }
 
+// BenchToEntry converts a Bench model to a Search Entry
+func BenchToEntry(b model.Bench) Entry {
+	return Entry{
+		ID:          b.ID.String(),
+		Type:        "bench",
+		Name:        b.Name,
+		Description: b.Description,
+		Author:      b.User.Handle,
+	}
+}
+
+// ModuleToEntry converts a Module model to a Search Entry
+func ModuleToEntry(m model.Module) Entry {
+	return Entry{
+		ID:          m.ID.String(),
+		Type:        "module",
+		Name:        m.Name,
+		Description: m.Description,
+		Author:      m.User.Handle,
+		Tags:        map[string]string{"Category": m.Category.Name},
+	}
+}
+
 // ReIndexDB searches for all public entries and puts them into the database
 //     This route is mainly for testing
 func ReIndexDB(w http.ResponseWriter, r *http.Request) {
@@ -54,13 +77,7 @@ func ReIndexDB(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, b := range benches {
-		documents = append(documents, Entry{
-			ID:          b.ID.String(),
-			Type:        "bench",
-			Name:        b.Name,
-			Description: b.Description,
-			Author:      b.User.Handle,
-		})
+		documents = append(documents, BenchToEntry(b))
 	}
 
 	result = model.DB.Model(&model.Module{}).Where("private = false").Preload("Category").Preload("User").Find(&modules)
@@ -69,14 +86,7 @@ func ReIndexDB(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, m := range modules {
-		documents = append(documents, Entry{
-			ID:          m.ID.String(),
-			Type:        "module",
-			Name:        m.Name,
-			Description: m.Description,
-			Author:      m.User.Handle,
-			Tags:        map[string]string{"Category": m.Category.Name},
-		})
+		documents = append(documents, ModuleToEntry(m))
 	}
 
 	updateRes, err := meiliClient.Documents("edea").AddOrUpdate(documents) // => { "updateId": 0 }
@@ -86,4 +96,38 @@ func ReIndexDB(w http.ResponseWriter, r *http.Request) {
 
 	log.Debug().Msgf("bulk update update_id: %d", updateRes.UpdateID)
 	fmt.Fprintf(w, "bulk update update_id: %d", updateRes.UpdateID)
+}
+
+// UpdateEntry adds or updates a single search entry
+func UpdateEntry(e Entry) error {
+	// gracefully ignore but warn if meilisearch doesn't work
+	if meiliClient != nil {
+		log.Warn().Msg("MeiliSearch not initialized")
+		return nil
+	}
+
+	updateRes, err := meiliClient.Documents("edea").AddOrUpdate([]Entry{e})
+	if err != nil {
+		return fmt.Errorf("could not add/update the search index: %w", err)
+	}
+
+	log.Debug().Msgf("single entry update update_id: %d", updateRes.UpdateID)
+	return nil
+}
+
+// DeleteEntry removes an Entry from the search index
+func DeleteEntry(e Entry) error {
+	// gracefully ignore but warn if meilisearch doesn't work
+	if meiliClient != nil {
+		log.Warn().Msg("MeiliSearch not initialized")
+		return nil
+	}
+
+	updateRes, err := meiliClient.Documents("edea").Delete(e.ID)
+	if err != nil {
+		return fmt.Errorf("could not delete the entry: %w", err)
+	}
+
+	log.Debug().Msgf("single entry delete update_id: %d", updateRes.UpdateID)
+	return nil
 }

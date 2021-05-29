@@ -15,6 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend/merge"
 	"gitlab.com/edea-dev/edea/backend/model"
+	"gitlab.com/edea-dev/edea/backend/search"
 	"gitlab.com/edea-dev/edea/backend/util"
 	"gitlab.com/edea-dev/edea/backend/view"
 	"gorm.io/gorm"
@@ -155,6 +156,11 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		log.Panic().Err(result.Error).Msg("could not delete bench")
 	}
 
+	// update search index
+	if err := search.DeleteEntry(search.Entry{ID: benchID}); err != nil {
+		log.Panic().Err(err)
+	}
+
 	http.Redirect(w, r, "/bench/user/me", http.StatusTemporaryRedirect)
 }
 
@@ -235,6 +241,11 @@ func Fork(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// update search index
+	if err := search.UpdateEntry(search.BenchToEntry(*b)); err != nil {
+		log.Panic().Err(err)
+	}
+
 	// if everything went well, present the user with a newly forked bench
 	viewHelper(b.ID.String(), "bench/update.tmpl", w, r)
 }
@@ -271,6 +282,11 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		tx.Rollback()
 	}
 
+	// update search index
+	if err := search.UpdateEntry(search.BenchToEntry(*bench)); err != nil {
+		log.Panic().Err(err)
+	}
+
 	// redirect to newly created module page
 	http.Redirect(w, r, fmt.Sprintf("/bench/%s", bench.ID), http.StatusSeeOther)
 }
@@ -294,6 +310,11 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	result := model.DB.Model(bench).Select("Name", "Description", "Public").Updates(bench)
 	if result.Error != nil {
 		log.Panic().Err(result.Error).Msg("could not update bench")
+	}
+
+	// update search index
+	if err := search.UpdateEntry(search.BenchToEntry(*bench)); err != nil {
+		log.Panic().Err(err)
 	}
 
 	// redirect to the bench

@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend/model"
 	"gitlab.com/edea-dev/edea/backend/repo"
+	"gitlab.com/edea-dev/edea/backend/search"
 	"gitlab.com/edea-dev/edea/backend/util"
 	"gitlab.com/edea-dev/edea/backend/view"
 	"gorm.io/gorm"
@@ -47,7 +48,10 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 	log.Info().Msg("redirecting to new module page")
 
-	// TODO: create search record here
+	// update search index
+	if err := search.UpdateEntry(search.ModuleToEntry(*module)); err != nil {
+		log.Panic().Err(err)
+	}
 
 	// redirect to newly created module page
 	http.Redirect(w, r, fmt.Sprintf("/module/%s", module.ID), http.StatusSeeOther)
@@ -55,40 +59,10 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 // View a module
 func View(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	moduleID := vars["id"]
-	ctx := r.Context()
+	user, module := getModule(w, r)
 
-	// check if we even have a module id
-	if moduleID == "" {
-		msg := map[string]interface{}{
-			"Error": "Unfortunately you didn't give us much to work with, try again with a module id.",
-		}
-		w.WriteHeader(http.StatusNotFound)
-		view.RenderMarkdown("module/404.md", msg, w)
-		return
-	}
-
-	user, _ := ctx.Value(util.UserContextKey).(*model.User)
-
-	// try to fetch the module
-	module := &model.Module{}
-	var result *gorm.DB
-
-	if user == nil {
-		result = model.DB.Where("id = ? and private = false", moduleID).Preload("Category").Find(module)
-	} else {
-		result = model.DB.Where("id = ? and (private = false or user_id = ?)", moduleID, user.ID).Preload("Category").Find(module)
-	}
-
-	if result.Error != nil {
-		log.Panic().Err(result.Error).Msgf("could not get the module")
-	}
-
-	// nope, no module
-	if module.ID == uuid.Nil {
-		w.WriteHeader(http.StatusNotFound)
-		view.RenderMarkdown("module/404.md", nil, w)
+	// getModule already writes out the necessary error messages
+	if module == nil {
 		return
 	}
 
@@ -127,7 +101,7 @@ func View(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// and ready to go
-	view.RenderTemplate(ctx, "module/view.tmpl", "", m, w)
+	view.RenderTemplate(r.Context(), "module/view.tmpl", "", m, w)
 }
 
 // Update a module and reload the page
@@ -146,6 +120,11 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	result := model.DB.WithContext(r.Context()).Save(module)
 	if result.Error != nil {
 		log.Panic().Err(result.Error).Msg("could not update module")
+	}
+
+	// update search index
+	if err := search.UpdateEntry(search.ModuleToEntry(*module)); err != nil {
+		log.Panic().Err(err)
 	}
 
 	// redirect to updated module page
@@ -170,6 +149,11 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	result := model.DB.WithContext(r.Context()).Delete(&model.Module{ID: uuid.MustParse(moduleID)})
 	if result.Error != nil {
 		log.Panic().Err(result.Error).Msg("could not delete module")
+	}
+
+	// update search index
+	if err := search.UpdateEntry(search.Entry{ID: moduleID}); err != nil {
+		log.Panic().Err(err)
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -237,40 +221,10 @@ func Pull(w http.ResponseWriter, r *http.Request) {
 
 // ViewHistory provides a commit log of a module
 func ViewHistory(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	moduleID := vars["id"]
-	ctx := r.Context()
+	user, module := getModule(w, r)
 
-	// check if we even have a module id
-	if moduleID == "" {
-		msg := map[string]interface{}{
-			"Error": "Unfortunately you didn't give us much to work with, try again with a module id.",
-		}
-		w.WriteHeader(http.StatusNotFound)
-		view.RenderMarkdown("module/404.md", msg, w)
-		return
-	}
-
-	user, _ := ctx.Value(util.UserContextKey).(*model.User)
-
-	// try to fetch the module
-	module := &model.Module{}
-	var result *gorm.DB
-
-	if user == nil {
-		result = model.DB.Where("id = ? and private = false", moduleID).Preload("Category").Find(module)
-	} else {
-		result = model.DB.Where("id = ? and (private = false or user_id = ?)", moduleID, user.ID).Preload("Category").Find(module)
-	}
-
-	if result.Error != nil {
-		log.Panic().Err(result.Error).Msgf("could not get the module")
-	}
-
-	// nope, no module
-	if module.ID == uuid.Nil {
-		w.WriteHeader(http.StatusNotFound)
-		view.RenderMarkdown("module/404.md", nil, w)
+	// getModule already writes out the necessary error messages
+	if module == nil {
 		return
 	}
 
@@ -299,5 +253,66 @@ func ViewHistory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// and ready to go
-	view.RenderTemplate(ctx, "module/view_history.tmpl", "", m, w)
+	view.RenderTemplate(r.Context(), "module/view_history.tmpl", "", m, w)
+}
+
+// Diff a module's revisions
+func Diff(w http.ResponseWriter, r *http.Request) {
+	_, module := getModule(w, r)
+
+	// getModule already writes out the necessary error messages
+	if module == nil {
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		log.Panic().Err(err).Msg("could not parse form data")
+	}
+
+	commit1 := r.Form.Get("a")
+	commit2 := r.Form.Get("b")
+
+	log.Debug().Msgf("diffing %s and %s", commit1, commit2)
+
+	// TODO: run diff tools
+}
+
+func getModule(w http.ResponseWriter, r *http.Request) (user *model.User, module *model.Module) {
+	vars := mux.Vars(r)
+	moduleID := vars["id"]
+	ctx := r.Context()
+
+	// check if we even have a module id
+	if moduleID == "" {
+		msg := map[string]interface{}{
+			"Error": "Unfortunately you didn't give us much to work with, try again with a module id.",
+		}
+		w.WriteHeader(http.StatusNotFound)
+		view.RenderMarkdown("module/404.md", msg, w)
+		return nil, nil
+	}
+
+	user, _ = ctx.Value(util.UserContextKey).(*model.User)
+
+	// try to fetch the module
+	var result *gorm.DB
+
+	if user == nil {
+		result = model.DB.Where("id = ? and private = false", moduleID).Preload("Category").Find(module)
+	} else {
+		result = model.DB.Where("id = ? and (private = false or user_id = ?)", moduleID, user.ID).Preload("Category").Find(module)
+	}
+
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msgf("could not get the module")
+	}
+
+	// nope, no module
+	if module.ID == uuid.Nil {
+		w.WriteHeader(http.StatusNotFound)
+		view.RenderMarkdown("module/404.md", nil, w)
+		return nil, nil
+	}
+
+	return
 }

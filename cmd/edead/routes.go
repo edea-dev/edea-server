@@ -35,6 +35,7 @@ func routes(r *mux.Router) {
 	r.Handle("/module/delete/{id}", auth.RequireAuth(http.HandlerFunc(module.Delete))).Methods("GET") // delete module
 	r.Handle("/module/pull/{id}", auth.RequireAuth(http.HandlerFunc(module.Pull))).Methods("GET")     // pull repo of module
 	r.HandleFunc("/module/history/{id}", module.ViewHistory).Methods("GET")                           // show revision history of a module
+	r.HandleFunc("/module/diff/{id}", module.Diff).Methods("GET")
 
 	r.Handle("/bench/current", auth.RequireAuth(http.HandlerFunc(bench.Current))).Methods("GET")                 // view current bench
 	r.Handle("/bench/new", auth.RequireAuth(view.Template("bench/new.tmpl", "EDeA - New Bench"))).Methods("GET") // new bench form
