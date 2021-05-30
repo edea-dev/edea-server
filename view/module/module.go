@@ -274,6 +274,21 @@ func Diff(w http.ResponseWriter, r *http.Request) {
 
 	log.Debug().Msgf("diffing %s and %s", commit1, commit2)
 
+	/*
+		# How to do it
+
+		## Schematic
+		Call `plotgitsch A B`
+		Store the result in the cache
+
+		## Layout
+		Fork KiCad-Diff
+		Make it just output A and B for each layer
+		Get inspired by the existing HTML it comes with, it works already
+		Provide a unified view where you can tick/untick layers for visibility
+
+	*/
+
 	// TODO: run diff tools
 }
 
@@ -296,6 +311,7 @@ func getModule(w http.ResponseWriter, r *http.Request) (user *model.User, module
 
 	// try to fetch the module
 	var result *gorm.DB
+	module = new(model.Module)
 
 	if user == nil {
 		result = model.DB.Where("id = ? and private = false", moduleID).Preload("Category").Find(module)

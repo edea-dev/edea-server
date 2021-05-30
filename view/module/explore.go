@@ -14,6 +14,7 @@ import (
 )
 
 // TOOD: improve DDL so we can do this with the ORM natively
+
 type ExploreModule struct {
 	ID          string
 	UserID      string

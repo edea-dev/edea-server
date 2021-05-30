@@ -1,41 +1,42 @@
 {{template "header" .}}
 <main role="main">
-    <div class="container" id="content">
-      <div class="jumbotron bg-primary text-white d-none d-lg-block mb-2">
-        <!-- .d-sm-none hides the element on mobile entirely. use it only for design. -->
-		<h1 class="mt-5">{{.Module.Name}} by {{.Author}}</h1>
-		<p class="lead">{{.Module.Description}}</p>
-      </div>
+  <div class="container" id="content">
+    <div class="jumbotron bg-primary text-white d-none d-lg-block mb-2">
+      <!-- .d-sm-none hides the element on mobile entirely. use it only for design. -->
+      <h1 class="mt-5">{{.Module.Name}} by {{.Author}}</h1>
+      <p class="lead">{{.Module.Description}}</p>
+    </div>
 
-      <div class="flex-row d-flex justify-content-between">
-        <div class="flex-col">
-          <h4><span class="badge bg-light">{{.Module.Category.Name}}</span></h4>
-        </div>
-        <div class="flex-col pb-2">
-          {{if .User}}
-          <a href="/bench/add/{{.Module.ID}}" role="button" class="btn btn-primary mr-2">Add to Bench</a>
-          <a href="/bench/add_configure/{{.Module.ID}}" role="button" class="btn btn-secondary">Configure & Add</a>
-          {{if eq .Module.UserID .User.ID}}
-          <a href="/module/pull/{{.Module.ID}}" role="button" class="btn btn-warning ml-2">Pull</a>
-          <a href="/module/delete/{{.Module.ID}}" role="button" class="btn btn-danger ml-2">Delete</a>
-          {{end}}
-          {{end}}
-        </div>
+    <div class="flex-row d-flex justify-content-between">
+      <div class="flex-col">
+        <h4><span class="badge bg-light">{{.Module.Category.Name}}</span></h4>
       </div>
+      <div class="flex-col pb-2">
+        <a href="/module/history/{{.Module.ID}}" role="button" class="btn btn-light mr-2">History</a>
+        {{if .User}}
+        <a href="/bench/add/{{.Module.ID}}" role="button" class="btn btn-primary mr-2">Add to Bench</a>
+        <a href="/bench/add_configure/{{.Module.ID}}" role="button" class="btn btn-secondary">Configure & Add</a>
+        {{if eq .Module.UserID .User.ID}}
+        <a href="/module/pull/{{.Module.ID}}" role="button" class="btn btn-warning ml-2">Pull</a>
+        <a href="/module/delete/{{.Module.ID}}" role="button" class="btn btn-danger ml-2">Delete</a>
+        {{end}}
+        {{end}}
+      </div>
+    </div>
 
-      <div class="flex-row">
-        <div class="card d-flex">
-            <div class="card-body">
-            {{if .Readme}}            
-                {{.Readme}}
-            {{else}}
-            <div class="alert alert-warning" role="alert">
-                Looks like we couldn't find or render the readme.
-            </div>
-            {{end}}
-            </div>
+    <div class="flex-row">
+      <div class="card d-flex">
+        <div class="card-body">
+          {{if .Readme}}
+          {{.Readme}}
+          {{else}}
+          <div class="alert alert-warning" role="alert">
+            Looks like we couldn't find or render the readme.
           </div>
+          {{end}}
         </div>
       </div>
-  </main>
+    </div>
+  </div>
+</main>
 {{template "footer" .}}
