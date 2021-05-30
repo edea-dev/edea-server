@@ -3,13 +3,18 @@ package module
 // SPDX-License-Identifier: EUPL-1.2
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"os/exec"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
+	"gitlab.com/edea-dev/edea/backend/config"
 	"gitlab.com/edea-dev/edea/backend/model"
 	"gitlab.com/edea-dev/edea/backend/repo"
 	"gitlab.com/edea-dev/edea/backend/search"
@@ -290,6 +295,55 @@ func Diff(w http.ResponseWriter, r *http.Request) {
 	*/
 
 	// TODO: run diff tools
+
+	// TODO: check out the two revisions from git
+}
+
+func plotPCB(mod *model.Module, revision string) ([]byte, error) {
+	// processing projects should not take longer than a minute
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	g := &repo.Git{URL: mod.RepoURL}
+
+	// read and parse the module configuration out of the repo
+	pcb, err := g.FileByExtAt(mod.Sub, "kicad_pcb", revision)
+	if err != nil {
+		return nil, util.HintError{
+			Hint: fmt.Sprintf("No kicad_pcb file has been found for %s at %s", mod.Sub, revision),
+			Err:  err,
+		}
+	}
+
+	// write the PCB file to disk so we can call kicad via our python script to plot it
+	f, err := os.CreateTemp("", revision+".*.kicad_pcb")
+	if err != nil {
+		log.Panic().Err(err).Msg("could not create temp pcb file")
+	}
+	defer os.Remove(f.Name())
+
+	if _, err := f.Write(pcb); err != nil {
+		log.Panic().Err(err).Msg("could not write temp pcb file contents")
+	}
+
+	argv := []string{"plotpcb.py", f.Name()}
+
+	mergeCmd := exec.CommandContext(ctx, "/usr/bin/python3", argv...)
+
+	mergeCmd.Dir = config.Cfg.PlotPCB
+
+	// run the merge
+	logOutput, err := mergeCmd.CombinedOutput()
+
+	// return the output of the tool and the error for the user to debug issues
+	if err != nil {
+		return logOutput, util.HintError{
+			Hint: "Something went wrong during the pcb plotting, below is the log which should provide more information.",
+			Err:  err,
+		}
+	}
+
+	return logOutput, nil
 }
 
 func getModule(w http.ResponseWriter, r *http.Request) (user *model.User, module *model.Module) {

@@ -29,6 +29,8 @@ type Config struct {
 		GitHubToken string `yaml:"githubtoken" envconfig:"GITHUB_API_TOKEN"`
 	} `yaml:"api"`
 	MergeTool string `yaml:"merge_tool" envconfig:"MERGE_TOOL"`
+	PlotPCB   string `yaml:"plot_pcb" envconfig:"PLOTPCB"`
+	PlotSCH   string `yaml:"plot_sch" envconfig:"PLOTSCH"`
 	Cache     struct {
 		Repo struct {
 			Base string `yaml:"base" envconfig:"REPO_CACHE_BASE"`

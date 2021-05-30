@@ -7,13 +7,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -21,7 +18,6 @@ import (
 	"gitlab.com/edea-dev/edea/backend/model"
 	"gitlab.com/edea-dev/edea/backend/repo"
 	"gitlab.com/edea-dev/edea/backend/util"
-	"gopkg.in/yaml.v3"
 )
 
 // TODO: we need to finish defining the file format so that we can put multiple
@@ -52,35 +48,10 @@ func Merge(benchName string, modules []model.BenchModule) ([]byte, error) {
 	var moduleSpec []string
 
 	for _, mod := range modules {
-		g := &repo.Git{URL: mod.Module.RepoURL}
-		p := &repo.Project{}
-
-		// read and parse the module configuration out of the repo
-		s, err := g.File("edea.yml", false)
+		dir, err := repo.GetModulePath(&mod.Module)
 		if err != nil {
-			// assuming old format, i.e. no sub-modules
-			log.Info().Msgf("module %s does not contain an edea.yml file, assuming project files are in top-level dir", mod.ModuleID)
-
-			repoDir, _ := g.Dir()
-			moduleSpec = append(moduleSpec, repoDir)
-			continue
+			return nil, err
 		}
-		if err := yaml.Unmarshal([]byte(s), p); err != nil {
-			return nil, util.HintError{
-				Hint: fmt.Sprintf("Could not parse edea.yml for \"%s\"\nTry checking if the syntax is correct.", mod.Name),
-				Err:  err,
-			}
-		}
-
-		v, ok := p.Modules[mod.Module.Sub]
-		if !ok {
-			log.Panic().Err(errors.New("sub-module specified but does not exist")).Msg("the sub-module key in the database does not exist in the repo edea.yml")
-		}
-
-		repoDir, _ := g.Dir() // at this point we already know the it's cached
-		dir := strings.ReplaceAll(v.Directory, "../", "")
-		dir = strings.TrimPrefix(dir, "/")
-		dir = filepath.Join(repoDir, dir)
 		moduleSpec = append(moduleSpec, dir)
 	}
 

@@ -223,3 +223,105 @@ func (g *Git) History(folder string) ([]*Commit, error) {
 
 	return commits, err
 }
+
+// FileAt searches for a given file with the specific revision in the git respository
+// the revision parameter can be anything ResolveRevision understands (tags, branches, HEAD^1, etc.)
+func (g *Git) FileAt(name string, caseSensitive bool, revision string) ([]byte, error) {
+	// ... retrieves the branch pointed by HEAD
+	r, err := g.open()
+	if err != nil {
+		return nil, err
+	}
+
+	ref, err := r.ResolveRevision(plumbing.Revision(revision))
+	if err != nil {
+		return nil, err
+	}
+
+	// ... retrieving the commit object
+	commit, err := r.CommitObject(*ref)
+	if err != nil {
+		return nil, err
+	}
+
+	// ... retrieve the tree from the commit
+	tree, err := commit.Tree()
+	if err != nil {
+		return nil, err
+	}
+
+	var file *object.File
+
+	// ... get the files iterator and print the file
+	tree.Files().ForEach(func(f *object.File) error {
+		if caseSensitive {
+			if f.Name == name {
+				file = f
+				return storer.ErrStop
+			}
+		}
+		if strings.ToLower(f.Name) == name {
+			file = f
+			return storer.ErrStop
+		}
+		return nil
+	})
+
+	if file != nil {
+		s, err := file.Contents()
+		if err != nil {
+			return nil, err
+		}
+		return []byte(s), nil
+	}
+
+	return nil, ErrNoFile
+}
+
+// FileByExtAt searches for a given file by extension with the specific revision in the git respository
+// the revision parameter can be anything ResolveRevision understands (tags, branches, HEAD^1, etc.)
+func (g *Git) FileByExtAt(dir, ext, revision string) ([]byte, error) {
+	// ... retrieves the branch pointed by HEAD
+	r, err := g.open()
+	if err != nil {
+		return nil, err
+	}
+
+	ref, err := r.ResolveRevision(plumbing.Revision(revision))
+	if err != nil {
+		return nil, err
+	}
+
+	// ... retrieving the commit object
+	commit, err := r.CommitObject(*ref)
+	if err != nil {
+		return nil, err
+	}
+
+	// ... retrieve the tree from the commit
+	tree, err := commit.Tree()
+	if err != nil {
+		return nil, err
+	}
+
+	var file *object.File
+
+	// find the first file by extension
+	tree.Files().ForEach(func(f *object.File) error {
+		if filepath.Dir(f.Name) == dir && filepath.Ext(f.Name) == ext {
+			file = f
+			return storer.ErrStop
+		}
+		return nil
+	})
+
+	if file != nil {
+		s, err := file.Contents()
+		if err != nil {
+			return nil, err
+		}
+		return []byte(s), nil
+	}
+
+	return nil, ErrNoFile
+}
