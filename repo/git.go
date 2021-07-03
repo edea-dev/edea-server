@@ -45,6 +45,31 @@ func (g *Git) Readme() (string, error) {
 	return g.File("readme.md", false)
 }
 
+// SubModuleDir looks if a sub-module exists or else returns the base path
+func (g *Git) SubModuleDir(sub string) (string, error) {
+	p := &Project{}
+
+	// read and parse the module configuration out of the repo
+	s, err := g.File("edea.yml", false)
+	if err != nil {
+		return "", errors.New("module does not contain an edea.yml file")
+	}
+	if err := yaml.Unmarshal([]byte(s), p); err != nil {
+		return "", err
+	}
+
+	var path string
+
+	m, ok := p.Modules[sub]
+	if !ok {
+		path = m.Directory
+	} else {
+		path = filepath.Base(m.Directory)
+	}
+
+	return path, nil
+}
+
 // SubModuleReadme searches for a readme.md file in the repository and returns it if found
 func (g *Git) SubModuleReadme(sub string) (string, error) {
 	p := &Project{}

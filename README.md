@@ -61,3 +61,17 @@ scp -C edead edea.dev:~/edea-test/
 
 We'll add any routine administrative tasks to the documentation as they arise after the portal goes live on [edea.dev](https://edea.dev).
 
+## Dependencies
+
+edead needs a variety of tools to be available on the host to function:
+
+- python >=3.8
+  - merge tool, plotpcb
+- svgcleaner
+  - svg preparation for caching
+- KiCAD 5.x
+  - plotpcb
+- plotgitsch
+  - Plotting differences in the schematic
+- mdbook
+  - rendering of the documentation

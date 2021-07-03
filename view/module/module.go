@@ -287,24 +287,29 @@ func Diff(w http.ResponseWriter, r *http.Request) {
 
 	log.Debug().Msgf("diffing %s and %s", commit1, commit2)
 
-	/*
-		# How to do it
+	pcba, err := plotPCB(module, commit1)
+	if err != nil {
+		log.Panic().Err(err).Msgf("could not plot pcb at A (%s)", commit1)
+	}
+	pcbb, err := plotPCB(module, commit1)
+	if err != nil {
+		log.Panic().Err(err).Msgf("could not plot pcb at B (%s)", commit2)
+	}
+	sch, err := plotSCH(module, commit1, commit2)
+	if err != nil {
+		log.Panic().Err(err).Msg("could not plot sch")
+	}
 
-		## Schematic
-		Call `plotgitsch A B`
-		Store the result in the cache
+	m := map[string]interface{}{
+		"Module": module,
+		"PCBA":   pcba,
+		"PCBB":   pcbb,
+		"SCH":    sch,
+		"Title":  fmt.Sprintf("EDeA - %s", module.Name),
+	}
 
-		## Layout
-		Fork KiCad-Diff
-		Make it just output A and B for each layer
-		Get inspired by the existing HTML it comes with, it works already
-		Provide a unified view where you can tick/untick layers for visibility
-
-	*/
-
-	// TODO: run diff tools
-
-	// TODO: check out the two revisions from git
+	// and ready to go
+	view.RenderTemplate(r.Context(), "module/view_diff.tmpl", "", m, w)
 }
 
 func plotPCB(mod *model.Module, revision string) ([]byte, error) {
@@ -336,17 +341,55 @@ func plotPCB(mod *model.Module, revision string) ([]byte, error) {
 
 	argv := []string{"plotpcb.py", f.Name()}
 
-	mergeCmd := exec.CommandContext(ctx, "/usr/bin/python3", argv...)
+	plotCmd := exec.CommandContext(ctx, "python3", argv...)
 
-	mergeCmd.Dir = config.Cfg.PlotPCB
+	plotCmd.Dir = config.Cfg.PlotPCB
 
-	// run the merge
-	logOutput, err := mergeCmd.CombinedOutput()
+	// run the plotting operation
+	logOutput, err := plotCmd.CombinedOutput()
 
 	// return the output of the tool and the error for the user to debug issues
 	if err != nil {
 		return logOutput, util.HintError{
 			Hint: "Something went wrong during the pcb plotting, below is the log which should provide more information.",
+			Err:  err,
+		}
+	}
+
+	return logOutput, nil
+}
+
+func plotSCH(mod *model.Module, a, b string) ([]byte, error) {
+	// processing projects should not take longer than a minute
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	g := &repo.Git{URL: mod.RepoURL}
+
+	modDir, err := g.SubModuleDir(mod.Sub)
+	if err != nil {
+		log.Panic().Err(err).Msg("could not open repo")
+	}
+	baseDir, err := g.Dir()
+	if err != nil {
+		log.Panic().Err(err).Msg("could not open repo")
+	}
+
+	path := filepath.Join(baseDir, modDir)
+
+	argv := []string{"plotsch.py", "-i", path, "-a", a, "-b", b}
+
+	plotCmd := exec.CommandContext(ctx, "python3", argv...)
+
+	plotCmd.Dir = config.Cfg.PlotSCH
+
+	// run the plotting operation
+	logOutput, err := plotCmd.CombinedOutput()
+
+	// return the output of the tool and the error for the user to debug issues
+	if err != nil {
+		return logOutput, util.HintError{
+			Hint: "Something went wrong during the schematic plotting, below is the log which should provide more information.",
 			Err:  err,
 		}
 	}
