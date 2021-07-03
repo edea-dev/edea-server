@@ -320,7 +320,7 @@ func plotPCB(mod *model.Module, revision string) ([]byte, error) {
 	g := &repo.Git{URL: mod.RepoURL}
 
 	// read and parse the module configuration out of the repo
-	pcb, err := g.FileByExtAt(mod.Sub, "kicad_pcb", revision)
+	pcb, err := g.FileByExtAt(mod.Sub, ".kicad_pcb", revision)
 	if err != nil {
 		return nil, util.HintError{
 			Hint: fmt.Sprintf("No kicad_pcb file has been found for %s at %s", mod.Sub, revision),
@@ -350,6 +350,7 @@ func plotPCB(mod *model.Module, revision string) ([]byte, error) {
 
 	// return the output of the tool and the error for the user to debug issues
 	if err != nil {
+		log.Info().Msg(string(logOutput))
 		return logOutput, util.HintError{
 			Hint: "Something went wrong during the pcb plotting, below is the log which should provide more information.",
 			Err:  err,

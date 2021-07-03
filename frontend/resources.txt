@@ -5,7 +5,6 @@ $SOURCE/js $WEBROOT
 $SOURCE/css $WEBROOT
 $SOURCE/fonts $WEBROOT
 $SOURCE/img $WEBROOT
-$SOURCE/*.* $WEBROOT
 
 # Bootstrap Icons
 node_modules/bootstrap-icons/icons $WEBROOT/

@@ -30,7 +30,7 @@ var (
 	markdown goldmark.Markdown
 	readmeMD goldmark.Markdown
 	mdPath   = "./static/md/"
-	tmplPath = "./static/tmpl/"
+	tmplPath = "./frontend/template/"
 	chroma   = "monokai"
 
 	ErrNoTmplReference = errors.New("page template value is nil")

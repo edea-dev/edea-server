@@ -16,6 +16,7 @@ mock-jwks.json
 /static/
 
 /frontend/tmp
+/frontend/node_modules
 
 # pkgbuild artifacts
 /pkg/arch/edead

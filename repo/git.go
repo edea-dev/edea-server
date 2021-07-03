@@ -374,6 +374,7 @@ func (g *Git) FileAt(name string, caseSensitive bool, revision string) ([]byte, 
 
 // FileByExtAt searches for a given file by extension with the specific revision in the git respository
 // the revision parameter can be anything ResolveRevision understands (tags, branches, HEAD^1, etc.)
+// NOTE: ext *must* contain the . (dot), e.g. ".kicad_pcb"
 func (g *Git) FileByExtAt(dir, ext, revision string) ([]byte, error) {
 	// ... retrieves the branch pointed by HEAD
 	r, err := g.open()
