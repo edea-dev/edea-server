@@ -37,7 +37,11 @@ Yes, this process is cumbersome, since you need to add the same resource twice; 
 
 After you change source files, you need to run `./build-fe.sh` again. The webserver does not need to be restarted. This step should not download new resources from the network and only use local files.
 
-#### Post-processing
+### Updating dependencies
+
+Just run `yarn upgrade --latest`
+
+## Post-processing
 
 After copying file, a post-processing step is called; this is used to compress images, minify CSS, javascript, etc. It is stored in `post-process.sh` and is called by `build-fe.sh` automatically.
 

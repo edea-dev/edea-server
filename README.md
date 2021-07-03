@@ -24,13 +24,15 @@ $GOPATH:/bin/edead
 
 ## Development
 
-0. Install [modd](https://github.com/cortesi/modd) for live reloading and auto-building
+0. Install Dependencies
+
+We use [modd](https://github.com/cortesi/modd) for live reloading and Go auto-building
 
 ```sh
 env GO111MODULE=on go get github.com/cortesi/modd/cmd/modd
 ```
 
-Alternatively, use your system's package manager. On Arch Linux, if you use `yay`, just run `yay -S modd` 
+Alternatively, use your system's package manager. On Arch Linux, if you use `yay`, just run `yay -S modd`. For the frontend you'll also need yarn.
 
 1. Clone the repository
 
@@ -42,13 +44,27 @@ git clone https://gitlab.com/edea-dev/edead && cd edead
 
 Copy `config.template.yml` to `config.yml`, and edit it to point to your PostgreSQL installation. Installing and configuring PostgreSQL is left as an exercise for the reader.
 
-3. Run it
+3. Prepare the Frontend Files
+
+Currently only Linux is supported.
+
+```sh
+cd frontend
+./install-dependencies.sh
+./build-fe.sh
+```
+
+These should finish without any error. Now the webserver's static files are prepared in the `static/` directory.
+
+3. Run the server
 
 ```sh
 modd
 ```
 
 That's it.
+
+Live reload currently does not watch frontend files. You'll need to re-run `./build-fe` in the `frontend` folder when you change the JS/Sass/CSS files or graphic assets.
 
 ## Deployment
 
