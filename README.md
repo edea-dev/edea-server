@@ -5,7 +5,7 @@ This contains the program `edead` which handles the API, serving the portal web 
 ## Running it
 
 ### Grab the latest tagged release:
- from [here](#) (to be done), unpack it, adjust the database connection information and run it like this:
+ from [here](-/tags) (to be done), unpack it, adjust the database connection information in `config.yml` and run it like this:
 
 ```sh
 ./edead
@@ -24,27 +24,28 @@ $GOPATH:/bin/edead
 
 ## Development
 
-0. Install [modd](https://github.com/cortesi/modd) for live reloading (optional)
+0. Install [modd](https://github.com/cortesi/modd) for live reloading and auto-building
 
 ```sh
 env GO111MODULE=on go get github.com/cortesi/modd/cmd/modd
 ```
 
+Alternatively, use your system's package manager. On Arch Linux, if you use `yay`, just run `yay -S modd` 
+
 1. Clone the repository
 
 ```sh
-git clone https://gitlab.com/edea-dev/edea
+git clone https://gitlab.com/edea-dev/edead && cd edead
 ```
 
-2. Run it
+2. Configure the database connection
+
+Copy `config.template.yml` to `config.yml`, and edit it to point to your PostgreSQL installation. Installing and configuring PostgreSQL is left as an exercise for the reader.
+
+3. Run it
 
 ```sh
-cd edea/backend/
-go build gitlab.com/edea-dev/edead/cmd/edead
-./edead
-
-# or with modd for live code reloading:
-$GOPATH/bin/modd
+modd
 ```
 
 That's it.
@@ -60,20 +61,3 @@ scp -C edead edea.dev:~/edea-test/
 
 We'll add any routine administrative tasks to the documentation as they arise after the portal goes live on [edea.dev](https://edea.dev).
 
-## Assorted Tasks
-
-- GraphQL supported hosters:
-  - GitHub API client
-  - Gitea API client
-  - sr.ht API client? maybe?
-
-- web hooks for hosters
-  - tie to login
-
-- Task runners
-  - update repos from external
-
-- Caching of arbitrary data
-- Fetch repositories
-  - render schematic and layout files
-    - cache them
