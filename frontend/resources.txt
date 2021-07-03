@@ -1,0 +1,35 @@
+# Lines starting with a # are comments
+# First make sure the necessary directories exist and copy source as is
+$SOURCE/icons/*.* $WEBROOT
+$SOURCE/js $WEBROOT
+$SOURCE/css $WEBROOT
+$SOURCE/fonts $WEBROOT
+$SOURCE/img $WEBROOT
+$SOURCE/*.* $WEBROOT
+
+# Bootstrap Icons
+node_modules/bootstrap-icons/icons $WEBROOT/
+node_modules/bootstrap-icons/bootstrap-icons.svg $WEBROOT/img/
+
+# Fonts
+node_modules/@openfonts/permanent-marker_latin/files/*.* $WEBROOT/fonts/
+node_modules/@openfonts/quicksand_latin/files/*.* $WEBROOT/fonts/
+node_modules/@openfonts/open-sans_all/files/*.* $WEBROOT/fonts/
+
+# bootstrap
+node_modules/bootstrap/dist/css/*.* $WEBROOT/css/
+node_modules/bootstrap/dist/js/*.* $WEBROOT/js/
+
+# boostrap-table
+$SOURCE/bt $WEBROOT
+node_modules/bootstrap-table/dist/*.css $WEBROOT/css/
+node_modules/bootstrap-table/dist/*.js $WEBROOT/js/
+node_modules/bootstrap-table/dist/themes/bootstrap-table $WEBROOT/bt/
+node_modules/bootstrap-table/dist/extensions/sticky-header/* $WEBROOT/bt/
+node_modules/bootstrap-table/dist/extensions/fixed-columns/* $WEBROOT/bt/
+node_modules/bootstrap-table/dist/extensions/mobile/* $WEBROOT/bt/
+
+# dependencies of bootstrap
+node_modules/jquery/dist/*.* $WEBROOT/js/
+node_modules/popper.js/dist/umd/*.* $WEBROOT/js/
+

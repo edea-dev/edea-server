@@ -1,0 +1,8 @@
+# This file sets the necessary variables. Change them here.
+
+RESOURCES_FILE="resources.txt"
+WEBROOT="../static"
+SOURCE="src"
+PORT="8008"
+URL="http://localhost:$PORT/"
+

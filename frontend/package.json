@@ -1,0 +1,23 @@
+{
+  "name": "edea-frontend",
+  "description": "Web User Interface for the EDeA Project",
+  "version": "0.1.2",
+  "main": "public_html/index.html",
+  "author": "Fully Automated",
+  "license": "EUPL-1.2",
+  "dependencies": {
+    "@openfonts/open-sans_all": "^1.44.1",
+    "@openfonts/permanent-marker_latin": "^1.44.1",
+    "@openfonts/quicksand_latin": "^1.44.4",
+    "bootstrap": "^4.5.2",
+    "bootstrap-icons": "^1.0.0",
+    "bootstrap-table": "^1.17.1",
+    "jquery": "^3.6.0",
+    "popper.js": "^1.16.1",
+    "sass": "^1.26.10"
+  },
+  "browserslist": [
+    "last 2 versions"
+  ],
+  "devDependencies": {}
+}
