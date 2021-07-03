@@ -26,3 +26,6 @@ mock-jwks.json
 # pkgbuild artifacts
 /pkg/arch/edead
 /pkg/arch/src
+
+# don't store the current config
+/config.yml
