@@ -24,14 +24,14 @@ var meiliClient meilisearch.ClientInterface
 // Init connects to the MeiliSearch instance and creates
 // the index if it does not yet exist
 func Init(host, index, apiKey string) error {
-	meiliClient = meilisearch.NewClient(meilisearch.Config{
+	meiliClient = meilisearch.NewClient(meilisearch.ClientConfig{
 		Host:   host,
 		APIKey: apiKey,
 	})
 
 	// Create an index if your index does not already exist
-	_, err := meiliClient.Indexes().Create(meilisearch.CreateIndexRequest{
-		UID: index,
+	_, err := meiliClient.GetOrCreateIndex(&meilisearch.IndexConfig{
+		Uid: index,
 	})
 
 	if err != nil {
@@ -89,7 +89,7 @@ func ReIndexDB(w http.ResponseWriter, r *http.Request) {
 		documents = append(documents, ModuleToEntry(m))
 	}
 
-	updateRes, err := meiliClient.Documents("edea").AddOrUpdate(documents) // => { "updateId": 0 }
+	updateRes, err := meiliClient.Index("edea").AddDocuments(documents) // => { "updateId": 0 }
 	if err != nil {
 		log.Panic().Err(err).Msg("could not add/update the search index in bulk")
 	}
@@ -106,7 +106,7 @@ func UpdateEntry(e Entry) error {
 		return nil
 	}
 
-	updateRes, err := meiliClient.Documents("edea").AddOrUpdate([]Entry{e})
+	updateRes, err := meiliClient.Index("edea").UpdateDocuments([]Entry{e})
 	if err != nil {
 		return fmt.Errorf("could not add/update the search index: %w", err)
 	}
@@ -123,11 +123,13 @@ func DeleteEntry(e Entry) error {
 		return nil
 	}
 
-	updateRes, err := meiliClient.Documents("edea").Delete(e.ID)
+	ok, err := meiliClient.Index("edea").Delete(e.ID)
 	if err != nil {
 		return fmt.Errorf("could not delete the entry: %w", err)
 	}
+	if !ok {
+		return fmt.Errorf("meili: could not delete the entry: %s", e.ID)
+	}
 
-	log.Debug().Msgf("single entry delete update_id: %d", updateRes.UpdateID)
 	return nil
 }

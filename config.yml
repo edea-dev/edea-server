@@ -30,6 +30,6 @@ auth:
     session_secret: ***REMOVED***
   use_mock: false
 search:
-  host: http://localhost:7700
+  host: http://192.168.0.2:7700
   index: edea
-  api_key: 
+  api_key:
