@@ -13,14 +13,9 @@ modd
 mock-jwks.json
 
 # static files compiled from the frontend sources
-/static/favicon.ico
-/static/site.webmanifest
-/static/css/*
-/static/img/*
-/static/fonts/*
-/static/js/bootstrap*
-/static/js/jquery*
-/static/js/popper*
+/static/
+
+/frontend/tmp
 
 # pkgbuild artifacts
 /pkg/arch/edead
