@@ -15,7 +15,7 @@ mock-jwks.json
 # static files compiled from the frontend sources
 /static/favicon.ico
 /static/site.webmanifest
-/static/icons/*
+/static/icons/*.svg
 /static/css/*
 /static/img/*
 /static/fonts/*
