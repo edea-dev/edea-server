@@ -1,22 +1,31 @@
 {{template "header" .}}
-  <main role="main"> <!-- min-vh-100 is a hack to make footer stick below the screen. for some reason the standard way (mt-auto) did not work -->
-    <div class="container" id="content">
-      <div class="jumbotron bg-gradient-secondary d-none d-lg-block mb-2">
-        <h1 class="mt-5">Welcome to EDeAhub</h1>
-        <p class="lead">Your source for modular OSHW electronics.</p>
-	  </div>
+<main role="main">
+  <!-- min-vh-100 is a hack to make footer stick below the screen. for some reason the standard way (mt-auto) did not work -->
+  <div class="container" id="content">
+    <div class="jumbotron bg-gradient-secondary d-none d-lg-block mb-2">
+      <h1 class="mt-5">Welcome to EDeAhub</h1>
+      <p class="lead">Your source for modular OSHW electronics.</p>
+    </div>
     <div class="row">
       <p>Search</p>
     </div>
-	  <div class="row">
+    <div class="row">
       <div class="col">
-        <div id="searchbox" focus></div>
-        <div id="hits"></div>
+        <input name="searchbox" focus oninput="searchbox_handler()"></input>
+        <div id="hits">
+          <table id="hits">
+            <thead>
+
+            </thead>
+            <tbody>
+
+            </tbody>
+          </table>
+        </div>
       </div>
-	  </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/@meilisearch/instant-meilisearch@0.3.2/dist/instant-meilisearch.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/instantsearch.js@4"></script>
-    <script src="/js/search.js"></script>
-  </main>
+  </div>
+  <script src='https://cdn.jsdelivr.net/npm/meilisearch@latest/dist/bundles/meilisearch.umd.js'></script>
+  <script src="/js/search.js"></script>
+</main>
 {{template "footer" .}}

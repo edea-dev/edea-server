@@ -1,34 +1,46 @@
-const search = instantsearch({
-    indexName: "edea",
-    searchClient: instantMeiliSearch(
-        "http://localhost:7700"
-    )
+
+// MeiliSearch
+const searchClient = new MeiliSearch({
+  host: 'http://192.168.0.2:7700',
+  apiKey: '',
+})
+
+const fp_index = searchClient.index('edea')
+
+async function searchbox_handler() {
+  var element = document.querySelector("input[name='searchbox']")
+  const search = await fp_index.search(element.value)
+
+  if (search.hits.length > 0) {
+    var hits = document.querySelector("table[id='hits'] tbody")
+
+    console.log(search.hits);
+
+    var body = document.createElement('tbody');
+
+    search.hits.forEach(e => {
+      let row = body.insertRow(-1)
+      let type = row.insertCell(0)
+      let name = row.insertCell(1)
+      let author = row.insertCell(2)
+      let desc = row.insertCell(3)
+
+      var link = document.createElement('a');
+      link.innerHTML = e.Name
+
+      if (e.Type == "module") {
+        link.href = "/module/" + e.ID
+      } else if (e.Type == "bench") {
+        link.href = "/bench/" + e.ID
+      }
+
+      name.appendChild(link)
+      type.innerHTML = e.Type
+      author.innerHTML = e.Author
+      desc.innerHTML = e.Description
     });
 
-    search.addWidgets([
-      instantsearch.widgets.searchBox({
-          container: "#searchbox"
-      }),
-      instantsearch.widgets.configure({ hitsPerPage: 8 }),
-      instantsearch.widgets.hits({
-          container: "#hits",
-          templates: {
-          item: `
-              <div class="card">
-                <div class="card-body">
-                <h5 class="hit-name">
-                  {{#helpers.highlight}}{ "attribute": "Name" }{{/helpers.highlight}}
-                </h5>
-                <h6 class="card-subtitle mb-2 text-muted">by \{{Author}}</h6>
-                <p class="card-text hit-description">
-                  {{#helpers.highlight}}{ "attribute": "Description" }{{/helpers.highlight}}
-                </p>
-                <a href="/\{{Type}}/\{{ID}}" class="card-link">View</a>
-                <a href="#" class="card-link">Card link</a>
-                </div>
-              </div>
-          `
-          }
-      })
-    ]);
-search.start();
+    // update the content with out search results
+    hits.parentNode.replaceChild(body, hits)
+  }
+}
