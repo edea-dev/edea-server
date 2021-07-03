@@ -6,7 +6,7 @@ import (
 
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edea/backend/model"
+	"gitlab.com/edea-dev/edead/model"
 )
 
 // Entry for the search index, expand with necessary data

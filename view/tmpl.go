@@ -13,9 +13,9 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edea/backend"
-	"gitlab.com/edea-dev/edea/backend/config"
-	"gitlab.com/edea-dev/edea/backend/model"
-	"gitlab.com/edea-dev/edea/backend/util"
+	"gitlab.com/edea-dev/edead/config"
+	"gitlab.com/edea-dev/edead/model"
+	"gitlab.com/edea-dev/edead/util"
 )
 
 var (

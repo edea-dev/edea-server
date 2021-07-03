@@ -21,8 +21,8 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
-	"gitlab.com/edea-dev/edea/backend/model"
-	"gitlab.com/edea-dev/edea/backend/util"
+	"gitlab.com/edea-dev/edead/model"
+	"gitlab.com/edea-dev/edead/util"
 )
 
 // TODO: make it settings

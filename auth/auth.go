@@ -12,8 +12,8 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edea/backend/model"
-	"gitlab.com/edea-dev/edea/backend/util"
+	"gitlab.com/edea-dev/edead/model"
+	"gitlab.com/edea-dev/edead/util"
 )
 
 // Provider interface to be implemented by Identity Providers

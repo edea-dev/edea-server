@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edea/backend/model"
-	"gitlab.com/edea-dev/edea/backend/util"
-	"gitlab.com/edea-dev/edea/backend/view"
+	"gitlab.com/edea-dev/edead/model"
+	"gitlab.com/edea-dev/edead/util"
+	"gitlab.com/edea-dev/edead/view"
 )
 
 // Profile displays the user data

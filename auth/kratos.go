@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/edea-dev/edea/backend/config"
+	"gitlab.com/edea-dev/edead/config"
 )
 
 // Kratos authentication provider

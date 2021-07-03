@@ -15,7 +15,7 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edea/backend/model"
+	"gitlab.com/edea-dev/edead/model"
 	"golang.org/x/oauth2"
 )
 

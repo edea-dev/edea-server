@@ -8,9 +8,9 @@ import (
 	"log"
 	"net/http"
 
-	"gitlab.com/edea-dev/edea/backend/model"
-	"gitlab.com/edea-dev/edea/backend/util"
-	"gitlab.com/edea-dev/edea/backend/view"
+	"gitlab.com/edea-dev/edead/model"
+	"gitlab.com/edea-dev/edead/util"
+	"gitlab.com/edea-dev/edead/view"
 	"gopkg.in/yaml.v3"
 )
 

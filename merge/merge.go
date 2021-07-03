@@ -14,10 +14,10 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edea/backend/config"
-	"gitlab.com/edea-dev/edea/backend/model"
-	"gitlab.com/edea-dev/edea/backend/repo"
-	"gitlab.com/edea-dev/edea/backend/util"
+	"gitlab.com/edea-dev/edead/config"
+	"gitlab.com/edea-dev/edead/model"
+	"gitlab.com/edea-dev/edead/repo"
+	"gitlab.com/edea-dev/edead/util"
 )
 
 // TODO: we need to finish defining the file format so that we can put multiple

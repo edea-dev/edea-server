@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"gitlab.com/edea-dev/edea/backend/api"
-	"gitlab.com/edea-dev/edea/backend/model"
-	"gitlab.com/edea-dev/edea/backend/util"
+	"gitlab.com/edea-dev/edead/api"
+	"gitlab.com/edea-dev/edead/model"
+	"gitlab.com/edea-dev/edead/util"
 )
 
 // CurrentUser returns the full User object when logged in or nil otherwise

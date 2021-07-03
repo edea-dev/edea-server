@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edea/backend/util"
+	"gitlab.com/edea-dev/edead/util"
 	"golang.org/x/net/context"
 	"gorm.io/gorm"
 )

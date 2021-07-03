@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edea/backend/model"
+	"gitlab.com/edea-dev/edead/model"
 )
 
 // REST returns a handler for the given model

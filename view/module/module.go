@@ -16,12 +16,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edea/backend/config"
-	"gitlab.com/edea-dev/edea/backend/model"
-	"gitlab.com/edea-dev/edea/backend/repo"
-	"gitlab.com/edea-dev/edea/backend/search"
-	"gitlab.com/edea-dev/edea/backend/util"
-	"gitlab.com/edea-dev/edea/backend/view"
+	"gitlab.com/edea-dev/edead/config"
+	"gitlab.com/edea-dev/edead/model"
+	"gitlab.com/edea-dev/edead/repo"
+	"gitlab.com/edea-dev/edead/search"
+	"gitlab.com/edea-dev/edead/util"
+	"gitlab.com/edea-dev/edead/view"
 	"gorm.io/gorm"
 )
 

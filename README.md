@@ -17,8 +17,8 @@ This should output helpful log information to the standard output in case someth
 ### Or if you have a working Go installation, you can just run:
 
 ```sh
-go get gitlab.com/edea-dev/edea/backend/cmd/edead
-go install gitlab.com/edea-dev/edea/backend/cmd/edead
+go get gitlab.com/edea-dev/edead/cmd/edead
+go install gitlab.com/edea-dev/edead/cmd/edead
 $GOPATH:/bin/edead
 ```
 
@@ -40,7 +40,7 @@ git clone https://gitlab.com/edea-dev/edea
 
 ```sh
 cd edea/backend/
-go build gitlab.com/edea-dev/edea/backend/cmd/edead
+go build gitlab.com/edea-dev/edead/cmd/edead
 ./edead
 
 # or with modd for live code reloading:

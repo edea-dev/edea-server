@@ -14,7 +14,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edea/backend/model"
+	"gitlab.com/edea-dev/edead/model"
 	"gorm.io/gorm"
 )
 

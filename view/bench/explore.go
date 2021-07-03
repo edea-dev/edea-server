@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edea/backend/model"
-	"gitlab.com/edea-dev/edea/backend/view"
+	"gitlab.com/edea-dev/edead/model"
+	"gitlab.com/edea-dev/edead/view"
 )
 
 // ExploreBench struct

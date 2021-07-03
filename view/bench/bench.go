@@ -13,11 +13,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edea/backend/merge"
-	"gitlab.com/edea-dev/edea/backend/model"
-	"gitlab.com/edea-dev/edea/backend/search"
-	"gitlab.com/edea-dev/edea/backend/util"
-	"gitlab.com/edea-dev/edea/backend/view"
+	"gitlab.com/edea-dev/edead/merge"
+	"gitlab.com/edea-dev/edead/model"
+	"gitlab.com/edea-dev/edead/search"
+	"gitlab.com/edea-dev/edead/util"
+	"gitlab.com/edea-dev/edead/view"
 	"gorm.io/gorm"
 )
 

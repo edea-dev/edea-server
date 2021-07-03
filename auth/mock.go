@@ -17,7 +17,7 @@ import (
 	"strings"
 
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edea/backend/view"
+	"gitlab.com/edea-dev/edead/view"
 	"gopkg.in/square/go-jose.v2"
 )
 
