@@ -12,7 +12,7 @@ import (
 	"text/template"
 
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edea/backend"
+	"gitlab.com/edea-dev/edead"
 	"gitlab.com/edea-dev/edead/config"
 	"gitlab.com/edea-dev/edead/model"
 	"gitlab.com/edea-dev/edead/util"
@@ -27,7 +27,7 @@ var (
 // Icon returns the html code (as inline svg) for a icon from our icon library
 // this function gets called by the templates
 func Icon(name string) (html string, err error) {
-	b, err := backend.BootstrapIcons.ReadFile(fmt.Sprintf("static/icons/%s.svg", name))
+	b, err := edead.BootstrapIcons.ReadFile(fmt.Sprintf("static/icons/%s.svg", name))
 	if err != nil {
 		return "", err
 	}
