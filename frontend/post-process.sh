@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 source options.txt
 
+set -e
 # needed for build tools like sass
 PATH="$PATH:$PWD/node_modules/.bin"
 
