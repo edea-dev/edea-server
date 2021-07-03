@@ -13,10 +13,16 @@
       </div>
       <div class="flex-col pb-2">
         <a href="/module/history/{{.Module.ID}}" role="button" class="btn btn-light mr-2">History</a>
+        {{if .HasBook}}
+        <a href="/module/doc/{{.Module.ID}}" role="button" class="btn btn-light mr-2">Docs</a>
+        {{end}}
         {{if .User}}
         <a href="/bench/add/{{.Module.ID}}" role="button" class="btn btn-primary mr-2">Add to Bench</a>
         <a href="/bench/add_configure/{{.Module.ID}}" role="button" class="btn btn-secondary">Configure & Add</a>
         {{if eq .Module.UserID .User.ID}}
+        {{if .HasBook}}
+        <a href="/module/build_book/{{.Module.ID}}" role="button" class="btn btn-warning ml-2">Build Book</a>
+        {{end}}
         <a href="/module/pull/{{.Module.ID}}" role="button" class="btn btn-warning ml-2">Pull</a>
         <a href="/module/delete/{{.Module.ID}}" role="button" class="btn btn-danger ml-2">Delete</a>
         {{end}}

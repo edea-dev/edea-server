@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -95,14 +97,20 @@ func View(w http.ResponseWriter, r *http.Request) {
 		log.Debug().Err(err).Msg("could not render readme")
 	}
 
+	hasDocs, err := g.HasDocs(module.Sub)
+	if err != nil {
+		log.Panic().Err(err).Msg("could not get book.toml from repo")
+	}
+
 	// all packed up,
 	m := map[string]interface{}{
-		"Module": module,
-		"User":   user,
-		"Readme": readme,
-		"Error":  err,
-		"Author": mup.DisplayName,
-		"Title":  fmt.Sprintf("EDeA - %s", module.Name),
+		"Module":  module,
+		"User":    user,
+		"Readme":  readme,
+		"Error":   err,
+		"Author":  mup.DisplayName,
+		"HasDocs": hasDocs,
+		"Title":   fmt.Sprintf("EDeA - %s", module.Name),
 	}
 
 	// and ready to go
@@ -385,4 +393,65 @@ func getModule(w http.ResponseWriter, r *http.Request) (user *model.User, module
 	}
 
 	return
+}
+
+// BuildBook runs mdbook on the /doc (or otherwise configured) folder of the module to generate documentation
+func BuildBook(w http.ResponseWriter, r *http.Request) {
+	_, module := getModule(w, r)
+
+	// getModule already writes out the necessary error messages
+	if module == nil {
+		return
+	}
+
+	// render the readme real quick
+	g := &repo.Git{URL: module.RepoURL}
+	var docPath string
+	var err error
+
+	if module.Sub != "" {
+		docPath, err = g.SubModuleDocs(module.Sub)
+	}
+
+	repoPath, err := g.Dir()
+
+	s := filepath.Join(repoPath, docPath)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	dest := filepath.Join(config.Cfg.Cache.Book.Base, module.ID.String())
+	log.Info().Msg(dest)
+	if _, err := os.Stat(dest); os.IsNotExist(err) {
+		err := os.Mkdir(dest, 0755)
+		if err != nil {
+			log.Panic().Err(err).Msg("could not create book dir")
+		}
+	}
+
+	argv := []string{"build", s, "-d", dest}
+
+	bookCmd := exec.CommandContext(ctx, "mdbook", argv...)
+
+	bookCmd.Dir = config.Cfg.MergeTool
+
+	// run the merge
+	logOutput, err := bookCmd.CombinedOutput()
+
+	// show the user the tool output in case of an error while building the book
+	if err != nil {
+		m := map[string]interface{}{
+			"Error":  err,
+			"Output": strings.ReplaceAll(string(logOutput), "\n", "<br>"),
+		}
+		if err, ok := err.(util.HintError); ok {
+			m["Error"] = err
+			m["Hint"] = "Something went wrong during building the book, please see the log"
+		}
+		view.RenderTemplate(ctx, "bench/merge_error.tmpl", "mdbook Error", m, w)
+		return
+	}
+	log.Info().Msg(string(logOutput))
+
+	http.Redirect(w, r, fmt.Sprintf("/module/doc/%s", module.ID), http.StatusTemporaryRedirect)
 }

@@ -35,6 +35,9 @@ type Config struct {
 		Repo struct {
 			Base string `yaml:"base" envconfig:"REPO_CACHE_BASE"`
 		} `yaml:"repo"`
+		Book struct {
+			Base string `yaml:"base" envconfig:"BOOK_CACHE_BASE"` // mdbook destination folder
+		} `yaml:"book"`
 	} `yaml:"cache"`
 	Auth struct {
 		Kratos struct {

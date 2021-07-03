@@ -31,6 +31,7 @@ type Project struct {
 type Module struct {
 	Readme    string `yaml:"readme"`
 	Directory string `yaml:"dir"`
+	Doc       string `yaml:"doc"`
 	// TODO: add configuration here
 }
 
@@ -70,6 +71,74 @@ func (g *Git) SubModuleReadme(sub string) (string, error) {
 	}
 
 	return g.File(filepath.Join(filepath.Base(m.Directory), "readme.md"), false)
+}
+
+// HasDocs searches for a book.toml file in the repository and returns true if found
+func (g *Git) HasDocs(sub string) (bool, error) {
+	p := &Project{}
+
+	// read and parse the module configuration out of the repo
+	s, err := g.File("edea.yml", false)
+	if err != nil {
+		return false, errors.New("module does not contain an edea.yml file")
+	}
+	if err := yaml.Unmarshal([]byte(s), p); err != nil {
+		return false, err
+	}
+
+	var path string
+
+	m, ok := p.Modules[sub]
+	if !ok {
+		path = "book.toml"
+	} else {
+		if m.Doc != "" {
+			path = filepath.Join(filepath.Base(m.Directory), filepath.Base(m.Doc), "book.toml")
+		} else {
+			path = filepath.Join(filepath.Base(m.Directory), "book.toml")
+		}
+	}
+
+	log.Info().Msgf("book.toml path: %s", path)
+
+	book, err := g.File(path, false)
+	if err != nil {
+		if errors.Is(err, ErrNoFile) {
+			return false, nil
+		}
+		return false, err
+	}
+	if len(book) > 0 {
+		return true, nil
+	}
+	return false, fmt.Errorf("empty book.toml found")
+}
+
+// SubModuleDocs searches for the doc subfolder in the module and returns all .md files
+func (g *Git) SubModuleDocs(sub string) (string, error) {
+	p := &Project{}
+
+	// read and parse the module configuration out of the repo
+	s, err := g.File("edea.yml", false)
+	if err != nil {
+		return "", errors.New("module does not contain an edea.yml file")
+	}
+	if err := yaml.Unmarshal([]byte(s), p); err != nil {
+		return "", err
+	}
+
+	m, ok := p.Modules[sub]
+	if !ok {
+		return "", errors.New("no such sub-module")
+	}
+
+	// sanitise the filepaths a bit, we only expect single level nesting
+	// if the git library already does it, we could skip this, but needs verification
+	if m.Doc != "" {
+		return filepath.Join(filepath.Base(m.Directory), filepath.Base(m.Doc)), nil
+	}
+
+	return filepath.Base(m.Directory), nil
 }
 
 // File searches for a given file in the git respository

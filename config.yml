@@ -8,6 +8,8 @@ merge_tool: /home/elen/automated/edea/tool/edea_merge_tool
 cache:
   repo:
     base: /home/elen/automated/edea/backend/tmp/git
+  book:
+    base: /home/elen/automated/edea/backend/tmp/doc
   diff:
     schema: ./tmp/sch
     layout: ./tmp/pcb

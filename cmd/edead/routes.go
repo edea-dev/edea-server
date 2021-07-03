@@ -36,6 +36,7 @@ func routes(r *mux.Router) {
 	r.Handle("/module/pull/{id}", auth.RequireAuth(http.HandlerFunc(module.Pull))).Methods("GET")     // pull repo of module
 	r.HandleFunc("/module/history/{id}", module.ViewHistory).Methods("GET")                           // show revision history of a module
 	r.HandleFunc("/module/diff/{id}", module.Diff).Methods("GET")
+	r.Handle("/module/build_book/{id}", auth.RequireAuth(http.HandlerFunc(module.BuildBook))).Methods("GET")
 
 	r.Handle("/bench/current", auth.RequireAuth(http.HandlerFunc(bench.Current))).Methods("GET")                 // view current bench
 	r.Handle("/bench/new", auth.RequireAuth(view.Template("bench/new.tmpl", "EDeA - New Bench"))).Methods("GET") // new bench form
@@ -69,6 +70,9 @@ func routes(r *mux.Router) {
 	r.PathPrefix("/img/").Handler(http.StripPrefix("/img/", http.FileServer(http.Dir("./static/img/"))))
 	r.PathPrefix("/fonts/").Handler(http.StripPrefix("/fonts/", http.FileServer(http.Dir("./static/fonts/"))))
 	r.PathPrefix("/icons/").Handler(http.StripPrefix("/icons/", http.FileServer(http.Dir("./static/icons/"))))
+
+	// mdbooks are built and served from here
+	r.PathPrefix("/module/doc/").Handler(http.StripPrefix("/module/doc/", http.FileServer(http.Dir(config.Cfg.Cache.Book.Base))))
 
 	// TODO: let our IAP do that
 	r.Handle("/profile", auth.RequireAuth(http.HandlerFunc(user.Profile))).Methods("GET")
