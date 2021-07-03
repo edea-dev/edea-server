@@ -65,7 +65,8 @@
           {{if .User}}
           <li class="nav-item active">
             <a class="nav-link" href="/bench/current">My Bench<span
-                class="badge badge-pill badge-danger align-top ml-1">{{if .BenchModCount}}{{.BenchModCount}}{{end}}</span><span class="sr-only">modules currently on
+                class="badge badge-pill badge-danger align-top ml-1">{{if
+                .BenchModCount}}{{.BenchModCount}}{{end}}</span><span class="sr-only">modules currently on
                 the bench
                 <!-- what's the best practice for screen readers?? -->
               </span></a>
@@ -85,8 +86,8 @@
             <a class="nav-link" href="/help">Help</a>
           </li>
         </ul>
-        <form class="form-inline mt-2 mt-md-0 flex-nowrap">
-          <input class="form-control mr-sm-1" type="text" id="search" placeholder="Search for Modules"
+        <form action="/search" method="GET" class="form-inline mt-2 mt-md-0 flex-nowrap">
+          <input class="form-control mr-sm-1" type="text" name="q" id="search" placeholder="Search for Modules"
             aria-label="Search">
           <button class="btn btn-secondary px-3" type="submit">
             <!-- Icon from bootstrap-icons. This should be included on the server-side. --><svg width="1em" height="1em"
@@ -101,4 +102,4 @@
       </div>
     </nav>
   </header>
-{{end}}
+  {{end}}

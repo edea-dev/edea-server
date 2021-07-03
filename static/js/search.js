@@ -44,3 +44,12 @@ async function searchbox_handler() {
     hits.parentNode.replaceChild(body, hits)
   }
 }
+
+// if we have a query param, fill it out
+var searchParams = new URLSearchParams(window.location.search);
+if (searchParams.has('q')) {
+  var element = document.querySelector("input[name='searchbox']");
+  element.value = searchParams.get('q');
+}
+
+searchbox_handler();
