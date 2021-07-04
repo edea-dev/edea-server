@@ -53,16 +53,28 @@
             </a>
             <ul class="dropdown-menu" aria-labelledby="navbarModulesDD">
               <li><a class="dropdown-item" href="/module/explore">Browse Catalog</a></li>
-              <li><a class="dropdown-item{{if not .User}} disabled{{end}}" {{if not .User}}aria-disabled="true" tabindex="-1" href="#"{{else}}}href="/module/new"{{end}}>Add New</a></li>
+              <li>
+              {{if .User}}
+              <a class="dropdown-item" href="/module/new">
+              {{else}}
+              <a class="dropdown-item disabled" aria-disabled="true" tabindex="-1" href="#">
+              {{end}}
+              Add New Module</a></li>
             </ul>
           </li>
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="/module" id="navbarWorkbenchesDD" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <a class="nav-link dropdown-toggle" href="/bench" id="navbarWorkbenchesDD" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               Workbenches
             </a>
             <ul class="dropdown-menu" aria-labelledby="navbarWorkbenchesDD">
               <li><a class="dropdown-item" href="/bench/explore">Browse Public Workbenches</a></li>
-              <li><a class="dropdown-item{{if not .User}} disabled{{end}}" {{if not .User}}aria-disabled="true" tabindex="-1" href="#"{{else}}}href="/bench/new"{{end}}>Add New</a></li>
+              <li>
+              {{if .User}}
+              <a class="dropdown-item" href="/bench/new">
+              {{else}}
+              <a class="dropdown-item disabled" aria-disabled="true" tabindex="-1" href="#">
+              {{end}}
+              Create New Workbench</a></li>
             </ul>
           </li>
           {{if .User}}

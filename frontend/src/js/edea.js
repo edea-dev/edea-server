@@ -5,6 +5,12 @@ function iterateOverHTMLCollectionAndMarkActive(uwu) {
         if (OwO.tagName.toLowerCase() != "a") {
             continue;
         }
+        if (OwO.classList.contains("disabled")) {
+            continue;
+        }
+        if (OwO.href.indexOf("#") > 0) {
+            continue;
+        }
         if (window.location.href.startsWith(OwO.href)) {
             OwO.classList.add("active");
             let srhelper = document.createElement('span');
