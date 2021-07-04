@@ -17,6 +17,7 @@ mock-jwks.json
 
 /frontend/tmp
 /frontend/node_modules
+/frontend/yarn-error.log
 /frontend/.sass-cache
 
 # pkgbuild artifacts
