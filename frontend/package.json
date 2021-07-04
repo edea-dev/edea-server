@@ -9,12 +9,14 @@
     "@openfonts/open-sans_all": "^1.44.1",
     "@openfonts/permanent-marker_latin": "^1.44.1",
     "@openfonts/quicksand_latin": "^1.44.4",
+    "@popperjs/core": "^2.9.2",
     "bootstrap": "^5.0.2",
     "bootstrap-icons": "^1.0.0",
     "bootstrap-table": "^1.17.1",
     "jquery": "^3.6.0",
     "popper.js": "^1.16.1",
-    "sass": "^1.26.10"
+    "sass": "^1.26.10",
+    "tagify": "^0.1.1"
   },
   "browserslist": [
     "last 2 versions"
