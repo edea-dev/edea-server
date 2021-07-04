@@ -28,10 +28,12 @@ type Config struct {
 	API struct {
 		GitHubToken string `yaml:"githubtoken" envconfig:"GITHUB_API_TOKEN"`
 	} `yaml:"api"`
-	MergeTool string `yaml:"merge_tool" envconfig:"MERGE_TOOL"`
-	PlotPCB   string `yaml:"plot_pcb" envconfig:"PLOTPCB"`
-	PlotSCH   string `yaml:"plot_sch" envconfig:"PLOTSCH"`
-	Cache     struct {
+	Tools struct {
+		Merge   string `yaml:"merge" envconfig:"MERGE_TOOL"`
+		PlotPCB string `yaml:"plotpcb" envconfig:"PLOTPCB"`
+		PlotSCH string `yaml:"plotsch" envconfig:"PLOTSCH"`
+	} `yaml:"tools"`
+	Cache struct {
 		Repo struct {
 			Base string `yaml:"base" envconfig:"REPO_CACHE_BASE"`
 		} `yaml:"repo"`

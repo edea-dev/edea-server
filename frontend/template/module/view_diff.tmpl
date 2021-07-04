@@ -1,0 +1,51 @@
+{{template "header" .}}
+<main role="main">
+    <div class="container" id="content">
+        <div class="jumbotron bg-primary text-white d-none d-lg-block mb-2">
+            <!-- .d-sm-none hides the element on mobile entirely. use it only for design. -->
+            <h1 class="mt-5">{{.Module.Name}} by {{.Author}}</h1>
+            <p class="lead">{{.Module.Description}}</p>
+        </div>
+
+        <div class="flex-row d-flex justify-content-between">
+            <div class="flex-col">
+                <h4><span class="badge bg-light">{{.Module.Category.Name}}</span></h4>
+            </div>
+            <div class="flex-col pb-2">
+                <a href="/module/{{.Module.ID}}" role="button" class="btn btn-primary mr-2">Back</a>
+            </div>
+        </div>
+
+        <div class="flex-row">
+            <p>W: {{.PCBA.Width}} H: {{.PCBA.Height}}</p>
+            {{range $name, $svg := .PCBA.Layers}}
+            {{print $svg}}
+            {{end}}
+        </div>
+        <div class="flex-row">
+            <p>W: {{.PCBB.Width}} H: {{.PCBB.Height}}</p>
+            {{range $name, $svg := .PCBB.Layers}}
+            {{print $svg}}
+            {{end}}
+
+        </div>
+        <div class="flex-row">
+            {{range $file, $b := .SCHA}}
+            {{print $file}}
+            {{print $b}}
+            {{end}}
+        </div>
+        <div class="flex-row">
+            {{range $file, $b := .SCHB}}
+            {{print $file}}
+            {{print $b}}
+            {{end}}
+        </div>
+    </div>
+    <script>
+        document.getElementsByTagName("svg").forEach(e => {
+            e.setAttribute("position", "absolute")
+        });
+    </script>
+</main>
+{{template "footer" .}}

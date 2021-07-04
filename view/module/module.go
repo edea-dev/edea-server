@@ -4,6 +4,7 @@ package module
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -24,6 +25,15 @@ import (
 	"gitlab.com/edea-dev/edead/view"
 	"gorm.io/gorm"
 )
+
+// Board as we get it from the diff tool
+type Board struct {
+	X1     float32           `json:"x1"`
+	X2     float32           `json:"x2"`
+	Width  float32           `json:"width"`
+	Height float32           `json:"height"`
+	Layers map[string]string `json:"layers"`
+}
 
 // Create a new module
 func Create(w http.ResponseWriter, r *http.Request) {
@@ -295,16 +305,25 @@ func Diff(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Panic().Err(err).Msgf("could not plot pcb at B (%s)", commit2)
 	}
-	sch, err := plotSCH(module, commit1, commit2)
+
+	g := &repo.Git{URL: module.RepoURL}
+
+	scha, err := g.SchematicHelper(module.Sub, commit1)
 	if err != nil {
-		log.Panic().Err(err).Msg("could not plot sch")
+		log.Panic().Err(err).Msg("failed to plot sch a")
+	}
+
+	schb, err := g.SchematicHelper(module.Sub, commit2)
+	if err != nil {
+		log.Panic().Err(err).Msg("failed to plot sch b")
 	}
 
 	m := map[string]interface{}{
 		"Module": module,
 		"PCBA":   pcba,
 		"PCBB":   pcbb,
-		"SCH":    sch,
+		"SCHA":   scha,
+		"SCHB":   schb,
 		"Title":  fmt.Sprintf("EDeA - %s", module.Name),
 	}
 
@@ -312,7 +331,7 @@ func Diff(w http.ResponseWriter, r *http.Request) {
 	view.RenderTemplate(r.Context(), "module/view_diff.tmpl", "", m, w)
 }
 
-func plotPCB(mod *model.Module, revision string) ([]byte, error) {
+func plotPCB(mod *model.Module, revision string) (*Board, error) {
 	// processing projects should not take longer than a minute
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -339,11 +358,9 @@ func plotPCB(mod *model.Module, revision string) ([]byte, error) {
 		log.Panic().Err(err).Msg("could not write temp pcb file contents")
 	}
 
-	argv := []string{"plotpcb.py", f.Name()}
+	argv := []string{config.Cfg.Tools.PlotPCB, f.Name()}
 
 	plotCmd := exec.CommandContext(ctx, "python3", argv...)
-
-	plotCmd.Dir = config.Cfg.PlotPCB
 
 	// run the plotting operation
 	logOutput, err := plotCmd.CombinedOutput()
@@ -351,51 +368,16 @@ func plotPCB(mod *model.Module, revision string) ([]byte, error) {
 	// return the output of the tool and the error for the user to debug issues
 	if err != nil {
 		log.Info().Msg(string(logOutput))
-		return logOutput, util.HintError{
-			Hint: "Something went wrong during the pcb plotting, below is the log which should provide more information.",
+		return nil, util.HintError{
+			Hint: fmt.Sprintf("Something went wrong during the pcb plotting, below is the log which should provide more information:\n%s", logOutput),
 			Err:  err,
 		}
 	}
 
-	return logOutput, nil
-}
+	b := new(Board)
+	json.Unmarshal(logOutput, b)
 
-func plotSCH(mod *model.Module, a, b string) ([]byte, error) {
-	// processing projects should not take longer than a minute
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-	defer cancel()
-
-	g := &repo.Git{URL: mod.RepoURL}
-
-	modDir, err := g.SubModuleDir(mod.Sub)
-	if err != nil {
-		log.Panic().Err(err).Msg("could not open repo")
-	}
-	baseDir, err := g.Dir()
-	if err != nil {
-		log.Panic().Err(err).Msg("could not open repo")
-	}
-
-	path := filepath.Join(baseDir, modDir)
-
-	argv := []string{"plotsch.py", "-i", path, "-a", a, "-b", b}
-
-	plotCmd := exec.CommandContext(ctx, "python3", argv...)
-
-	plotCmd.Dir = config.Cfg.PlotSCH
-
-	// run the plotting operation
-	logOutput, err := plotCmd.CombinedOutput()
-
-	// return the output of the tool and the error for the user to debug issues
-	if err != nil {
-		return logOutput, util.HintError{
-			Hint: "Something went wrong during the schematic plotting, below is the log which should provide more information.",
-			Err:  err,
-		}
-	}
-
-	return logOutput, nil
+	return b, nil
 }
 
 func getModule(w http.ResponseWriter, r *http.Request) (user *model.User, module *model.Module) {
@@ -476,8 +458,6 @@ func BuildBook(w http.ResponseWriter, r *http.Request) {
 	argv := []string{"build", s, "-d", dest}
 
 	bookCmd := exec.CommandContext(ctx, "mdbook", argv...)
-
-	bookCmd.Dir = config.Cfg.MergeTool
 
 	// run the merge
 	logOutput, err := bookCmd.CombinedOutput()
