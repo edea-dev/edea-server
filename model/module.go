@@ -34,5 +34,5 @@ func (m *Module) MarshalZerologObject(e *zerolog.Event) {
 func (m *Module) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context
 
-	return isAuthorized(ctx, m.User.ID, m)
+	return isAuthorized(ctx, m.UserID, m)
 }

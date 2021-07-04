@@ -141,7 +141,7 @@ func Merge(benchName string, modules []model.BenchModule) ([]byte, error) {
 }
 
 // Metadata extracts some data from the module
-func Metadata(module *model.Module) (map[string]string, error) {
+func Metadata(module *model.Module) (map[string]interface{}, error) {
 
 	// processing projects should not take longer than a minute
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
@@ -166,7 +166,7 @@ func Metadata(module *model.Module) (map[string]string, error) {
 			Err:  err,
 		}
 	}
-	m := make(map[string]string)
+	m := make(map[string]interface{})
 	err = json.Unmarshal(logOutput, &m)
 	return m, err
 }

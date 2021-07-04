@@ -59,6 +59,14 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		log.Panic().Err(err).Msg("module: something went wrong fetching the repository")
 	}
 
+	meta, err := merge.Metadata(module)
+	if err != nil {
+		log.Panic().Err(err).Msg("metadata extraction unsuccessful")
+	}
+
+	b, _ := json.Marshal(meta)
+	module.Metadata = b
+
 	result := model.DB.WithContext(r.Context()).Create(module)
 	if result.Error != nil {
 		log.Panic().Err(result.Error).Msg("could not create new module")
@@ -218,11 +226,7 @@ func Pull(w http.ResponseWriter, r *http.Request) {
 
 	// check if we even have a module id
 	if moduleID == "" {
-		msg := map[string]interface{}{
-			"Error": "Unfortunately you didn't give us much to work with, try again with a module id.",
-		}
-		w.WriteHeader(http.StatusNotFound)
-		view.RenderMarkdown("module/404.md", msg, w)
+		view.RenderErrTemplate(ctx, w, "module/404.tmpl", errors.New("Unfortunately you didn't give us much to work with, try again with a module id"))
 		return
 	}
 
@@ -239,7 +243,7 @@ func Pull(w http.ResponseWriter, r *http.Request) {
 	// nope, no module
 	if module.ID == uuid.Nil {
 		w.WriteHeader(http.StatusNotFound)
-		view.RenderMarkdown("module/404.md", nil, w)
+		view.RenderErrTemplate(ctx, w, "module/404.md", errors.New("No such Module"))
 		return
 	}
 
@@ -250,14 +254,14 @@ func Pull(w http.ResponseWriter, r *http.Request) {
 
 	meta, err := merge.Metadata(module)
 	if err != nil {
-		view.RenderErrMarkdown(r.Context(), w, "module/view.md", err)
+		log.Error().Err(err).Msg("metadata extraction unsuccessful")
+		view.RenderErrTemplate(r.Context(), w, "module/view.tmpl", err)
 		return
 	}
 
-	if err := module.Metadata.Scan(meta); err != nil {
-		view.RenderErrMarkdown(r.Context(), w, "module/view.md", err)
-		return
-	}
+	b, _ := json.Marshal(meta)
+
+	module.Metadata = b
 
 	result = model.DB.WithContext(r.Context()).Save(module)
 	if result.Error != nil {

@@ -1,6 +1,7 @@
 package search
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -17,6 +18,7 @@ type Entry struct {
 	Description string
 	Author      string
 	Tags        map[string]string
+	Metadata    map[string]interface{}
 }
 
 var meiliClient meilisearch.ClientInterface
@@ -54,6 +56,8 @@ func BenchToEntry(b model.Bench) Entry {
 
 // ModuleToEntry converts a Module model to a Search Entry
 func ModuleToEntry(m model.Module) Entry {
+	meta := make(map[string]interface{})
+	json.Unmarshal(m.Metadata, &meta)
 	return Entry{
 		ID:          m.ID.String(),
 		Type:        "module",
@@ -61,6 +65,7 @@ func ModuleToEntry(m model.Module) Entry {
 		Description: m.Description,
 		Author:      m.User.Handle,
 		Tags:        map[string]string{"Category": m.Category.Name},
+		Metadata:    meta,
 	}
 }
 
