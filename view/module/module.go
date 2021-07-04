@@ -118,7 +118,7 @@ func View(w http.ResponseWriter, r *http.Request) {
 
 	hasDocs, err := g.HasDocs(module.Sub)
 	if err != nil {
-		log.Panic().Err(err).Msg("could not get book.toml from repo")
+		hasDocs = false
 	}
 
 	// all packed up,
