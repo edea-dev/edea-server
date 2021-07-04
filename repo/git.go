@@ -3,8 +3,12 @@ package repo
 // SPDX-License-Identifier: EUPL-1.2
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"io"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -14,6 +18,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
 	"github.com/rs/zerolog/log"
+	"gitlab.com/edea-dev/edead/util"
 	"gopkg.in/yaml.v2"
 )
 
@@ -123,8 +128,6 @@ func (g *Git) HasDocs(sub string) (bool, error) {
 			path = filepath.Join(filepath.Base(m.Directory), "book.toml")
 		}
 	}
-
-	log.Info().Msgf("book.toml path: %s", path)
 
 	book, err := g.File(path, false)
 	if err != nil {
@@ -372,10 +375,15 @@ func (g *Git) FileAt(name string, caseSensitive bool, revision string) ([]byte, 
 	return nil, ErrNoFile
 }
 
-// FileByExtAt searches for a given file by extension with the specific revision in the git respository
+type GitFile struct {
+	Name    string
+	Content []byte
+}
+
+// FilesByExtAt searches for a given file by extension with the specific revision in the git respository
 // the revision parameter can be anything ResolveRevision understands (tags, branches, HEAD^1, etc.)
 // NOTE: ext *must* contain the . (dot), e.g. ".kicad_pcb"
-func (g *Git) FileByExtAt(dir, ext, revision string) ([]byte, error) {
+func (g *Git) FilesByExtAt(dir, ext, revision string) (files []GitFile, err error) {
 	// ... retrieves the branch pointed by HEAD
 	r, err := g.open()
 	if err != nil {
@@ -399,24 +407,146 @@ func (g *Git) FileByExtAt(dir, ext, revision string) ([]byte, error) {
 		return nil, err
 	}
 
-	var file *object.File
-
 	// find the first file by extension
-	tree.Files().ForEach(func(f *object.File) error {
+	err = tree.Files().ForEach(func(f *object.File) error {
 		if filepath.Dir(f.Name) == dir && filepath.Ext(f.Name) == ext {
-			file = f
+			s, err := f.Contents()
+			if err != nil {
+				return err
+			}
+			files = append(files, GitFile{filepath.Base(f.Name), []byte(s)})
 			return storer.ErrStop
 		}
 		return nil
 	})
 
-	if file != nil {
-		s, err := file.Contents()
-		if err != nil {
-			return nil, err
-		}
-		return []byte(s), nil
+	return
+}
+
+// FileByExtAt works like FilesByExtAt but only returns the first file found
+func (g *Git) FileByExtAt(dir, ext, revision string) ([]byte, error) {
+	files, err := g.FilesByExtAt(dir, ext, revision)
+	if len(files) > 0 {
+		return files[0].Content, err
+	}
+	return nil, err
+}
+
+// SchematicHelper pulls all the schematic files and the symbol cache from the repository
+// at the specified revision and copies them to a temporary folder
+func (g *Git) SchematicHelper(dir, revision string) (map[string]string, error) {
+	// ... retrieves the branch pointed by HEAD
+	r, err := g.open()
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, ErrNoFile
+	ref, err := r.ResolveRevision(plumbing.Revision(revision))
+	if err != nil {
+		return nil, err
+	}
+
+	// ... retrieving the commit object
+	commit, err := r.CommitObject(*ref)
+	if err != nil {
+		return nil, err
+	}
+
+	// ... retrieve the tree from the commit
+	tree, err := commit.Tree()
+	if err != nil {
+		return nil, err
+	}
+
+	dest, err := os.MkdirTemp("", "*")
+	if err != nil {
+		return nil, err
+	}
+
+	// clean up afterwards
+	defer os.RemoveAll(dest)
+
+	var libFile string
+	var sch []string
+
+	// find the first file by extension
+	err = tree.Files().ForEach(func(f *object.File) error {
+		if filepath.Dir(f.Name) == dir {
+			if strings.HasSuffix(filepath.Base(f.Name), "-cache.lib") {
+				libFile, err = gitFileToTemp(f, dest)
+				if err != nil {
+					return err
+				}
+			} else if filepath.Ext(f.Name) == ".sch" {
+				fn, err := gitFileToTemp(f, dest)
+				sch = append(sch, fn)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
+
+	if libFile == "" {
+		return nil, fmt.Errorf("no -cache.lib file was found")
+	}
+
+	svgs := make(map[string]string)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	for _, fn := range sch {
+		argv := []string{"-l", libFile, "-f", fn}
+
+		plotCmd := exec.CommandContext(ctx, "plotkicadsch", argv...)
+
+		// run the plotting operation
+		logOutput, err := plotCmd.CombinedOutput()
+		if err != nil {
+			return nil, util.HintError{
+				Hint: fmt.Sprintf("could not plot %s:\n%s", fn, string(logOutput)),
+				Err:  err,
+			}
+		}
+
+		svgName := fmt.Sprintf("%s.svg", strings.TrimSuffix(filepath.Base(fn), filepath.Ext(fn)))
+		svg := filepath.Join(filepath.Dir(fn), svgName)
+
+		cleanerCmd := exec.CommandContext(ctx, "svgcleaner", svg, svg)
+		out, err := cleanerCmd.CombinedOutput()
+		if err != nil {
+			log.Error().Err(err).Msg("could not run svgcleaner")
+			log.Info().Msg(string(out))
+		}
+
+		b, err := os.ReadFile(svg)
+		if err != nil {
+			return nil, util.HintError{
+				Hint: fmt.Sprintf("could not read svg %s", svg),
+				Err:  err,
+			}
+		}
+		svgs[svgName] = string(b)
+	}
+
+	return svgs, err
+}
+
+func gitFileToTemp(f *object.File, dest string) (string, error) {
+	tf, err := os.Create(filepath.Join(dest, filepath.Base(f.Name)))
+	if err != nil {
+		return "", err
+	}
+	src, err := f.Reader()
+	if err != nil {
+		return "", err
+	}
+	_, err = io.Copy(tf, src)
+	if err != nil {
+		return "", err
+	}
+	name := tf.Name()
+	return name, tf.Close()
 }

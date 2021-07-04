@@ -29,7 +29,7 @@
               <a class="nav-link" href="/module/{{$.Module.ID}}/ref/{{.Ref}}">View Module</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/module/{{$.Module.ID}}/diff/{{.Ref}}">Diff with HEAD</a>
+              <a class="nav-link" href="/module/diff/{{$.Module.ID}}?a={{.Ref}}&b=HEAD">Diff with HEAD</a>
             </li>
           </ul>
           {{end}}
