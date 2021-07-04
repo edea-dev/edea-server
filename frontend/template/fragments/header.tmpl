@@ -47,20 +47,33 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 px-1 mb-md-0">
-          <li class="nav-item">
-            <a class="nav-link" href="/module/explore">Browse Modules</a>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="/module" id="navbarModulesDD" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Modules
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarModulesDD">
+              <li><a class="dropdown-item" href="/module/explore">Browse Catalog</a></li>
+              <li><a class="dropdown-item{{if not .User}} disabled{{end}}" {{if not .User}}aria-disabled="true" tabindex="-1" href="#"{{else}}}href="/module/new"{{end}}>Add New</a></li>
+            </ul>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/bench/explore">Browse Workbenches</a>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="/module" id="navbarWorkbenchesDD" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Workbenches
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarWorkbenchesDD">
+              <li><a class="dropdown-item" href="/bench/explore">Browse Public Workbenches</a></li>
+              <li><a class="dropdown-item{{if not .User}} disabled{{end}}" {{if not .User}}aria-disabled="true" tabindex="-1" href="#"{{else}}}href="/bench/new"{{end}}>Add New</a></li>
+            </ul>
           </li>
           {{if .User}}
           <li class="nav-item">
-            <a class="nav-link" href="/bench/current">My Bench<span
-                class="badge badge-pill badge-danger align-top ms-1">{{if
-                .BenchModCount}}{{.BenchModCount}}{{end}}</span><span class="visually-hidden">modules currently on
+            <a class="nav-link" href="/bench/current">My Bench
+            {{if
+                .BenchModCount}}<span
+                class="badge rounded-pill bg-danger align-top ms-1">{{.BenchModCount}}</span>
+                <span class="visually-hidden">modules currently on
                 the bench
-                <!-- what's the best practice for screen readers?? -->
-              </span></a>
+              </span>{{end}}</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/profile">Profile</a>
