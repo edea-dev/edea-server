@@ -32,3 +32,10 @@ node_modules/bootstrap-table/dist/extensions/mobile/* $WEBROOT/bt/
 node_modules/jquery/dist/*.* $WEBROOT/js/
 node_modules/popper.js/dist/umd/*.* $WEBROOT/js/
 
+# meilisearch
+node_modules/meilisearch/dist/bundles/meilisearch.umd.* $WEBROOT/js/
+
+# EDeA icon
+$SOURCE/img/edht.svg $WEBROOT/icons/
+
+
