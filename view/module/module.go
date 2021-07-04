@@ -18,6 +18,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/config"
+	"gitlab.com/edea-dev/edead/merge"
 	"gitlab.com/edea-dev/edead/model"
 	"gitlab.com/edea-dev/edead/repo"
 	"gitlab.com/edea-dev/edead/search"
@@ -140,6 +141,17 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	meta, err := merge.Metadata(module)
+	if err != nil {
+		view.RenderErrMarkdown(r.Context(), w, "module/view.md", err)
+		return
+	}
+
+	if err := module.Metadata.Scan(meta); err != nil {
+		view.RenderErrMarkdown(r.Context(), w, "module/view.md", err)
+		return
+	}
+
 	result := model.DB.WithContext(r.Context()).Save(module)
 	if result.Error != nil {
 		log.Panic().Err(result.Error).Msg("could not update module")
@@ -234,6 +246,27 @@ func Pull(w http.ResponseWriter, r *http.Request) {
 	g := &repo.Git{URL: module.RepoURL}
 	if err := g.Pull(); err != nil {
 		log.Panic().Err(err).Msgf("could not pull latest changes")
+	}
+
+	meta, err := merge.Metadata(module)
+	if err != nil {
+		view.RenderErrMarkdown(r.Context(), w, "module/view.md", err)
+		return
+	}
+
+	if err := module.Metadata.Scan(meta); err != nil {
+		view.RenderErrMarkdown(r.Context(), w, "module/view.md", err)
+		return
+	}
+
+	result = model.DB.WithContext(r.Context()).Save(module)
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msg("could not update module")
+	}
+
+	// update search index
+	if err := search.UpdateEntry(search.ModuleToEntry(*module)); err != nil {
+		log.Panic().Err(err)
 	}
 
 	log.Info().Msgf("pulled repo %s for module %s", module.RepoURL, module.ID)

@@ -5,6 +5,7 @@ package model
 import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -21,6 +22,7 @@ type Module struct {
 	Description string    `schema:"description"`
 	CategoryID  uuid.UUID `gorm:"type:uuid" schema:"category"`
 	Category    Category
+	Metadata    datatypes.JSON
 }
 
 // MarshalZerologObject provides the object representation for logging

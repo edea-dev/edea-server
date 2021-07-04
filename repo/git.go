@@ -129,8 +129,6 @@ func (g *Git) HasDocs(sub string) (bool, error) {
 		}
 	}
 
-	log.Info().Msgf("book.toml path: %s", path)
-
 	book, err := g.File(path, false)
 	if err != nil {
 		if errors.Is(err, ErrNoFile) {

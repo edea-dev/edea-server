@@ -31,7 +31,6 @@ type Config struct {
 	Tools struct {
 		Merge   string `yaml:"merge" envconfig:"MERGE_TOOL"`
 		PlotPCB string `yaml:"plotpcb" envconfig:"PLOTPCB"`
-		PlotSCH string `yaml:"plotsch" envconfig:"PLOTSCH"`
 	} `yaml:"tools"`
 	Cache struct {
 		Repo struct {

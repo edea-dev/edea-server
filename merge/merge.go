@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -137,4 +138,35 @@ func Merge(benchName string, modules []model.BenchModule) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+// Metadata extracts some data from the module
+func Metadata(module *model.Module) (map[string]string, error) {
+
+	// processing projects should not take longer than a minute
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	dir, err := repo.GetModulePath(module)
+	if err != nil {
+		return nil, err
+	}
+
+	mergeCmd := exec.CommandContext(ctx, "python3", "edea_merge_tool", "--meta", "1", "--module", dir)
+
+	mergeCmd.Dir = config.Cfg.Tools.Merge
+
+	// run the merge
+	logOutput, err := mergeCmd.CombinedOutput()
+
+	// return the output of the tool and the error for the user to debug issues
+	if err != nil {
+		return nil, util.HintError{
+			Hint: fmt.Sprintf("Something went wrong during the metadata extraction, below is the log which should provide more information:\n%s", logOutput),
+			Err:  err,
+		}
+	}
+	m := make(map[string]string)
+	err = json.Unmarshal(logOutput, &m)
+	return m, err
 }
