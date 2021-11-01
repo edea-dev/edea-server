@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/model"
+	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 )
 
@@ -62,7 +62,7 @@ func (a *OIDC) newAuthenticator() (*authenticator, error) {
 
 	provider, err := oidc.NewProvider(ctx, a.ProviderURL)
 	if err != nil {
-		log.Printf("failed to get provider: %v", err)
+		zap.L().Error("failed to get provider", zap.Error(err))
 		return nil, err
 	}
 
@@ -96,7 +96,7 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	token, err := auth.Config.Exchange(context.TODO(), r.URL.Query().Get("code"))
 	if err != nil {
-		log.Printf("no token found: %v", err)
+		zap.L().Error("no token found", zap.Error(err))
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -116,7 +116,7 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	// check if it's a new user and create them if necessary
 	if !model.UserExists(tok.Subject) {
-		log.Debug().Msgf("user %s does not exist yet", tok.Subject)
+		zap.S().Debugf("user %s does not exist yet", tok.Subject)
 		claims := &model.AuthClaims{}
 		if err := tok.Claims(claims); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to parse claims: %v\n%+v", err, *tok), http.StatusInternalServerError)
@@ -125,7 +125,7 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 		createUser(claims)
 	} else {
-		log.Debug().Msgf("user %s already exists", tok.Subject)
+		zap.S().Debugf("user %s already exists", tok.Subject)
 	}
 
 	// add the jwt as session cookie
@@ -179,7 +179,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	if cfg.LogoutIDTokenHint {
 		c, err := r.Cookie("jwt")
 		if err != nil {
-			log.Panic().Err(err).Msg("no session cookie present")
+			zap.L().Panic("no session cookie present", zap.Error(err))
 		}
 		parameters.Add("id_token_hint", c.Value)
 	}
@@ -209,7 +209,7 @@ func LogoutCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		if r.URL.Query().Get("state") != state.Value {
 			//http.Error(w, "Invalid state parameter", http.StatusBadRequest)
-			log.Debug().Msgf("unexpected state value from client")
+			zap.S().Debugf("unexpected state value from client")
 		} else {
 			// remove state cookie
 			cookie := http.Cookie{

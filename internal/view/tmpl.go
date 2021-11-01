@@ -11,11 +11,11 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead"
 	"gitlab.com/edea-dev/edead/internal/config"
 	"gitlab.com/edea-dev/edead/internal/model"
 	"gitlab.com/edea-dev/edead/internal/util"
+	"go.uber.org/zap"
 )
 
 var (
@@ -59,7 +59,7 @@ func RenderTemplate(ctx context.Context, fn, title string, data map[string]inter
 			Count(&moduleCount)
 
 		if result.Error != nil {
-			log.Panic().Err(result.Error).Msg("could not query active bench module count")
+			zap.L().Panic("could not query active bench module count", zap.Error(result.Error))
 		} else {
 			data["BenchModCount"] = moduleCount
 		}
@@ -80,16 +80,16 @@ func RenderTemplate(ctx context.Context, fn, title string, data map[string]inter
 	//       named index.tmpl).
 	b, err := os.ReadFile(tmplFile)
 	if err != nil {
-		log.Panic().Err(err).Msgf("could not read template: %s", tmplFile)
+		zap.L().Panic("could not read template", zap.Error(err), zap.String("file", tmplFile))
 	}
 	tmpl := t.New(fn)
 	if _, err := tmpl.Parse(string(b)); err != nil {
-		log.Panic().Err(err).Msgf("could not parse template %s", fn)
+		zap.L().Panic("could not parse template", zap.Error(err), zap.String("file_name", fn))
 	}
 
 	// run our template with the data to render and the fragments
 	if err := t.ExecuteTemplate(w, fn, data); err != nil {
-		log.Panic().Err(err).Msgf("failed to render template: %s", err)
+		zap.L().Panic("failed to render template", zap.Error(err))
 	}
 }
 

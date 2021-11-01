@@ -16,8 +16,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/view"
+	"go.uber.org/zap"
 	"gopkg.in/square/go-jose.v2"
 )
 
@@ -52,13 +52,13 @@ func InitMockAuth() error {
 			}{}
 			f, err := os.Open("mock-jwks.json")
 			if err != nil {
-				log.Fatal().Err(err).Msg("could not read jwks from disk")
+				zap.L().Fatal("could not read jwks from disk", zap.Error(err))
 			}
 			defer f.Close()
 			dec := json.NewDecoder(f)
 
 			if err := dec.Decode(&s); err != nil {
-				log.Fatal().Err(err).Msg("could not decode jwks from json")
+				zap.L().Fatal("could not decode jwks from json", zap.Error(err))
 			}
 
 			priv = s.Priv
@@ -68,7 +68,7 @@ func InitMockAuth() error {
 			// or generate a new one if it doesn't
 			privKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 			if err != nil {
-				log.Panic().Err(err).Msg("could not generate private key")
+				zap.L().Panic("could not generate private key", zap.Error(err))
 			}
 
 			priv = jose.JSONWebKey{Key: privKey, Algorithm: "ES256", Use: "sig"}
@@ -76,7 +76,7 @@ func InitMockAuth() error {
 			// Generate a canonical kid based on RFC 7638
 			thumb, err := priv.Thumbprint(crypto.SHA256)
 			if err != nil {
-				log.Panic().Err(err).Msg("unable to compute thumbprint")
+				zap.L().Panic("unable to compute thumbprint", zap.Error(err))
 			}
 			priv.KeyID = base64.URLEncoding.EncodeToString(thumb)
 
@@ -86,7 +86,7 @@ func InitMockAuth() error {
 			// write the keyset to disk so we can load it later on
 			f, err := os.Create("mock-jwks.json")
 			if err != nil {
-				log.Fatal().Err(err).Msg("could not save jwks to disk")
+				zap.L().Fatal("could not save jwks to disk", zap.Error(err))
 			}
 			defer f.Close()
 			enc := json.NewEncoder(f)
@@ -98,7 +98,7 @@ func InitMockAuth() error {
 			}{priv, *keySet}
 
 			if err := enc.Encode(s); err != nil {
-				log.Fatal().Err(err).Msg("could not encode jwks to json")
+				zap.L().Fatal("could not encode jwks to json", zap.Error(err))
 			}
 		}
 
@@ -106,7 +106,7 @@ func InitMockAuth() error {
 		opt := (&jose.SignerOptions{}).WithType("JWT").WithHeader("kid", priv.KeyID)
 		mockSigner, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.ES256, Key: priv.Key}, opt)
 		if err != nil {
-			log.Panic().Err(err).Msg("could not create new signer")
+			zap.L().Panic("could not create new signer", zap.Error(err))
 		}
 	}
 
@@ -116,7 +116,7 @@ func InitMockAuth() error {
 // LoginFormHandler provides a simple local login form for test purposes
 func LoginFormHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		log.Panic().Err(err).Msg("could not parse url parameters for the login form")
+		zap.L().Panic("could not parse url parameters for the login form", zap.Error(err))
 	}
 
 	m := map[string]interface{}{
@@ -130,7 +130,7 @@ func LoginFormHandler(w http.ResponseWriter, r *http.Request) {
 // LoginPostHandler processes the login request
 func LoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		log.Panic().Err(err).Msg("could not parse login form parameters")
+		zap.L().Panic("could not parse login form parameters", zap.Error(err))
 	}
 
 	state := r.Form.Get("state")
@@ -140,13 +140,13 @@ func LoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	// do a basic auth "check", this *really* is just a mock authenticator
 	if u, ok := mockUsers[pass]; ok {
 		if u.Profile != user {
-			log.Panic().Msgf("invalid user/password combination for %s", user)
+			zap.S().Panicf("invalid user/password combination for %s", user)
 		}
 	}
 
 	u, err := url.Parse(cfg.RedirectURL)
 	if err != nil {
-		log.Panic().Err(err).Msg("could not parse callback url for mock auth")
+		zap.L().Panic("could not parse callback url for mock auth", zap.Error(err))
 	}
 
 	ref := u.Query()
@@ -179,7 +179,7 @@ func WellKnown(w http.ResponseWriter, r *http.Request) {
 func Keys(w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(keySet); err != nil {
-		log.Error().Err(err).Msg("could not encode jwks")
+		zap.L().Error("could not encode jwks", zap.Error(err))
 		w.WriteHeader(500)
 	}
 }
@@ -190,7 +190,7 @@ func generateIDToken(u mockUser) (string, error) {
 		return "", err
 	}
 
-	sig, err := mockSigner.Sign(b)
+	sig, _ := mockSigner.Sign(b)
 	return sig.FullSerialize(), nil
 }
 
@@ -225,7 +225,7 @@ func Token(w http.ResponseWriter, r *http.Request) {
 	secret := r.FormValue("client_secret")
 	code := r.FormValue("code")
 
-	log.Debug().Msgf("form: %+v, headers: %+v", r.PostForm, r.Header)
+	zap.S().Debugf("form: %+v, headers: %+v", r.PostForm, r.Header)
 
 	if cfg.ClientID == id && cfg.ClientSecret == secret {
 		s, err := generateIDToken(mockUsers[code])
@@ -240,7 +240,7 @@ func Token(w http.ResponseWriter, r *http.Request) {
 			s,
 		)
 		if _, err := io.WriteString(w, tok); err != nil {
-			log.Error().Err(err).Msg("could not send token response to client")
+			zap.L().Error("could not send token response to client", zap.Error(err))
 		}
 	} else {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
@@ -251,10 +251,10 @@ func Token(w http.ResponseWriter, r *http.Request) {
 // the token auth-side so that if it is presented to us again we know that it
 // has been invalidated
 func LogoutEndpoint(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	_ = r.ParseForm()
 	u := r.Form.Get("post_logout_redirect_uri")
 
-	log.Info().Msgf("got to logout, redirecting to: %s", u)
+	zap.S().Infof("got to logout, redirecting to: %s", u)
 
 	http.Redirect(w, r, u, http.StatusTemporaryRedirect)
 }

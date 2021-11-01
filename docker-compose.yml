@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile
       context: .
       target: dev
+    ports:
+      - 3000:3000
   db:
     image: docker.io/postgres:14-alpine
     container_name: edea-postgres

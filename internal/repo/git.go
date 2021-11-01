@@ -17,8 +17,8 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/util"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 )
 
@@ -306,7 +306,7 @@ func (g *Git) History(folder string) ([]*Commit, error) {
 
 	cIter, err := r.Log(options)
 	if err != nil {
-		log.Panic().Err(err).Msg("could not retrieve history of repo")
+		zap.L().Panic("could not retrieve history of repo", zap.Error(err))
 	}
 	err = cIter.ForEach(func(c *object.Commit) error {
 		msg := strings.ReplaceAll(c.String(), "\n", "<br>")
@@ -517,8 +517,7 @@ func (g *Git) SchematicHelper(dir, revision string) (map[string]string, error) {
 		cleanerCmd := exec.CommandContext(ctx, "svgcleaner", svg, svg)
 		out, err := cleanerCmd.CombinedOutput()
 		if err != nil {
-			log.Error().Err(err).Msg("could not run svgcleaner")
-			log.Info().Msg(string(out))
+			zap.L().Error("could not run svgcleaner", zap.ByteString("output", out))
 		}
 
 		b, err := os.ReadFile(svg)

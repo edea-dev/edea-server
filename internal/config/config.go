@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/kelseyhightower/envconfig"
-	"github.com/rs/zerolog/log"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
 
@@ -67,11 +67,10 @@ type Config struct {
 func ReadConfig() {
 	readFile(&Cfg)
 	readEnv(&Cfg)
-	log.Printf("%+v", Cfg)
 }
 
 func processError(err error) {
-	log.Printf("%v", err)
+	zap.L().Error("could not process config", zap.Error(err))
 	os.Exit(2)
 }
 

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"gorm.io/gorm"
 )
 
@@ -27,12 +27,13 @@ type User struct {
 	IsAdmin   bool `gorm:"default:false"`
 }
 
-// MarshalZerologObject provides the object representation for logging
-func (u *User) MarshalZerologObject(e *zerolog.Event) {
-	e.Str("uuid", u.ID.String()).
-		Str("auth_uuid", u.AuthUUID).
-		Str("handle", u.Handle).
-		Time("created", u.CreatedAt)
+func (u *User) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("uuid", u.ID.String())
+	enc.AddString("auth_uuid", u.AuthUUID)
+	enc.AddString("handle", u.Handle)
+	enc.AddTime("created", u.CreatedAt)
+
+	return nil
 }
 
 // BeforeUpdate checks if the current user is allowed to do that
@@ -52,7 +53,7 @@ func UserExists(authUUID string) bool {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return false
 		}
-		log.Panic().Err(result.Error).Msgf("could not get user")
+		zap.L().Panic("could not get user", zap.Error(result.Error))
 	}
 
 	return true

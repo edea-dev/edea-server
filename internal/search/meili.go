@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/meilisearch/meilisearch-go"
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/model"
+	"go.uber.org/zap"
 )
 
 // Entry for the search index, expand with necessary data
@@ -78,7 +78,8 @@ func ReIndexDB(w http.ResponseWriter, r *http.Request) {
 
 	result := model.DB.Model(&model.Bench{}).Where("public = true").Preload("User").Find(&benches)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not fetch all public benches")
+		zap.L().Panic("could not fetch all public benches", zap.Error(result.Error))
+		zap.L().Panic("", zap.Error(result.Error))
 	}
 
 	for _, b := range benches {
@@ -87,7 +88,7 @@ func ReIndexDB(w http.ResponseWriter, r *http.Request) {
 
 	result = model.DB.Model(&model.Module{}).Where("private = false").Preload("Category").Preload("User").Find(&modules)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not fetch all public modules")
+		zap.L().Panic("could not fetch all public modules", zap.Error(result.Error))
 	}
 
 	for _, m := range modules {
@@ -96,10 +97,10 @@ func ReIndexDB(w http.ResponseWriter, r *http.Request) {
 
 	updateRes, err := meiliClient.Index("edea").AddDocuments(documents) // => { "updateId": 0 }
 	if err != nil {
-		log.Panic().Err(err).Msg("could not add/update the search index in bulk")
+		zap.L().Panic("could not add/update the search index in bulk", zap.Error(result.Error))
 	}
 
-	log.Debug().Msgf("bulk update update_id: %d", updateRes.UpdateID)
+	zap.L().Debug("bulk update", zap.Int64("meili_update_id", updateRes.UpdateID))
 	fmt.Fprintf(w, "bulk update update_id: %d", updateRes.UpdateID)
 }
 
@@ -107,7 +108,7 @@ func ReIndexDB(w http.ResponseWriter, r *http.Request) {
 func UpdateEntry(e Entry) error {
 	// gracefully ignore but warn if meilisearch doesn't work
 	if meiliClient != nil {
-		log.Warn().Msg("MeiliSearch not initialized")
+		zap.L().Warn("meilisearch not initialized")
 		return nil
 	}
 
@@ -116,7 +117,7 @@ func UpdateEntry(e Entry) error {
 		return fmt.Errorf("could not add/update the search index: %w", err)
 	}
 
-	log.Debug().Msgf("single entry update update_id: %d", updateRes.UpdateID)
+	zap.L().Debug("single entry update", zap.Int64("meili_update_id", updateRes.UpdateID))
 	return nil
 }
 
@@ -124,7 +125,7 @@ func UpdateEntry(e Entry) error {
 func DeleteEntry(e Entry) error {
 	// gracefully ignore but warn if meilisearch doesn't work
 	if meiliClient != nil {
-		log.Warn().Msg("MeiliSearch not initialized")
+		zap.L().Warn("meilisearch not initialized")
 		return nil
 	}
 

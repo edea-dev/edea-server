@@ -1,9 +1,10 @@
 FROM golang:1.17-alpine3.14 as base
+RUN apk add --update make bash yarn ncurses
 
 FROM base as dev
 WORKDIR /build
 ADD . /build
-RUN go build ./cmd/edead
+RUN make
 
 CMD ["./edead"]
 

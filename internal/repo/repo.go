@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/model"
 	"gitlab.com/edea-dev/edead/internal/util"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 )
 
@@ -61,7 +61,7 @@ func GetModulePath(mod *model.Module) (string, error) {
 	s, err := g.File("edea.yml", false)
 	if err != nil {
 		// assuming old format, i.e. no sub-modules
-		log.Info().Msgf("module %s does not contain an edea.yml file, assuming project files are in top-level dir", mod.ID)
+		zap.L().Info("module does not contain edea.yml file, assuming project files in top-level directory", zap.String("module_id", mod.ID.String()))
 
 		repoDir, _ := g.Dir()
 		return repoDir, nil
@@ -75,7 +75,8 @@ func GetModulePath(mod *model.Module) (string, error) {
 
 	v, ok := p.Modules[mod.Sub]
 	if !ok {
-		log.Panic().Err(errors.New("sub-module specified but does not exist")).Msg("the sub-module key in the database does not exist in the repo edea.yml")
+		err := errors.New("sub-module specified but does not exist")
+		zap.L().Panic("the sub-module key in the database does not exist in the repo edea.yml", zap.Error(err))
 	}
 
 	repoDir, _ := g.Dir() // at this point we already know the it's cached

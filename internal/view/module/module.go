@@ -16,7 +16,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/config"
 	"gitlab.com/edea-dev/edead/internal/merge"
 	"gitlab.com/edea-dev/edead/internal/model"
@@ -24,6 +23,7 @@ import (
 	"gitlab.com/edea-dev/edead/internal/search"
 	"gitlab.com/edea-dev/edead/internal/util"
 	"gitlab.com/edea-dev/edead/internal/view"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -56,12 +56,12 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 	if err := repo.New(module.RepoURL); err != nil && !errors.Is(err, repo.ErrExists) {
 		// TODO: display nice error messages
-		log.Panic().Err(err).Msg("module: something went wrong fetching the repository")
+		zap.L().Panic("module: something went wrong fetching the repository", zap.Error(err))
 	}
 
 	meta, err := merge.Metadata(module)
 	if err != nil {
-		log.Panic().Err(err).Msg("metadata extraction unsuccessful")
+		zap.L().Panic("metadata extraction unsuccessful", zap.Error(err))
 	}
 
 	b, _ := json.Marshal(meta)
@@ -69,14 +69,12 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 	result := model.DB.WithContext(r.Context()).Create(module)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not create new module")
+		zap.L().Panic("could not create new module", zap.Error(result.Error))
 	}
-
-	log.Info().Msg("redirecting to new module page")
 
 	// update search index
 	if err := search.UpdateEntry(search.ModuleToEntry(*module)); err != nil {
-		log.Panic().Err(err)
+		zap.L().Panic("could not update search index", zap.Error(err))
 	}
 
 	// redirect to newly created module page
@@ -96,7 +94,7 @@ func View(w http.ResponseWriter, r *http.Request) {
 	mup := model.Profile{UserID: module.UserID}
 
 	if result := model.DB.Where(&mup).First(&mup); result.Error != nil {
-		log.Error().Err(result.Error).Msgf("could not fetch module author profile for user_id %s", module.UserID)
+		zap.L().Error("could not fetch module author profile", zap.Error(result.Error), zap.String("user_id", module.UserID.String()))
 	}
 
 	// render the readme real quick
@@ -112,8 +110,9 @@ func View(w http.ResponseWriter, r *http.Request) {
 
 	if err == nil {
 		readme, err = view.RenderReadme(readme)
-	} else {
-		log.Debug().Err(err).Msg("could not render readme")
+	}
+	if err != nil {
+		zap.L().Debug("could not render readme", zap.Error(err))
 	}
 
 	hasDocs, err := g.HasDocs(module.Sub)
@@ -162,12 +161,12 @@ func Update(w http.ResponseWriter, r *http.Request) {
 
 	result := model.DB.WithContext(r.Context()).Save(module)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not update module")
+		zap.L().Panic("could not update module", zap.Error(result.Error))
 	}
 
 	// update search index
 	if err := search.UpdateEntry(search.ModuleToEntry(*module)); err != nil {
-		log.Panic().Err(err)
+		zap.L().Panic("could not update search index", zap.Error(err))
 	}
 
 	// redirect to updated module page
@@ -191,12 +190,12 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 
 	result := model.DB.WithContext(r.Context()).Delete(&model.Module{ID: uuid.MustParse(moduleID)})
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not delete module")
+		zap.L().Panic("could not delete module", zap.Error(result.Error))
 	}
 
 	// update search index
 	if err := search.UpdateEntry(search.Entry{ID: moduleID}); err != nil {
-		log.Panic().Err(err)
+		zap.L().Panic("could not update search index", zap.Error(err))
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -208,7 +207,7 @@ func New(w http.ResponseWriter, r *http.Request) {
 
 	result := model.DB.Model(&model.Category{}).Find(&categories)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not fetch categories")
+		zap.L().Panic("could not fetch categories", zap.Error(result.Error))
 	}
 
 	m := map[string]interface{}{
@@ -237,7 +236,7 @@ func Pull(w http.ResponseWriter, r *http.Request) {
 
 	result := model.DB.Where("id = ? and user_id = ?", moduleID, user.ID).Find(module)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msgf("could not get the module")
+		zap.L().Panic("could not get the module", zap.Error(result.Error))
 	}
 
 	// nope, no module
@@ -249,12 +248,12 @@ func Pull(w http.ResponseWriter, r *http.Request) {
 
 	g := &repo.Git{URL: module.RepoURL}
 	if err := g.Pull(); err != nil {
-		log.Panic().Err(err).Msgf("could not pull latest changes")
+		zap.L().Panic("could not pull latest changes", zap.Error(err))
 	}
 
 	meta, err := merge.Metadata(module)
 	if err != nil {
-		log.Error().Err(err).Msg("metadata extraction unsuccessful")
+		zap.L().Error("metadata extraction unsuccessful", zap.Error(err))
 		view.RenderErrTemplate(r.Context(), w, "module/view.tmpl", err)
 		return
 	}
@@ -265,15 +264,15 @@ func Pull(w http.ResponseWriter, r *http.Request) {
 
 	result = model.DB.WithContext(r.Context()).Save(module)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not update module")
+		zap.L().Panic("could not update submodule", zap.Error(result.Error))
 	}
 
 	// update search index
 	if err := search.UpdateEntry(search.ModuleToEntry(*module)); err != nil {
-		log.Panic().Err(err)
+		zap.L().Panic("could not update search index", zap.Error(err))
 	}
 
-	log.Info().Msgf("pulled repo %s for module %s", module.RepoURL, module.ID)
+	zap.L().Info("pulled repo for module", zap.String("repo_url", module.RepoURL), zap.String("module_id", module.ID.String()))
 
 	// redirect to updated module page
 	http.Redirect(w, r, fmt.Sprintf("/module/%s", module.ID), http.StatusSeeOther)
@@ -292,14 +291,14 @@ func ViewHistory(w http.ResponseWriter, r *http.Request) {
 	mup := model.Profile{UserID: module.UserID}
 
 	if result := model.DB.Where(&mup).First(&mup); result.Error != nil {
-		log.Error().Err(result.Error).Msgf("could not fetch module author profile for user_id %s", module.UserID)
+		zap.L().Error("could not fetch module author profile", zap.Error(result.Error), zap.String("user_id", module.UserID.String()))
 	}
 
 	// render the readme real quick
 	g := &repo.Git{URL: module.RepoURL}
 	history, err := g.History(module.Sub)
 	if err != nil {
-		log.Error().Err(err).Msg("could not get history of repo")
+		zap.L().Error("could not get history of repo", zap.Error(err))
 	}
 
 	// all packed up,
@@ -326,33 +325,33 @@ func Diff(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseForm(); err != nil {
-		log.Panic().Err(err).Msg("could not parse form data")
+		zap.L().Panic("could not parse form data", zap.Error(err))
 	}
 
 	commit1 := r.Form.Get("a")
 	commit2 := r.Form.Get("b")
 
-	log.Debug().Msgf("diffing %s and %s", commit1, commit2)
+	zap.S().Debugf("diffing %s and %s", commit1, commit2)
 
 	pcba, err := plotPCB(module, commit1)
 	if err != nil {
-		log.Panic().Err(err).Msgf("could not plot pcb at A (%s)", commit1)
+		zap.L().Panic("could not plot pcb at A", zap.Error(err), zap.String("commit", commit1))
 	}
 	pcbb, err := plotPCB(module, commit1)
 	if err != nil {
-		log.Panic().Err(err).Msgf("could not plot pcb at B (%s)", commit2)
+		zap.L().Panic("could not plot pcb at B", zap.Error(err), zap.String("commit", commit2))
 	}
 
 	g := &repo.Git{URL: module.RepoURL}
 
 	scha, err := g.SchematicHelper(module.Sub, commit1)
 	if err != nil {
-		log.Panic().Err(err).Msg("failed to plot sch a")
+		zap.L().Panic("failed to plot sch a", zap.Error(err))
 	}
 
 	schb, err := g.SchematicHelper(module.Sub, commit2)
 	if err != nil {
-		log.Panic().Err(err).Msg("failed to plot sch b")
+		zap.L().Panic("failed to plot sch b", zap.Error(err))
 	}
 
 	m := map[string]interface{}{
@@ -387,12 +386,12 @@ func plotPCB(mod *model.Module, revision string) (*Board, error) {
 	// write the PCB file to disk so we can call kicad via our python script to plot it
 	f, err := os.CreateTemp("", revision+".*.kicad_pcb")
 	if err != nil {
-		log.Panic().Err(err).Msg("could not create temp pcb file")
+		zap.L().Panic("could not create temp pcb file", zap.Error(err))
 	}
 	defer os.Remove(f.Name())
 
 	if _, err := f.Write(pcb); err != nil {
-		log.Panic().Err(err).Msg("could not write temp pcb file contents")
+		zap.L().Panic("could not write temp pcb file contents", zap.Error(err))
 	}
 
 	argv := []string{config.Cfg.Tools.PlotPCB, f.Name()}
@@ -404,7 +403,7 @@ func plotPCB(mod *model.Module, revision string) (*Board, error) {
 
 	// return the output of the tool and the error for the user to debug issues
 	if err != nil {
-		log.Info().Msg(string(logOutput))
+		zap.L().Info("plot pcb output", zap.ByteString("output", logOutput))
 		return nil, util.HintError{
 			Hint: fmt.Sprintf("Something went wrong during the pcb plotting, below is the log which should provide more information:\n%s", logOutput),
 			Err:  err,
@@ -445,7 +444,7 @@ func getModule(w http.ResponseWriter, r *http.Request) (user *model.User, module
 	}
 
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msgf("could not get the module")
+		zap.L().Panic("could not get the module", zap.Error(result.Error))
 	}
 
 	// nope, no module
@@ -484,11 +483,13 @@ func BuildBook(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	dest := filepath.Join(config.Cfg.Cache.Book.Base, module.ID.String())
-	log.Info().Msg(dest)
+
+	zap.L().Debug("book destination", zap.String("path", dest))
+
 	if _, err := os.Stat(dest); os.IsNotExist(err) {
 		err := os.Mkdir(dest, 0755)
 		if err != nil {
-			log.Panic().Err(err).Msg("could not create book dir")
+			zap.L().Panic("could not create book dir", zap.Error(err))
 		}
 	}
 
@@ -512,7 +513,8 @@ func BuildBook(w http.ResponseWriter, r *http.Request) {
 		view.RenderTemplate(ctx, "bench/merge_error.tmpl", "mdbook Error", m, w)
 		return
 	}
-	log.Info().Msg(string(logOutput))
+
+	zap.L().Debug("build book log output", zap.ByteString("output", logOutput))
 
 	http.Redirect(w, r, fmt.Sprintf("/module/doc/%s", module.ID), http.StatusTemporaryRedirect)
 }
@@ -522,20 +524,20 @@ func PullAllRepos(w http.ResponseWriter, r *http.Request) {
 
 	result := model.DB.Find(&modules)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not fetch all modules")
+		zap.L().Panic("could not fetch all modules", zap.Error(result.Error))
 	}
 
 	for _, mod := range modules {
 		g := &repo.Git{URL: mod.RepoURL}
 		repo.Add(mod.RepoURL)
 		if err := g.Pull(); err != nil {
-			log.Error().Err(err).Msgf("could not pull latest changes")
+			zap.L().Error("could not pull latest changes", zap.Error(err))
 			continue
 		}
 
 		meta, err := merge.Metadata(&mod)
 		if err != nil {
-			log.Error().Err(err).Msg("metadata extraction unsuccessful")
+			zap.L().Error("metadata extraction unsuccessful", zap.Error(err))
 			continue
 		}
 
@@ -545,13 +547,13 @@ func PullAllRepos(w http.ResponseWriter, r *http.Request) {
 
 		result = model.DB.WithContext(r.Context()).Save(mod)
 		if result.Error != nil {
-			log.Error().Err(result.Error).Msg("could not update module")
+			zap.L().Error("could not update module", zap.Error(err))
 			continue
 		}
 
 		// update search index
 		if err := search.UpdateEntry(search.ModuleToEntry(mod)); err != nil {
-			log.Error().Err(err)
+			zap.L().Error("could not update search index", zap.Error(err))
 			continue
 		}
 	}

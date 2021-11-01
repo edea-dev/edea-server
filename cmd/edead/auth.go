@@ -4,9 +4,9 @@ package main
 
 import (
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/auth"
 	"gitlab.com/edea-dev/edead/internal/config"
+	"go.uber.org/zap"
 )
 
 func initAuth() {
@@ -35,17 +35,17 @@ func initAuth() {
 	}
 
 	if config.Cfg.Auth.UseMock {
-		log.Warn().Msg("using mock authentication provider")
+		zap.L().Warn("using mock authentication provider")
 		auth.InitMockAuth()
 	}
 
 	if err := auth.Init(provider); err != nil {
-		log.Error().Err(err).Msg("could not create OIDC provider")
+		zap.L().Error("could not create OIDC provider", zap.Error(err))
 	}
 
 	if k.Use {
 		if err := auth.InitKratos(); err != nil {
-			log.Error().Err(err).Msg("could not create auth provider for Kratos")
+			zap.L().Error("could not create auth provider for Kratos", zap.Error(err))
 		}
 	}
 }

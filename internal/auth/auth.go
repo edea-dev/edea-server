@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/model"
 	"gitlab.com/edea-dev/edead/internal/util"
+	"go.uber.org/zap"
 )
 
 // Provider interface to be implemented by Identity Providers
@@ -50,7 +50,7 @@ func processAuth(w http.ResponseWriter, r *http.Request) (context.Context, error
 	// verify claims
 	idToken, err := verifier.Verify(r.Context(), raw)
 	if err != nil {
-		log.Error().Err(err).Msgf("could not verify jwt")
+		zap.L().Error("could not verify jwt", zap.Error(err))
 
 		// remove offending jwt cookie
 		cookie := http.Cookie{
@@ -88,7 +88,7 @@ func RequireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if v := r.Context().Value(model.AuthContextKey); v == nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Authorization header/session cookie missing"))
+			_, _ = w.Write([]byte("Authorization header/session cookie missing"))
 			return
 		}
 
@@ -104,7 +104,7 @@ func Authenticate(next http.Handler) http.Handler {
 		if err != nil {
 			// only show an error if something is wrong with the token (expired tokens are not an error)
 			if !errors.Is(err, model.ErrUnauthorized) && !strings.Contains(err.Error(), "expired") {
-				log.Error().Err(err).Msg("could not process authentication cookie/header")
+				zap.L().Error("could not process authentication cookie/header", zap.Error(err))
 				w.WriteHeader(http.StatusInternalServerError)
 				fmt.Fprintln(w, err)
 			}
@@ -129,14 +129,14 @@ func createUser(claims *model.AuthClaims) {
 	}
 
 	if result := model.DB.Model(&u).Create(&u); result.Error != nil {
-		log.Error().Str("auth_uuid", claims.Subject).Err(result.Error).Msgf("could not create new user")
+		zap.L().Error("could not create new user", zap.Error(result.Error), zap.String("auth_uuid", claims.Subject))
 	}
 
 	p := model.Profile{DisplayName: claims.Nickname, Avatar: claims.Picture, UserID: u.ID}
 
 	if result := model.DB.Model(&p).Create(&p); result.Error != nil {
-		log.Panic().Str("auth_uuid", claims.Subject).Err(result.Error).Msgf("could not create new profile")
+		zap.L().Panic("could not create new user", zap.Error(result.Error), zap.String("auth_uuid", claims.Subject))
 	}
 
-	log.Info().EmbedObject(&u).Msgf("created a new user")
+	zap.L().Info("created a new user", zap.Object("user", &u))
 }

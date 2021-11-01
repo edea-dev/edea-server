@@ -13,8 +13,8 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/model"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -110,7 +110,7 @@ func (c *RepoCache) Add(url string) (err error) {
 			return err
 		}
 	} else {
-		log.Error().Err(err).Msgf("repo cache folder conflict for %s, %s", url, path)
+		zap.S().Errorf("repo cache folder conflict for %s, %s", url, path)
 		return ErrCacheExists
 	}
 
@@ -122,11 +122,10 @@ func (c *RepoCache) Add(url string) (err error) {
 	if err = repo.Clone(ctx); err != nil {
 		if ferr := os.RemoveAll(path); ferr != nil {
 			// what a bad day :(
-			log.Logger.Error().
-				AnErr("rmdir", ferr).
-				AnErr("git clone", err).
-				Str("path", path).
-				Msg("couldn't remove dir after failed clone")
+			zap.L().Error("couldn't remove dir after failed clone",
+				zap.NamedError("rmdir", ferr),
+				zap.NamedError("git clone", err),
+				zap.String("path", path))
 		}
 		if !errors.Is(err, transport.ErrEmptyRemoteRepository) {
 			return err

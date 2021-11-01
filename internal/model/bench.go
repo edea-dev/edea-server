@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/rs/zerolog"
+	"go.uber.org/zap/zapcore"
 	"gorm.io/gorm"
 )
 
@@ -26,9 +26,10 @@ type Bench struct {
 	Description string        `schema:"description"`
 }
 
-// MarshalZerologObject provides the object representation for logging
-func (b *Bench) MarshalZerologObject(e *zerolog.Event) {
-	e.Str("bench_sc", b.ShortCode)
+func (b *Bench) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("bench_uuid", b.ID.String())
+
+	return nil
 }
 
 // BeforeUpdate checks if the current user is allowed to do that

@@ -13,10 +13,10 @@ require (
 	github.com/gorilla/schema v1.2.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/meilisearch/meilisearch-go v0.16.2
-	github.com/rs/zerolog v1.25.0
 	github.com/yuin/goldmark v1.4.2
 	github.com/yuin/goldmark-highlighting v0.0.0-20210516132338-9216f9c5aa01
 	github.com/yuin/goldmark-meta v1.0.0
+	go.uber.org/zap v1.19.1
 	golang.org/x/net v0.0.0-20211020060615-d418f374d309
 	golang.org/x/oauth2 v0.0.0-20211028175245-ba495a64dcb5
 	gopkg.in/square/go-jose.v2 v2.6.0
@@ -58,11 +58,12 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.9 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rs/xid v1.3.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.31.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect

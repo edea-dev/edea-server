@@ -4,7 +4,7 @@ package model
 
 import (
 	"github.com/google/uuid"
-	"github.com/rs/zerolog"
+	"go.uber.org/zap/zapcore"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -22,7 +22,9 @@ type BenchModule struct {
 	Bench       Bench
 }
 
-// MarshalZerologObject provides the object representation for logging
-func (bm *BenchModule) MarshalZerologObject(e *zerolog.Event) {
-	e.Str("bench_module_uuid", bm.ID.String())
+// MarshalLogObject provides the object representation for logging
+func (bm *BenchModule) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("bench_module_uuid", bm.ID.String())
+
+	return nil
 }

@@ -5,9 +5,9 @@ package bench
 import (
 	"net/http"
 
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/model"
 	"gitlab.com/edea-dev/edead/internal/view"
+	"go.uber.org/zap"
 )
 
 // ExploreBench struct
@@ -34,7 +34,7 @@ func Explore(w http.ResponseWriter, r *http.Request) {
 
 	result := model.DB.Raw(exploreQuery).Scan(&p)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not run explore query")
+		zap.L().Panic("could not run explore query", zap.Error(result.Error))
 	}
 
 	m := map[string]interface{}{

@@ -11,7 +11,7 @@ import (
 	"text/template"
 
 	"github.com/gorilla/mux"
-	"github.com/rs/zerolog/log"
+	"go.uber.org/zap"
 )
 
 // RecoveryHandlerLogger is an interface used by the recovering handler to print logs.
@@ -132,13 +132,13 @@ func (h recoveryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			tmpl, err := template.New("error tmpl").Parse(devErrorTmpl)
 			if err != nil {
-				log.Fatal().Err(err).Msg(`error while parsing panic template 🤦‍♀️🤦🤦🤦🤦🤦`)
+				zap.L().Fatal(`error while parsing panic template 🤦‍♀️🤦🤦🤦🤦🤦`, zap.Error(err))
 			}
 			if err := tmpl.Execute(w, m); err != nil {
-				log.Fatal().Err(err).Msg(`error while rendering panic template 🤦‍♀️🤦🤦🤦🤦🤦`)
+				zap.L().Fatal(`error while rendering panic template 🤦‍♀️🤦🤦🤦🤦🤦`, zap.Error(err))
 			}
 
-			log.Panic().Err(err).Interface("context", r.Context()) // log the panic
+			zap.L().Panic("recovery handler", zap.Error(err)) // TODO: add back r.Context()
 		}
 	}()
 

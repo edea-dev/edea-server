@@ -12,12 +12,12 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/merge"
 	"gitlab.com/edea-dev/edead/internal/model"
 	"gitlab.com/edea-dev/edead/internal/search"
 	"gitlab.com/edea-dev/edead/internal/util"
 	"gitlab.com/edea-dev/edead/internal/view"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -49,7 +49,7 @@ func viewHelper(id, tmpl string, w http.ResponseWriter, r *http.Request) {
 	mup := model.Profile{UserID: bench.UserID}
 
 	if result := model.DB.Where(&mup).First(&mup); result.Error != nil {
-		log.Error().Err(result.Error).Msgf("could not fetch bench author profile for user_id %s", bench.UserID)
+		zap.L().Error("could not fetch bench author profile", zap.Error(result.Error), zap.String("bench_user_id", bench.UserID.String()))
 	}
 
 	// try to fetch the bench, TODO: join with modules
@@ -60,7 +60,7 @@ func viewHelper(id, tmpl string, w http.ResponseWriter, r *http.Request) {
 		result = model.DB.Where("id = ? and (public = true or user_id = ?)", id, user.ID).First(bench)
 	}
 	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		log.Panic().Err(result.Error).Msgf("could not get the bench")
+		zap.L().Panic("could not get the bench", zap.Error(result.Error))
 	}
 
 	// nope, no bench
@@ -74,7 +74,7 @@ func viewHelper(id, tmpl string, w http.ResponseWriter, r *http.Request) {
 	var benchMods []model.BenchModule
 	result = model.DB.Preload("Module").Where("bench_id = ?", id).Find(&benchMods)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msgf("could not get the bench modules")
+		zap.L().Panic("could not get the bench modules", zap.Error(result.Error))
 	}
 
 	// get bench macro parameters (future)
@@ -124,7 +124,7 @@ func SetActive(w http.ResponseWriter, r *http.Request) {
 	tx.Model(&model.Bench{}).Where("id = ? and user_id = ?", benchID, user.ID).Update("active", true)
 
 	if tx.Error != nil {
-		log.Panic().Err(tx.Error).Msg("could not update benches")
+		zap.L().Panic("could not update benches", zap.Error(tx.Error))
 		tx.Rollback()
 	} else {
 		tx.Commit()
@@ -153,12 +153,12 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 
 	result := model.DB.Where("user_id = ?", user.ID).Delete(&model.Bench{}, uuid.MustParse(benchID))
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not delete bench")
+		zap.L().Panic("could not delete bench", zap.Error(result.Error))
 	}
 
 	// update search index
 	if err := search.DeleteEntry(search.Entry{ID: benchID}); err != nil {
-		log.Panic().Err(err)
+		zap.L().Panic("could not update search index", zap.Error(err))
 	}
 
 	http.Redirect(w, r, "/bench/user/me", http.StatusTemporaryRedirect)
@@ -191,7 +191,7 @@ func Fork(w http.ResponseWriter, r *http.Request) {
 	var benchMods []model.BenchModule
 	result = model.DB.Preload("Module").Where("bench_id = ?", id).Find(&benchMods)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msgf("could not get the bench modules")
+		zap.L().Panic("could not get the bench modules", zap.Error(result.Error))
 	}
 
 	// create new bench here
@@ -207,7 +207,7 @@ func Fork(w http.ResponseWriter, r *http.Request) {
 
 	if tx.Error != nil {
 		tx.Rollback()
-		log.Panic().Err(tx.Error).Msg("could not create the new benche")
+		zap.L().Panic("could not create the new bench", zap.Error(tx.Error))
 	} else {
 		tx.Commit()
 	}
@@ -229,12 +229,12 @@ func Fork(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		log.Error().Err(err).Msgf("could not fork bench %s", id)
+		zap.L().Error("could not fork bench", zap.Error(result.Error), zap.String("bench_id", id))
 		tx.Rollback()
 
 		// try to remove the bench we already created now
 		if result := model.DB.Delete(b); result.Error != nil {
-			log.Panic().Err(err).Msgf("could not remove newly created bench %s", b.ID.String())
+			zap.L().Panic("could not remove newly created bench", zap.Error(result.Error), zap.String("bench_id", b.ID.String()))
 		}
 
 		view.RenderErrTemplate(ctx, w, "500.tmpl", fmt.Errorf("could not fork the bench"))
@@ -243,7 +243,7 @@ func Fork(w http.ResponseWriter, r *http.Request) {
 
 	// update search index
 	if err := search.UpdateEntry(search.BenchToEntry(*b)); err != nil {
-		log.Panic().Err(err)
+		zap.L().Panic("could not update search index", zap.Error(err))
 	}
 
 	// if everything went well, present the user with a newly forked bench
@@ -278,13 +278,14 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	tx.Commit()
 
 	if tx.Error != nil {
-		log.Panic().Err(tx.Error).Msg("could not create a new bench")
+		zap.L().Panic("could not create a new bench", zap.Error(tx.Error))
+
 		tx.Rollback()
 	}
 
 	// update search index
 	if err := search.UpdateEntry(search.BenchToEntry(*bench)); err != nil {
-		log.Panic().Err(err)
+		zap.L().Panic("could not update search index", zap.Error(err))
 	}
 
 	// redirect to newly created module page
@@ -304,17 +305,17 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Debug().Msgf("%+v", bench)
+	// log.Debug().Msgf("%+v", bench)
 
 	// make sure that we update only the fields a user should be able to change
 	result := model.DB.Model(bench).Select("Name", "Description", "Public").Updates(bench)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not update bench")
+		zap.L().Panic("could not update bench", zap.Error(result.Error))
 	}
 
 	// update search index
 	if err := search.UpdateEntry(search.BenchToEntry(*bench)); err != nil {
-		log.Panic().Err(err)
+		zap.L().Panic("could not update search index", zap.Error(err))
 	}
 
 	// redirect to the bench
@@ -330,7 +331,7 @@ func Current(w http.ResponseWriter, r *http.Request) {
 
 	result := model.DB.WithContext(ctx).Where("user_id = ? and active = true", user.ID).Find(bench)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not create a new bench")
+		zap.L().Panic("could not create a new bench", zap.Error(result.Error))
 	}
 
 	if bench.ID == uuid.Nil {
@@ -373,7 +374,7 @@ func ListUser(w http.ResponseWriter, r *http.Request) {
 		mup := model.Profile{UserID: uid}
 
 		if result := model.DB.Where(&mup).First(&mup); result.Error != nil {
-			log.Error().Err(result.Error).Msgf("could not fetch bench author profile for user_id %s", uid)
+			zap.L().Error("could not fetch bench author profile", zap.Error(result.Error), zap.String("user_id", uid.String()))
 		}
 
 		m["Author"] = mup
@@ -412,11 +413,11 @@ func Merge(w http.ResponseWriter, r *http.Request) {
 	// try to fetch all the benchmodules
 	result := model.DB.WithContext(ctx).Preload("Modules.Module").Where("id = ? AND (user_id = ? OR public = true)", id, userID).Find(bench)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not create a new bench")
+		zap.L().Panic("could not create a new bench", zap.Error(result.Error))
 	}
 
 	if bench.ID == uuid.Nil {
-		log.Panic().Msg("could not find bench")
+		zap.L().Panic("could not find bench", zap.Error(result.Error))
 	}
 
 	// and merge it together
@@ -429,7 +430,7 @@ func Merge(w http.ResponseWriter, r *http.Request) {
 			"Output": strings.ReplaceAll(string(b), "\n", "<br>"),
 		}
 		if err, ok := err.(util.HintError); ok {
-			log.Info().Msg("is error with hint")
+			zap.L().Debug("error with hint", zap.Error(err.Err), zap.String("hint", err.Hint))
 			m["Error"] = err.Err
 			m["Hint"] = err.Hint
 		}

@@ -47,6 +47,6 @@ var devErrorTmpl = `
         </table>
       </div>
     </div>
-    <div class="foot"> <span> Powered by ADHD and <a href="https://en.wikipedia.org/wiki/List_of_methylphenidate_analogues">Methylphenidate</a></span></div>
+    <div class="foot"> <span> Powered by ADHD and caffeine.</span></div>
   </div>
 `

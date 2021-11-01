@@ -14,11 +14,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/config"
 	"gitlab.com/edea-dev/edead/internal/model"
 	"gitlab.com/edea-dev/edead/internal/repo"
 	"gitlab.com/edea-dev/edead/internal/util"
+	"go.uber.org/zap"
 )
 
 // TODO: we need to finish defining the file format so that we can put multiple
@@ -40,7 +40,7 @@ func Merge(benchName string, modules []model.BenchModule) ([]byte, error) {
 	// clean up after us
 	defer os.RemoveAll(dir)
 
-	log.Debug().Msgf("created temp directory : %s", dir)
+	zap.S().Debugf("created temp directory : %s", dir)
 
 	// processing projects should not take longer than a minute
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
@@ -93,11 +93,11 @@ func Merge(benchName string, modules []model.BenchModule) ([]byte, error) {
 	for _, file := range files {
 		f, err := w.Create(filepath.Join(benchName, file.Name))
 		if err != nil {
-			log.Panic().Err(err).Msg("could not create file in archive")
+			zap.L().Panic("could not create file in archive", zap.Error(err))
 		}
 		_, err = f.Write(file.Body)
 		if err != nil {
-			log.Panic().Err(err).Msg("could not write file in archive")
+			zap.L().Panic("could not write file in archive", zap.Error(err))
 		}
 	}
 

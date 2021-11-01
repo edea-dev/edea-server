@@ -4,7 +4,6 @@ package model
 
 import (
 	"github.com/google/uuid"
-	"github.com/rs/zerolog"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -24,11 +23,6 @@ type Module struct {
 	CategoryID  uuid.UUID `gorm:"type:uuid" schema:"category"`
 	Category    Category
 	Metadata    datatypes.JSON
-}
-
-// MarshalZerologObject provides the object representation for logging
-func (m *Module) MarshalZerologObject(e *zerolog.Event) {
-	e.Str("module_uuid", m.ID.String())
 }
 
 // BeforeUpdate checks if the current user is allowed to do that

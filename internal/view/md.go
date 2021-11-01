@@ -14,7 +14,6 @@ import (
 	"text/template"
 
 	chromahtml "github.com/alecthomas/chroma/formatters/html"
-	"github.com/rs/zerolog/log"
 	"github.com/yuin/goldmark"
 	highlighting "github.com/yuin/goldmark-highlighting"
 	meta "github.com/yuin/goldmark-meta"
@@ -23,6 +22,7 @@ import (
 	"github.com/yuin/goldmark/renderer/html"
 	"gitlab.com/edea-dev/edead/internal/model"
 	"gitlab.com/edea-dev/edead/internal/util"
+	"go.uber.org/zap"
 )
 
 // TODO: make it settings
@@ -86,28 +86,28 @@ func RenderMarkdown(fn string, data map[string]interface{}, w io.Writer) {
 
 	source, err := ioutil.ReadFile(fmt.Sprintf("%s%s", mdPath, fn))
 	if err != nil {
-		log.Panic().Err(err).Msgf("could not render template: %v", err)
+		zap.L().Panic("could not read template", zap.Error(err))
 	}
 
 	context := parser.NewContext()
 	if err := markdown.Convert([]byte(source), &buf, parser.WithContext(context)); err != nil {
-		log.Panic().Err(err).Msgf("could not render template: %v", err)
+		zap.L().Panic("could not render template", zap.Error(err))
 	}
 	metaData := meta.Get(context)
 
 	tmplFilename, ok := metaData["Template"]
 	if tmplFilename == nil || !ok {
-		log.Panic().Err(ErrNoTmplReference).Msgf("check if %s contains the proper headers: %v", fn, ErrNoTmplReference)
+		zap.S().Panicf("check if %s contains the proper headers: %v", fn, ErrNoTmplReference)
 	}
 
 	tmpl, err := ioutil.ReadFile(fmt.Sprintf("%s%s", tmplPath, tmplFilename.(string)))
 	if err != nil {
-		log.Panic().Err(err).Msgf("could not read template file referenced in markdown: %v", err)
+		zap.L().Panic("could not read template file referenced in markdown", zap.Error(err))
 	}
 
 	navbarTmpl, err := ioutil.ReadFile(fmt.Sprintf("%s%s", tmplPath, "navbar.tmpl"))
 	if err != nil {
-		log.Panic().Err(err).Msgf("could not read navbar template file: %v", err)
+		zap.L().Panic("could not read navbar template file", zap.Error(err))
 	}
 
 	metaData["Body"] = buf.String()
@@ -125,13 +125,13 @@ func RenderMarkdown(fn string, data map[string]interface{}, w io.Writer) {
 	// first pass, render markdown into outer template
 	t = template.Must(t.New("pass1").Parse(string(tmpl)))
 	if err := t.Execute(sb, metaData); err != nil {
-		log.Panic().Err(err).Msg("failed at first pass")
+		zap.L().Panic("failed at first pass", zap.Error(err))
 	}
 
 	// second pass, render the markdown components with the page data
 	t2 := template.Must(template.New("pass2").Parse(string(sb.String())))
 	if err := t2.Execute(w, data); err != nil {
-		log.Panic().Err(err).Msg("failed at second pass")
+		zap.L().Panic("failed at second pass", zap.Error(err))
 	}
 }
 

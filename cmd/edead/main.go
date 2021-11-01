@@ -12,16 +12,22 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/config"
 	"gitlab.com/edea-dev/edead/internal/repo"
 	"gitlab.com/edea-dev/edead/internal/search"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func main() {
 	var wait time.Duration
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
+	zc := zap.NewDevelopmentConfig()
+	zc.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	zl, _ := zc.Build()
+	defer zl.Sync()
+
+	zap.ReplaceGlobals(zl)
 
 	config.ReadConfig()
 
@@ -39,11 +45,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	// log.Info().Interface("config", config.Cfg)
+	// zap.S().Info().Interface("config", config.Cfg)
 	repo.InitCache(config.Cfg.Cache.Repo.Base)
 
 	if err := search.Init(config.Cfg.Search.Host, config.Cfg.Search.Index, config.Cfg.Search.APIKey); err != nil {
-		log.Error().Err(err).Msg("could not init search")
+		zap.L().Error("could not init search", zap.Error(err))
 	}
 
 	addr := fmt.Sprintf("%s:%s", config.Cfg.Server.Host, config.Cfg.Server.Port)
@@ -59,9 +65,9 @@ func main() {
 
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
-		log.Printf("Listening on: http://%s", addr)
+		zap.S().Infof("Listening on: http://%s", addr)
 		if err := srv.ListenAndServe(); err != nil {
-			log.Print(err)
+			zap.L().Error("could not listen", zap.Error(err))
 		}
 	}()
 
@@ -84,13 +90,13 @@ func main() {
 	// Doesn't block if no connections, but will otherwise wait
 	// until the timeout deadline.
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Printf("could not shut down: %v", err)
+		zap.L().Error("could not shut down", zap.Error(err))
 		os.Exit(1)
 	}
 
 	// Optionally, you could run srv.Shutdown in a goroutine and block on
 	// <-ctx.Done() if your application should wait for other services
 	// to finalize based on context cancellation.
-	log.Print("shutting down")
+	zap.S().Info("shutting down")
 	os.Exit(0)
 }

@@ -5,10 +5,10 @@ package user
 import (
 	"net/http"
 
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/model"
 	"gitlab.com/edea-dev/edead/internal/util"
 	"gitlab.com/edea-dev/edead/internal/view"
+	"go.uber.org/zap"
 )
 
 // Profile displays the user data
@@ -19,7 +19,7 @@ func Profile(w http.ResponseWriter, r *http.Request) {
 	p := model.Profile{UserID: u.ID}
 
 	if result := model.DB.Where(&p).First(&p); result.Error != nil {
-		log.Panic().Err(result.Error).Msgf("could not fetch profile data for sub %s", u.AuthUUID)
+		zap.L().Panic("could not fetch profile data", zap.Error(result.Error), zap.String("subject", u.AuthUUID))
 	}
 
 	// TODO: fetch profile data from cache, or more data to display
@@ -50,7 +50,7 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 	result := model.DB.WithContext(ctx).Save(profile)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msg("could not update profile")
+		zap.L().Panic("could not update profile", zap.Error(result.Error))
 	}
 
 	http.Redirect(w, r, "/profile", http.StatusSeeOther)

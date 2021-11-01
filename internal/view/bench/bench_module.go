@@ -8,10 +8,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/model"
 	"gitlab.com/edea-dev/edead/internal/util"
 	"gitlab.com/edea-dev/edead/internal/view"
+	"go.uber.org/zap"
 )
 
 // AddModule adds a module to the currently active bench
@@ -53,17 +53,17 @@ func AddModule(w http.ResponseWriter, r *http.Request) {
 		result := model.DB.WithContext(r.Context()).Create(bench)
 
 		if result.Error != nil {
-			log.Panic().Err(result.Error).Msg("could not create a new bench")
+			zap.L().Panic("could not create a new bench", zap.Error(result.Error))
 		}
 
-		log.Debug().Msgf("new bench: %+v", bench)
+		zap.L().Debug("new bench", zap.Object("bench", bench))
 	}
 
 	benchModule := &model.BenchModule{BenchID: bench.ID, ModuleID: module.ID, Name: module.Name}
 
 	result = model.DB.Create(benchModule)
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msgf("could not add a new bench module to %s", bench.ID)
+		zap.L().Panic("could not create a new bench_module for bench", zap.Error(result.Error), zap.String("bench_id", bench.ID.String()))
 	}
 
 	// redirect to newly created bench page
@@ -98,7 +98,7 @@ func RemoveModule(w http.ResponseWriter, r *http.Request) {
 
 	result = model.DB.Where("id = ?", benchModuleID).Delete(&model.BenchModule{})
 	if result.Error != nil {
-		log.Panic().Err(result.Error).Msgf("could not remove bench module from %s", bench.ID)
+		zap.L().Panic("could not remove bench_module from bench", zap.Error(result.Error), zap.String("bench_id", bench.ID.String()))
 	}
 
 	// redirect to the current bench

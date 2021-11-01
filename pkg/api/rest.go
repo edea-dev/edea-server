@@ -6,20 +6,20 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/rs/zerolog/log"
 	"gitlab.com/edea-dev/edead/internal/model"
+	"go.uber.org/zap"
 )
 
 // REST returns a handler for the given model
 func REST(m API) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
-			log.Panic().Err(err).Msgf("could not parse form: %v", err)
+			zap.L().Panic("could not parse form", zap.Error(err))
 		}
 
 		v, err := m.DecodeForm(r.PostForm)
 		if err != nil {
-			log.Panic().Err(err).Msgf("could not decode: %v", err)
+			zap.L().Panic("could not decode", zap.Error(err))
 		}
 
 		// GET request
@@ -35,11 +35,11 @@ func REST(m API) http.HandlerFunc {
 			o, err := m.Get(v, sub)
 
 			if err != nil {
-				log.Panic().Err(err).Msgf("could not get model: %v", err)
+				zap.L().Panic("could not get model", zap.Error(err))
 			}
 
 			if err := json.NewEncoder(w).Encode(o); err != nil {
-				log.Panic().Err(err).Msgf("could not encode model: %v", err)
+				zap.L().Panic("could not encode model", zap.Error(err))
 			}
 			return
 		}
@@ -51,32 +51,32 @@ func REST(m API) http.HandlerFunc {
 		// delete an object, we don't need to validate it first
 		if r.Method == http.MethodDelete {
 			if err := m.Delete(v, sub); err != nil {
-				log.Panic().Err(err).Msgf("could not update: %v", err)
+				zap.L().Panic("could not update", zap.Error(err))
 			}
 			return
 		}
 
 		if err := m.Validate(v); err != nil {
-			log.Panic().Err(err).Msgf("validation error: %v", err)
+			zap.L().Panic("validation error", zap.Error(err))
 		}
 
 		// update an object
 		if r.Method == http.MethodPut {
 			if _, err := m.Update(v, sub); err != nil {
-				log.Panic().Err(err).Msgf("could not update: %v", err)
+				zap.L().Panic("could not update", zap.Error(err))
 			}
 		} else if r.Method == http.MethodPost { // create a new object
 			o, err := m.Create(v, sub)
 			if err != nil {
-				log.Panic().Err(err).Msgf("could not create: %v", err)
+				zap.L().Panic("could not create", zap.Error(err))
 			}
 
 			// encode and send new object as json to the user
 			if err := json.NewEncoder(w).Encode(o); err != nil {
-				log.Panic().Err(err).Msgf("could not encode model: %v", err)
+				zap.L().Panic("could not encode model", zap.Error(err))
 			}
 		} else {
-			log.Panic().Msgf("unsupported method: %s", r.Method)
+			zap.L().Panic("unsupported method", zap.String("method", r.Method))
 		}
 	}
 }

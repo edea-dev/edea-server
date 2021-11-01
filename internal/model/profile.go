@@ -4,7 +4,6 @@ package model
 
 import (
 	"github.com/google/uuid"
-	"github.com/rs/zerolog"
 	"gorm.io/gorm"
 )
 
@@ -18,11 +17,6 @@ type Profile struct {
 	Location    string
 	Biography   string
 	Avatar      string
-}
-
-// MarshalZerologObject marshaller to log profile objects
-func (p *Profile) MarshalZerologObject(e *zerolog.Event) {
-	e.Str("profile_uuid", p.ID.String())
 }
 
 // BeforeUpdate checks if the current user is allowed to do that
