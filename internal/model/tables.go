@@ -30,7 +30,7 @@ func CreateTables() {
 
 }
 
-func isAuthorized(ctx context.Context, userID uuid.UUID) error {
+func isAuthorized(ctx context.Context, userID uuid.UUID, _ interface{}) error {
 	u := ctx.Value(util.UserContextKey).(*User)
 
 	// log if it's done by an admin
