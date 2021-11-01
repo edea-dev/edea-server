@@ -14,9 +14,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edead/config"
-	"gitlab.com/edea-dev/edead/repo"
-	"gitlab.com/edea-dev/edead/search"
+	"gitlab.com/edea-dev/edead/internal/config"
+	"gitlab.com/edea-dev/edead/internal/repo"
+	"gitlab.com/edea-dev/edead/internal/search"
 )
 
 func main() {

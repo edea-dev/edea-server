@@ -4,8 +4,8 @@ package main
 
 import (
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edead/config"
-	"gitlab.com/edea-dev/edead/model"
+	"gitlab.com/edea-dev/edead/internal/config"
+	"gitlab.com/edea-dev/edead/internal/model"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

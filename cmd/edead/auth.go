@@ -5,8 +5,8 @@ package main
 import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/rs/zerolog/log"
-	"gitlab.com/edea-dev/edead/auth"
-	"gitlab.com/edea-dev/edead/config"
+	"gitlab.com/edea-dev/edead/internal/auth"
+	"gitlab.com/edea-dev/edead/internal/config"
 )
 
 func initAuth() {

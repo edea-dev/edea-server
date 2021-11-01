@@ -5,8 +5,8 @@ package main
 import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"gitlab.com/edea-dev/edead/auth"
-	mw "gitlab.com/edea-dev/edead/middleware"
+	"gitlab.com/edea-dev/edead/internal/auth"
+	mw "gitlab.com/edea-dev/edead/internal/middleware"
 )
 
 func middleware(r *mux.Router) {

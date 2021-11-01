@@ -7,13 +7,13 @@ import (
 	"net/http/pprof"
 
 	"github.com/gorilla/mux"
-	"gitlab.com/edea-dev/edead/auth"
-	"gitlab.com/edea-dev/edead/config"
-	"gitlab.com/edea-dev/edead/search"
-	"gitlab.com/edea-dev/edead/view"
-	"gitlab.com/edea-dev/edead/view/bench"
-	"gitlab.com/edea-dev/edead/view/module"
-	"gitlab.com/edea-dev/edead/view/user"
+	"gitlab.com/edea-dev/edead/internal/auth"
+	"gitlab.com/edea-dev/edead/internal/config"
+	"gitlab.com/edea-dev/edead/internal/search"
+	"gitlab.com/edea-dev/edead/internal/view"
+	"gitlab.com/edea-dev/edead/internal/view/bench"
+	"gitlab.com/edea-dev/edead/internal/view/module"
+	"gitlab.com/edea-dev/edead/internal/view/user"
 )
 
 func faviconHandler(w http.ResponseWriter, r *http.Request) {
