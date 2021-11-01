@@ -5,6 +5,8 @@ modd
 /edea
 /edead
 
+/repo/_tmp
+
 # don't ignore folders named that way
 !edea/
 !edead/

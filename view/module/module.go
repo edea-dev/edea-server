@@ -516,3 +516,43 @@ func BuildBook(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, fmt.Sprintf("/module/doc/%s", module.ID), http.StatusTemporaryRedirect)
 }
+
+func PullAllRepos(w http.ResponseWriter, r *http.Request) {
+	var modules []model.Module
+
+	result := model.DB.Find(&modules)
+	if result.Error != nil {
+		log.Panic().Err(result.Error).Msg("could not fetch all modules")
+	}
+
+	for _, mod := range modules {
+		g := &repo.Git{URL: mod.RepoURL}
+		repo.Add(mod.RepoURL)
+		if err := g.Pull(); err != nil {
+			log.Error().Err(err).Msgf("could not pull latest changes")
+			continue
+		}
+
+		meta, err := merge.Metadata(&mod)
+		if err != nil {
+			log.Error().Err(err).Msg("metadata extraction unsuccessful")
+			continue
+		}
+
+		b, _ := json.Marshal(meta)
+
+		mod.Metadata = b
+
+		result = model.DB.WithContext(r.Context()).Save(mod)
+		if result.Error != nil {
+			log.Error().Err(result.Error).Msg("could not update module")
+			continue
+		}
+
+		// update search index
+		if err := search.UpdateEntry(search.ModuleToEntry(mod)); err != nil {
+			log.Error().Err(err)
+			continue
+		}
+	}
+}

@@ -93,11 +93,6 @@ func (c *RepoCache) urlToRepoPath(url string) (path string, err error) {
 
 // Add a new repository to the cache
 func (c *RepoCache) Add(url string) (err error) {
-	found, err := c.Has(url)
-	if err != nil || found {
-		return err
-	}
-
 	path, err := c.urlToRepoPath(url)
 	if err != nil {
 		return err

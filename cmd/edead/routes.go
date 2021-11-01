@@ -84,7 +84,8 @@ func routes(r *mux.Router) {
 	r.HandleFunc("/login", auth.LoginHandler)
 	r.HandleFunc("/logout", auth.LogoutHandler)
 
-	r.HandleFunc("/search/_bulk_update", search.ReIndexDB)
+	r.Handle("/search/_bulk_update", auth.RequireAuth(http.HandlerFunc(search.ReIndexDB)))
+	r.Handle("/_module/_bulk_update", auth.RequireAuth(http.HandlerFunc(module.PullAllRepos)))
 
 	// the login action redirects to the OIDC provider, with mock auth we have to provide this ourselves
 	if config.Cfg.Auth.UseMock {

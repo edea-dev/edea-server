@@ -14,6 +14,7 @@ type Module struct {
 	gorm.Model
 	ID          uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
 	UserID      uuid.UUID `gorm:"type:uuid"`
+	ShortCode   string    `schema:"short_code"`
 	User        User
 	Private     bool      `gorm:"default:false" schema:"private"`
 	RepoURL     string    `schema:"repourl,required"`

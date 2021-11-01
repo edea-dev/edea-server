@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  edea:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      target: dev
+  db:
+    image: docker.io/postgres:14-alpine
+    container_name: edea-postgres
+    volumes:
+      - data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: edea
+      POSTGRES_USER: edea
+      POSTGRES_PASSWORD: edea
+  search:
+    image: docker.io/getmeili/meilisearch:latest
+    container_name: edea-meilisearch
+    volumes:
+      - data:/var/lib/meilisearch/data
+    environment:
+      MEILI_DB_PATH: /var/lib/meilisearch/data
+      MEILI_NO_ANALYTICS: 'true'
+      MEILI_MASTER_KEY: meiliedea
+    expose:
+      - 7700
+
+volumes:
+  data:

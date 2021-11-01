@@ -45,6 +45,10 @@ func New(url string) error {
 	return cache.Add(url)
 }
 
+func Add(url string) error {
+	return cache.Add(url)
+}
+
 func InitCache(path string) {
 	cache = &RepoCache{Base: path}
 }

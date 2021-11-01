@@ -15,6 +15,7 @@ type Bench struct {
 	gorm.Model
 	ID          uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()" schema:"id"`
 	UserID      uuid.UUID     `gorm:"type:uuid" schema:"-"`
+	ShortCode   string        `schema:"short_code"`
 	User        User          `schema:"-"`
 	Active      bool          `schema:"active"` // i.e. only show current active bench
 	Public      bool          `schema:"public"`
@@ -27,7 +28,7 @@ type Bench struct {
 
 // MarshalZerologObject provides the object representation for logging
 func (b *Bench) MarshalZerologObject(e *zerolog.Event) {
-	e.Str("bench_uuid", b.ID.String())
+	e.Str("bench_sc", b.ShortCode)
 }
 
 // BeforeUpdate checks if the current user is allowed to do that
