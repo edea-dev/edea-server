@@ -3,14 +3,12 @@ package view
 // SPDX-License-Identifier: EUPL-1.2
 
 import (
-	"context"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"text/template"
 
+	"github.com/gin-gonic/gin"
 	"gitlab.com/edea-dev/edead"
 	"gitlab.com/edea-dev/edead/internal/config"
 	"gitlab.com/edea-dev/edead/internal/model"
@@ -36,7 +34,7 @@ func Icon(name string) (html string, err error) {
 }
 
 // RenderTemplate renders a go template
-func RenderTemplate(ctx context.Context, fn, title string, data map[string]interface{}, w io.Writer) {
+func RenderTemplate(ctx *gin.Context, fn, title string, data map[string]interface{}) {
 	tmplFile := filepath.Join(tmplPath, fn)
 
 	if data == nil {
@@ -88,30 +86,30 @@ func RenderTemplate(ctx context.Context, fn, title string, data map[string]inter
 	}
 
 	// run our template with the data to render and the fragments
-	if err := t.ExecuteTemplate(w, fn, data); err != nil {
+	if err := t.ExecuteTemplate(ctx.Writer, fn, data); err != nil {
 		zap.L().Panic("failed to render template", zap.Error(err))
 	}
 }
 
 // Template returns a http.HandlerFunc to render a specific template w/o further parameters
-func Template(tmplName, title string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		RenderTemplate(r.Context(), tmplName, title, nil, w)
+func Template(tmplName, title string) gin.HandlerFunc {
+	return func(r *gin.Context) {
+		RenderTemplate(r, tmplName, title, nil)
 	}
 }
 
 // TemplateM returns a http.HandlerFunc to render a specific template w/ a statically allocated map as parameters
-func TemplateM(tmplName string, m map[string]interface{}) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		RenderTemplate(r.Context(), tmplName, "", m, w)
+func TemplateM(tmplName string, m map[string]interface{}) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		RenderTemplate(c, tmplName, "", m)
 	}
 }
 
 // RenderErrTemplate renders a page with error information
-func RenderErrTemplate(ctx context.Context, w http.ResponseWriter, tmpl string, err error) {
+func RenderErrTemplate(c *gin.Context, tmpl string, err error) {
 	data := map[string]interface{}{
 		"Error": err.Error(),
 	}
 
-	RenderTemplate(ctx, tmpl, "EDeA - Error", data, w)
+	RenderTemplate(c, tmpl, "EDeA - Error", data)
 }

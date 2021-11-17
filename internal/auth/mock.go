@@ -9,23 +9,46 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"gitlab.com/edea-dev/edead/internal/view"
 	"go.uber.org/zap"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 )
 
-// MockAuth mock authentication handler, logs in user as "acme"
 var (
-	keySet      *jose.JSONWebKeySet
-	mockSigner  jose.Signer
-	mockUsers   map[string]mockUser // user info map
+	keySet     *jose.JSONWebKeySet
+	mockSigner jose.Signer
+	// user info map
+	mockUsers = map[string]mockUser{
+		"alicealice": {
+			Subject:       "alice",
+			Profile:       "alice",
+			Email:         "alice@acme.co",
+			EmailVerified: true,
+			IsAdmin:       false,
+		},
+		"bob": {
+			Subject:       "bob",
+			Profile:       "bob",
+			Email:         "bob@acme.co",
+			EmailVerified: true,
+			IsAdmin:       false,
+		},
+		"12345": {
+			Subject:       "admin",
+			Profile:       "admin",
+			Email:         "admin@acme.co",
+			EmailVerified: true,
+			IsAdmin:       true,
+		},
+	}
 	CallbackURL string
 	Endpoint    string // where our mock OIDC server resides
 )
@@ -114,28 +137,20 @@ func InitMockAuth() error {
 }
 
 // LoginFormHandler provides a simple local login form for test purposes
-func LoginFormHandler(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		zap.L().Panic("could not parse url parameters for the login form", zap.Error(err))
-	}
-
+func LoginFormHandler(c *gin.Context) {
 	m := map[string]interface{}{
-		"State": r.Form.Get("state"),
+		"State": c.PostForm("state"),
 	}
 
 	// TODO: show a simple login form
-	view.RenderTemplate(r.Context(), "mock_login.tmpl", "EDeA - Login", m, w)
+	view.RenderTemplate(c, "mock_login.tmpl", "EDeA - Login", m)
 }
 
 // LoginPostHandler processes the login request
-func LoginPostHandler(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		zap.L().Panic("could not parse login form parameters", zap.Error(err))
-	}
-
-	state := r.Form.Get("state")
-	user := r.Form.Get("user")
-	pass := r.Form.Get("password")
+func LoginPostHandler(c *gin.Context) {
+	state := c.PostForm("state")
+	user := c.PostForm("user")
+	pass := c.PostForm("password")
 
 	// do a basic auth "check", this *really* is just a mock authenticator
 	if u, ok := mockUsers[pass]; ok {
@@ -156,12 +171,12 @@ func LoginPostHandler(w http.ResponseWriter, r *http.Request) {
 	ref.Set("code", pass)
 	u.RawQuery = ref.Encode()
 
-	http.Redirect(w, r, u.String(), http.StatusTemporaryRedirect)
+	c.Redirect(http.StatusTemporaryRedirect, u.String())
 }
 
 // WellKnown provides the URLs of our endpoints, should be accessible at "/.well-known/openid-configuration"
-func WellKnown(w http.ResponseWriter, r *http.Request) {
-	_, err := fmt.Fprintf(w, `{
+func WellKnown(c *gin.Context) {
+	c.String(http.StatusOK, `{
 		"issuer": "%[1]s",
 		"authorization_endpoint": "%[1]s/auth",
 		"token_endpoint": "%[1]s/token",
@@ -169,19 +184,11 @@ func WellKnown(w http.ResponseWriter, r *http.Request) {
 		"userinfo_endpoint": "%[1]s/userinfo",
 		"id_token_signing_alg_values_supported": ["ES256"]
 	}`, cfg.ProviderURL)
-
-	if err != nil {
-		w.WriteHeader(500)
-	}
 }
 
 // Keys endpoint provides our JSON Web Key Set (should be at /keys)
-func Keys(w http.ResponseWriter, r *http.Request) {
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(keySet); err != nil {
-		zap.L().Error("could not encode jwks", zap.Error(err))
-		w.WriteHeader(500)
-	}
+func Keys(c *gin.Context) {
+	c.JSONP(http.StatusOK, keySet)
 }
 
 func generateIDToken(u mockUser) (string, error) {
@@ -195,8 +202,8 @@ func generateIDToken(u mockUser) (string, error) {
 }
 
 // Userinfo endpoint provides the claims for a logged in user given a bearer token
-func Userinfo(w http.ResponseWriter, r *http.Request) {
-	auth := r.Header.Get("Authorization")
+func Userinfo(c *gin.Context) {
+	auth := c.GetHeader("Authorization")
 	raw := strings.Replace(auth, "Bearer ", "", 1)
 
 	// here would be the place to verify the bearer token against the issued ones
@@ -204,33 +211,24 @@ func Userinfo(w http.ResponseWriter, r *http.Request) {
 
 	s, err := generateIDToken(mockUsers[raw])
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	w.Header().Add("Content-Type", "application/jwt")
-	_, err = io.WriteString(w, s)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	c.Header("Content-Type", "application/jwt")
+	c.String(http.StatusOK, s)
 }
 
 // Token exchanges a "code" against a token which contains the id_token of the requested user specified in "code"
-func Token(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	id := r.FormValue("client_id")
-	secret := r.FormValue("client_secret")
-	code := r.FormValue("code")
-
-	zap.S().Debugf("form: %+v, headers: %+v", r.PostForm, r.Header)
+func Token(c *gin.Context) {
+	id := c.PostForm("client_id")
+	secret := c.PostForm("client_secret")
+	code := c.PostForm("code")
 
 	if cfg.ClientID == id && cfg.ClientSecret == secret {
 		s, err := generateIDToken(mockUsers[code])
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
 		// return token
@@ -239,22 +237,17 @@ func Token(w http.ResponseWriter, r *http.Request) {
 			"8xLOxBtZp8",
 			s,
 		)
-		if _, err := io.WriteString(w, tok); err != nil {
-			zap.L().Error("could not send token response to client", zap.Error(err))
-		}
+		c.String(http.StatusOK, tok)
 	} else {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		c.AbortWithError(http.StatusUnauthorized, errors.New("unauthorized"))
 	}
 }
 
 // LogoutEndpoint handles logging out the user, e.g. this should invalidate
 // the token auth-side so that if it is presented to us again we know that it
 // has been invalidated
-func LogoutEndpoint(w http.ResponseWriter, r *http.Request) {
-	_ = r.ParseForm()
-	u := r.Form.Get("post_logout_redirect_uri")
-
+func LogoutEndpoint(c *gin.Context) {
+	u := c.PostForm("post_logout_redirect_uri")
 	zap.S().Infof("got to logout, redirecting to: %s", u)
-
-	http.Redirect(w, r, u, http.StatusTemporaryRedirect)
+	c.Redirect(http.StatusTemporaryRedirect, u)
 }

@@ -1,6 +1,7 @@
 version: "3.9"
 services:
   edea:
+    image: edea
     build:
       dockerfile: Dockerfile
       context: .

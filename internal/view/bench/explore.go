@@ -3,8 +3,7 @@ package bench
 // SPDX-License-Identifier: EUPL-1.2
 
 import (
-	"net/http"
-
+	"github.com/gin-gonic/gin"
 	"gitlab.com/edea-dev/edead/internal/model"
 	"gitlab.com/edea-dev/edead/internal/view"
 	"go.uber.org/zap"
@@ -29,7 +28,7 @@ const exploreQuery = `
 	ORDER BY b.updated_at;`
 
 // Explore modules page
-func Explore(w http.ResponseWriter, r *http.Request) {
+func Explore(c *gin.Context) {
 	var p []ExploreBench
 
 	result := model.DB.Raw(exploreQuery).Scan(&p)
@@ -41,5 +40,5 @@ func Explore(w http.ResponseWriter, r *http.Request) {
 		"Benches": p,
 	}
 
-	view.RenderTemplate(r.Context(), "bench/explore.tmpl", "EDeA - Explore Benches", m, w)
+	view.RenderTemplate(c, "bench/explore.tmpl", "EDeA - Explore Benches", m)
 }

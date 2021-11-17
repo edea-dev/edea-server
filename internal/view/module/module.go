@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	"gitlab.com/edea-dev/edead/internal/config"
 	"gitlab.com/edea-dev/edead/internal/merge"
 	"gitlab.com/edea-dev/edead/internal/model"
@@ -37,17 +37,13 @@ type Board struct {
 }
 
 // Create a new module
-func Create(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value(util.UserContextKey).(*model.User)
-
-	if err := r.ParseForm(); err != nil {
-		view.RenderErrTemplate(r.Context(), w, "module/new.tmpl", err)
-		return
-	}
+func Create(c *gin.Context) {
+	user := c.Value(util.UserContextKey).(*model.User)
 
 	module := new(model.Module)
-	if err := util.FormDecoder.Decode(module, r.Form); err != nil {
-		view.RenderErrTemplate(r.Context(), w, "module/new.tmpl", err)
+
+	if err := c.Bind(module); err != nil {
+		view.RenderErrTemplate(c, "module/new.tmpl", err)
 		return
 	}
 
@@ -67,7 +63,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	b, _ := json.Marshal(meta)
 	module.Metadata = b
 
-	result := model.DB.WithContext(r.Context()).Create(module)
+	result := model.DB.WithContext(c).Create(module)
 	if result.Error != nil {
 		zap.L().Panic("could not create new module", zap.Error(result.Error))
 	}
@@ -78,12 +74,12 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// redirect to newly created module page
-	http.Redirect(w, r, fmt.Sprintf("/module/%s", module.ID), http.StatusSeeOther)
+	c.Redirect(http.StatusSeeOther, fmt.Sprintf("/module/%s", module.ID))
 }
 
 // View a module
-func View(w http.ResponseWriter, r *http.Request) {
-	user, module := getModule(w, r)
+func View(c *gin.Context) {
+	user, module := getModule(c)
 
 	// getModule already writes out the necessary error messages
 	if module == nil {
@@ -132,34 +128,29 @@ func View(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// and ready to go
-	view.RenderTemplate(r.Context(), "module/view.tmpl", "", m, w)
+	view.RenderTemplate(c, "module/view.tmpl", "", m)
 }
 
 // Update a module and reload the page
-func Update(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		view.RenderErrMarkdown(r.Context(), w, "module/view.md", err)
-		return
-	}
-
+func Update(c *gin.Context) {
 	module := new(model.Module)
-	if err := util.FormDecoder.Decode(module, r.Form); err != nil {
-		view.RenderErrMarkdown(r.Context(), w, "module/view.md", err)
+	if err := c.Bind(module); err != nil {
+		view.RenderErrMarkdown(c, "module/view.md", err)
 		return
 	}
 
 	meta, err := merge.Metadata(module)
 	if err != nil {
-		view.RenderErrMarkdown(r.Context(), w, "module/view.md", err)
+		view.RenderErrMarkdown(c, "module/view.md", err)
 		return
 	}
 
 	if err := module.Metadata.Scan(meta); err != nil {
-		view.RenderErrMarkdown(r.Context(), w, "module/view.md", err)
+		view.RenderErrMarkdown(c, "module/view.md", err)
 		return
 	}
 
-	result := model.DB.WithContext(r.Context()).Save(module)
+	result := model.DB.WithContext(c).Save(module)
 	if result.Error != nil {
 		zap.L().Panic("could not update module", zap.Error(result.Error))
 	}
@@ -170,25 +161,24 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// redirect to updated module page
-	http.Redirect(w, r, fmt.Sprintf("/module/%s", module.ID), http.StatusSeeOther)
+	c.Redirect(http.StatusSeeOther, fmt.Sprintf("/module/%s", module.ID))
 }
 
 // Delete a module and redirect to main page
-func Delete(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	moduleID := vars["id"]
+func Delete(c *gin.Context) {
+	moduleID := c.Param("id")
 
 	// check if we even have a module id
 	if moduleID == "" {
 		msg := map[string]interface{}{
 			"Error": "Unfortunately you didn't give us much to work with, try again with a module id.",
 		}
-		w.WriteHeader(http.StatusNotFound)
-		view.RenderMarkdown("module/404.md", msg, w)
+		c.Status(http.StatusNotFound)
+		view.RenderMarkdown(c, "module/404.md", msg)
 		return
 	}
 
-	result := model.DB.WithContext(r.Context()).Delete(&model.Module{ID: uuid.MustParse(moduleID)})
+	result := model.DB.WithContext(c).Delete(&model.Module{ID: uuid.MustParse(moduleID)})
 	if result.Error != nil {
 		zap.L().Panic("could not delete module", zap.Error(result.Error))
 	}
@@ -198,11 +188,11 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		zap.L().Panic("could not update search index", zap.Error(err))
 	}
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	c.Redirect(http.StatusSeeOther, "/")
 }
 
 // New module form
-func New(w http.ResponseWriter, r *http.Request) {
+func New(c *gin.Context) {
 	categories := []model.Category{}
 
 	result := model.DB.Model(&model.Category{}).Find(&categories)
@@ -214,22 +204,20 @@ func New(w http.ResponseWriter, r *http.Request) {
 		"Categories": categories,
 	}
 
-	view.RenderTemplate(r.Context(), "module/new.tmpl", "EDeA - New Module", m, w)
+	view.RenderTemplate(c, "module/new.tmpl", "EDeA - New Module", m)
 }
 
 // Pull a module repository
-func Pull(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	moduleID := vars["id"]
-	ctx := r.Context()
+func Pull(c *gin.Context) {
+	moduleID := c.Param("id")
 
 	// check if we even have a module id
 	if moduleID == "" {
-		view.RenderErrTemplate(ctx, w, "module/404.tmpl", errors.New("Unfortunately you didn't give us much to work with, try again with a module id"))
+		view.RenderErrTemplate(c, "module/404.tmpl", errors.New("Unfortunately you didn't give us much to work with, try again with a module id"))
 		return
 	}
 
-	user := ctx.Value(util.UserContextKey).(*model.User)
+	user := c.Value(util.UserContextKey).(*model.User)
 
 	// try to fetch the module
 	module := &model.Module{}
@@ -241,8 +229,8 @@ func Pull(w http.ResponseWriter, r *http.Request) {
 
 	// nope, no module
 	if module.ID == uuid.Nil {
-		w.WriteHeader(http.StatusNotFound)
-		view.RenderErrTemplate(ctx, w, "module/404.md", errors.New("No such Module"))
+		c.Status(http.StatusNotFound)
+		view.RenderErrTemplate(c, "module/404.md", errors.New("No such Module"))
 		return
 	}
 
@@ -254,7 +242,7 @@ func Pull(w http.ResponseWriter, r *http.Request) {
 	meta, err := merge.Metadata(module)
 	if err != nil {
 		zap.L().Error("metadata extraction unsuccessful", zap.Error(err))
-		view.RenderErrTemplate(r.Context(), w, "module/view.tmpl", err)
+		view.RenderErrTemplate(c, "module/view.tmpl", err)
 		return
 	}
 
@@ -262,7 +250,7 @@ func Pull(w http.ResponseWriter, r *http.Request) {
 
 	module.Metadata = b
 
-	result = model.DB.WithContext(r.Context()).Save(module)
+	result = model.DB.WithContext(c).Save(module)
 	if result.Error != nil {
 		zap.L().Panic("could not update submodule", zap.Error(result.Error))
 	}
@@ -275,12 +263,12 @@ func Pull(w http.ResponseWriter, r *http.Request) {
 	zap.L().Info("pulled repo for module", zap.String("repo_url", module.RepoURL), zap.String("module_id", module.ID.String()))
 
 	// redirect to updated module page
-	http.Redirect(w, r, fmt.Sprintf("/module/%s", module.ID), http.StatusSeeOther)
+	c.Redirect(http.StatusSeeOther, fmt.Sprintf("/module/%s", module.ID))
 }
 
 // ViewHistory provides a commit log of a module
-func ViewHistory(w http.ResponseWriter, r *http.Request) {
-	user, module := getModule(w, r)
+func ViewHistory(c *gin.Context) {
+	user, module := getModule(c)
 
 	// getModule already writes out the necessary error messages
 	if module == nil {
@@ -312,24 +300,20 @@ func ViewHistory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// and ready to go
-	view.RenderTemplate(r.Context(), "module/view_history.tmpl", "", m, w)
+	view.RenderTemplate(c, "module/view_history.tmpl", "", m)
 }
 
 // Diff a module's revisions
-func Diff(w http.ResponseWriter, r *http.Request) {
-	_, module := getModule(w, r)
+func Diff(c *gin.Context) {
+	_, module := getModule(c)
 
 	// getModule already writes out the necessary error messages
 	if module == nil {
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
-		zap.L().Panic("could not parse form data", zap.Error(err))
-	}
-
-	commit1 := r.Form.Get("a")
-	commit2 := r.Form.Get("b")
+	commit1 := c.Query("a")
+	commit2 := c.Query("b")
 
 	zap.S().Debugf("diffing %s and %s", commit1, commit2)
 
@@ -364,7 +348,7 @@ func Diff(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// and ready to go
-	view.RenderTemplate(r.Context(), "module/view_diff.tmpl", "", m, w)
+	view.RenderTemplate(c, "module/view_diff.tmpl", "", m)
 }
 
 func plotPCB(mod *model.Module, revision string) (*Board, error) {
@@ -416,22 +400,20 @@ func plotPCB(mod *model.Module, revision string) (*Board, error) {
 	return b, nil
 }
 
-func getModule(w http.ResponseWriter, r *http.Request) (user *model.User, module *model.Module) {
-	vars := mux.Vars(r)
-	moduleID := vars["id"]
-	ctx := r.Context()
+func getModule(c *gin.Context) (user *model.User, module *model.Module) {
+	moduleID := c.Param("id")
 
 	// check if we even have a module id
 	if moduleID == "" {
 		msg := map[string]interface{}{
 			"Error": "Unfortunately you didn't give us much to work with, try again with a module id.",
 		}
-		w.WriteHeader(http.StatusNotFound)
-		view.RenderMarkdown("module/404.md", msg, w)
+		c.Status(http.StatusNotFound)
+		view.RenderMarkdown(c, "module/404.md", msg)
 		return nil, nil
 	}
 
-	user, _ = ctx.Value(util.UserContextKey).(*model.User)
+	user, _ = c.Value(util.UserContextKey).(*model.User)
 
 	// try to fetch the module
 	var result *gorm.DB
@@ -449,8 +431,9 @@ func getModule(w http.ResponseWriter, r *http.Request) (user *model.User, module
 
 	// nope, no module
 	if module.ID == uuid.Nil {
-		w.WriteHeader(http.StatusNotFound)
-		view.RenderMarkdown("module/404.md", nil, w)
+		c.Status(http.StatusNotFound)
+
+		view.RenderMarkdown(c, "module/404.md", nil)
 		return nil, nil
 	}
 
@@ -458,8 +441,8 @@ func getModule(w http.ResponseWriter, r *http.Request) (user *model.User, module
 }
 
 // BuildBook runs mdbook on the /doc (or otherwise configured) folder of the module to generate documentation
-func BuildBook(w http.ResponseWriter, r *http.Request) {
-	_, module := getModule(w, r)
+func BuildBook(c *gin.Context) {
+	_, module := getModule(c)
 
 	// getModule already writes out the necessary error messages
 	if module == nil {
@@ -479,7 +462,7 @@ func BuildBook(w http.ResponseWriter, r *http.Request) {
 
 	s := filepath.Join(repoPath, docPath)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(c, 60*time.Second)
 	defer cancel()
 
 	dest := filepath.Join(config.Cfg.Cache.Book.Base, module.ID.String())
@@ -510,16 +493,16 @@ func BuildBook(w http.ResponseWriter, r *http.Request) {
 			m["Error"] = err
 			m["Hint"] = "Something went wrong during building the book, please see the log"
 		}
-		view.RenderTemplate(ctx, "bench/merge_error.tmpl", "mdbook Error", m, w)
+		view.RenderTemplate(c, "bench/merge_error.tmpl", "mdbook Error", m)
 		return
 	}
 
 	zap.L().Debug("build book log output", zap.ByteString("output", logOutput))
 
-	http.Redirect(w, r, fmt.Sprintf("/module/doc/%s", module.ID), http.StatusTemporaryRedirect)
+	c.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("/module/doc/%s", module.ID))
 }
 
-func PullAllRepos(w http.ResponseWriter, r *http.Request) {
+func PullAllRepos(c *gin.Context) {
 	var modules []model.Module
 
 	result := model.DB.Find(&modules)
@@ -545,7 +528,7 @@ func PullAllRepos(w http.ResponseWriter, r *http.Request) {
 
 		mod.Metadata = b
 
-		result = model.DB.WithContext(r.Context()).Save(mod)
+		result = model.DB.WithContext(c).Save(mod)
 		if result.Error != nil {
 			zap.L().Error("could not update module", zap.Error(err))
 			continue

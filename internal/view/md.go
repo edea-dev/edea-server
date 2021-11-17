@@ -4,16 +4,14 @@ package view
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"net/http"
 	"strings"
 	"text/template"
 
 	chromahtml "github.com/alecthomas/chroma/formatters/html"
+	"github.com/gin-gonic/gin"
 	"github.com/yuin/goldmark"
 	highlighting "github.com/yuin/goldmark-highlighting"
 	meta "github.com/yuin/goldmark-meta"
@@ -81,7 +79,7 @@ func init() {
 }
 
 // RenderMarkdown renders a markdown/go template combination
-func RenderMarkdown(fn string, data map[string]interface{}, w io.Writer) {
+func RenderMarkdown(c *gin.Context, fn string, data map[string]interface{}) {
 	var buf bytes.Buffer
 
 	source, err := ioutil.ReadFile(fmt.Sprintf("%s%s", mdPath, fn))
@@ -130,7 +128,7 @@ func RenderMarkdown(fn string, data map[string]interface{}, w io.Writer) {
 
 	// second pass, render the markdown components with the page data
 	t2 := template.Must(template.New("pass2").Parse(string(sb.String())))
-	if err := t2.Execute(w, data); err != nil {
+	if err := t2.Execute(c.Writer, data); err != nil {
 		zap.L().Panic("failed at second pass", zap.Error(err))
 	}
 }
@@ -147,19 +145,19 @@ func RenderReadme(s string) (string, error) {
 }
 
 // Markdown renders a markdown page without any template values
-func Markdown(page string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		RenderMarkdown(page, nil, w)
+func Markdown(page string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		RenderMarkdown(c, page, nil)
 	}
 }
 
 // RenderErrMarkdown renders a page with error information
-func RenderErrMarkdown(ctx context.Context, w http.ResponseWriter, tmpl string, err error) {
-	user := ctx.Value(util.UserContextKey).(*model.User)
+func RenderErrMarkdown(c *gin.Context, tmpl string, err error) {
+	user := c.Value(util.UserContextKey).(*model.User)
 	data := map[string]interface{}{
 		"User":  user,
 		"Error": err.Error(),
 	}
 
-	RenderMarkdown(tmpl, data, w)
+	RenderMarkdown(c, tmpl, data)
 }

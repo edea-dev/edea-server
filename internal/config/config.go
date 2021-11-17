@@ -22,9 +22,6 @@ type Config struct {
 	} `yaml:"server"`
 	Dev bool   `yaml:"dev" envconfig:"IS_DEV"`
 	DSN string `yaml:"dsn" envconfig:"DB_DSN"`
-	JWT struct {
-		PublicKey string `yaml:"publickey" envconfig:"JWT_PUBLIC_KEY"`
-	} `yaml:"jwt"`
 	API struct {
 		GitHubToken string `yaml:"githubtoken" envconfig:"GITHUB_API_TOKEN"`
 	} `yaml:"api"`
@@ -41,10 +38,6 @@ type Config struct {
 		} `yaml:"book"`
 	} `yaml:"cache"`
 	Auth struct {
-		Kratos struct {
-			Use  bool   `yaml:"use" envconfig:"USE_KRATOS"`
-			Host string `yaml:"host" envconfig:"KRATOS_HOST"`
-		} `yaml:"kratos"`
 		OIDC struct {
 			ProviderURL   string `yaml:"provider_url" envconfig:"AUTH_PROVIDER_URL"`
 			ClientID      string `yaml:"client_id" envconfig:"AUTH_CLIENT_ID"`
@@ -71,6 +64,7 @@ func ReadConfig() {
 
 func processError(err error) {
 	zap.L().Error("could not process config", zap.Error(err))
+	_ = zap.L().Sync()
 	os.Exit(2)
 }
 

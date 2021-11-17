@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/meilisearch/meilisearch-go"
 	"gitlab.com/edea-dev/edead/internal/model"
 	"go.uber.org/zap"
@@ -71,7 +72,7 @@ func ModuleToEntry(m model.Module) Entry {
 
 // ReIndexDB searches for all public entries and puts them into the database
 //     This route is mainly for testing
-func ReIndexDB(w http.ResponseWriter, r *http.Request) {
+func ReIndexDB(c *gin.Context) {
 	var benches []model.Bench
 	var modules []model.Module
 	var documents []Entry
@@ -101,7 +102,7 @@ func ReIndexDB(w http.ResponseWriter, r *http.Request) {
 	}
 
 	zap.L().Debug("bulk update", zap.Int64("meili_update_id", updateRes.UpdateID))
-	fmt.Fprintf(w, "bulk update update_id: %d", updateRes.UpdateID)
+	c.String(http.StatusOK, "bulk update update_id: %d", updateRes.UpdateID)
 }
 
 // UpdateEntry adds or updates a single search entry

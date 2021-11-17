@@ -7,7 +7,9 @@ import (
 	"bytes"
 	"log"
 	"net/http"
+	"time"
 
+	"github.com/gin-gonic/gin"
 	"gitlab.com/edea-dev/edead/internal/model"
 	"gitlab.com/edea-dev/edead/internal/util"
 	"gitlab.com/edea-dev/edead/internal/view"
@@ -18,32 +20,31 @@ import (
 //     This should contain any GDPR relevant data as well as their projects,
 //     modules, benches, etc.
 // TODO: test it
-func DataExport(w http.ResponseWriter, r *http.Request) {
+func DataExport(c *gin.Context) {
 	var benches []model.Bench
 	var modules []model.Module
 	var profile model.Profile
 
-	ctx := r.Context()
-	u := ctx.Value(util.UserContextKey).(*model.User)
+	u := c.Value(util.UserContextKey).(*model.User)
 
 	// load a users benches
 	result := model.DB.Model(&model.Bench{}).Preload("Modules").Where("user_id = ?", u.ID).Find(benches)
 	if result.Error != nil {
-		view.RenderErrMarkdown(ctx, w, "user/404.md", result.Error)
+		view.RenderErrMarkdown(c, "user/404.md", result.Error)
 		return
 	}
 
 	// load modules
 	result = model.DB.Model(&model.Module{}).Preload("Category").Where("user_id = ?", u.ID).Find(modules)
 	if result.Error != nil {
-		view.RenderErrMarkdown(ctx, w, "user/404.md", result.Error)
+		view.RenderErrMarkdown(c, "user/404.md", result.Error)
 		return
 	}
 
 	// profile info
 	result = model.DB.Model(&model.Profile{}).Where("user_id = ?", u.ID).Find(profile)
 	if result.Error != nil {
-		view.RenderErrMarkdown(ctx, w, "user/404.md", result.Error)
+		view.RenderErrMarkdown(c, "user/404.md", result.Error)
 		return
 	}
 
@@ -84,8 +85,6 @@ func DataExport(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	w.Header().Set("Content-Type", "application/zip")
-	if _, err := w.Write(buf.Bytes()); err != nil {
-		log.Fatal(err)
-	}
+	c.Header("Content-Disposition", "attachment; filename=export.zip")
+	http.ServeContent(c.Writer, c.Request, "export-zip", time.Now(), bytes.NewReader(buf.Bytes()))
 }

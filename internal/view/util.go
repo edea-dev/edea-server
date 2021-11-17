@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"gitlab.com/edea-dev/edead/internal/model"
-	"gitlab.com/edea-dev/edead/internal/util"
 	"gitlab.com/edea-dev/edead/pkg/api"
 )
 
 // CurrentUser returns the full User object when logged in or nil otherwise
-func CurrentUser(r *http.Request) *model.User {
-	u, ok := r.Context().Value(util.UserContextKey).(*model.User)
+func CurrentUser(c *gin.Context) *model.User {
+	u, ok := c.Keys["user"].(*model.User)
 	if !ok {
 		return nil
 	}

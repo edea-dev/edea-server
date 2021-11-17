@@ -3,10 +3,7 @@ package main
 // SPDX-License-Identifier: EUPL-1.2
 
 import (
-	"net/http"
-	"net/http/pprof"
-
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"gitlab.com/edea-dev/edead/internal/auth"
 	"gitlab.com/edea-dev/edead/internal/config"
 	"gitlab.com/edea-dev/edead/internal/search"
@@ -16,48 +13,46 @@ import (
 	"gitlab.com/edea-dev/edead/internal/view/user"
 )
 
-func faviconHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./static/img/favicon.ico")
+func faviconHandler(c *gin.Context) {
+	c.File("./static/img/favicon.ico")
 }
 
-func routes(r *mux.Router) {
-	r.HandleFunc("/", view.Template("index.tmpl", "EDeA"))              // index
-	r.HandleFunc("/about", view.Template("about.tmpl", "EDeA - About")) // about EDeA
+func routes(r *gin.Engine) {
+	r.GET("/", view.Template("index.tmpl", "EDeA"))              // index
+	r.GET("/about", view.Template("about.tmpl", "EDeA - About")) // about EDeA
 
-	r.HandleFunc("/search", view.Template("search.tmpl", "EDeA - Search")) // Search page
+	r.GET("/search", view.Template("search.tmpl", "EDeA - Search")) // Search page
 
-	r.Handle("/module/new", auth.RequireAuth(http.HandlerFunc(module.New))).Methods("GET")            // new module page
-	r.Handle("/module/new", auth.RequireAuth(http.HandlerFunc(module.Create))).Methods("POST")        // add new module
-	r.HandleFunc("/module/explore", module.Explore).Methods("GET")                                    // explore public modules
-	r.HandleFunc("/module/user/{id}", module.ExploreUser).Methods("GET")                              // view a users modules
-	r.Handle("/module/{id}", auth.RequireAuth(http.HandlerFunc(module.Update))).Methods("POST")       // view new module or adjust params
-	r.HandleFunc("/module/{id}", module.View).Methods("GET")                                          // view module
-	r.Handle("/module/delete/{id}", auth.RequireAuth(http.HandlerFunc(module.Delete))).Methods("GET") // delete module
-	r.Handle("/module/pull/{id}", auth.RequireAuth(http.HandlerFunc(module.Pull))).Methods("GET")     // pull repo of module
-	r.HandleFunc("/module/history/{id}", module.ViewHistory).Methods("GET")                           // show revision history of a module
-	r.HandleFunc("/module/diff/{id}", module.Diff).Methods("GET")
-	r.Handle("/module/build_book/{id}", auth.RequireAuth(http.HandlerFunc(module.BuildBook))).Methods("GET")
+	a := r.Group("/", auth.RequireAuth())
 
-	r.Handle("/bench/current", auth.RequireAuth(http.HandlerFunc(bench.Current))).Methods("GET")                 // view current bench
-	r.Handle("/bench/new", auth.RequireAuth(view.Template("bench/new.tmpl", "EDeA - New Bench"))).Methods("GET") // new bench form
-	r.Handle("/bench/new", auth.RequireAuth(http.HandlerFunc(bench.Create))).Methods("POST")                     // add a new bench
-	r.HandleFunc("/bench/explore", bench.Explore).Methods("GET")                                                 // explore public workbenches
-	r.Handle("/bench/{id}", auth.RequireAuth(http.HandlerFunc(bench.Update))).Methods("POST")                    // update a bench
-	r.HandleFunc("/bench/{id}", bench.View).Methods("GET")                                                       // view a bench
-	r.Handle("/bench/update/{id}", auth.RequireAuth(http.HandlerFunc(bench.ViewUpdate))).Methods("GET")          // update form view of a bench
-	r.Handle("/bench/add/{id}", auth.RequireAuth(http.HandlerFunc(bench.AddModule))).Methods("GET")              // add a module to the active bench
-	r.Handle("/bench/remove/{id}", auth.RequireAuth(http.HandlerFunc(bench.RemoveModule))).Methods("GET")        // remove module from workbench
-	r.Handle("/bench/delete/{id}", auth.RequireAuth(http.HandlerFunc(bench.Delete))).Methods("GET")              // delete the workbench
-	r.HandleFunc("/bench/user/{id}", bench.ListUser).Methods("GET")                                              // list workbenches of a specific user
-	r.Handle("/bench/fork/{id}", auth.RequireAuth(http.HandlerFunc(bench.Fork))).Methods("GET")                  // fork a workbench
-	r.Handle("/bench/activate/{id}", auth.RequireAuth(http.HandlerFunc(bench.SetActive))).Methods("GET")         // set a workbench as active
-	r.HandleFunc("/bench/merge/{id}", bench.Merge).Methods("GET")
+	a.GET("/module/new", module.New)                  // new module page
+	a.POST("/module/new", module.Create)              // add new module
+	r.GET("/module/explore", module.Explore)          // explore public modules
+	r.GET("/module/user/{id}", module.ExploreUser)    // view a users modules
+	a.POST("/module/{id}", module.Update)             // view new module or adjust params
+	r.GET("/module/{id}", module.View)                // view module
+	a.GET("/module/delete/{id}", module.Delete)       // delete module
+	a.GET("/module/pull/{id}", module.Pull)           // pull repo of module
+	r.GET("/module/history/{id}", module.ViewHistory) // show revision history of a module
+	r.GET("/module/diff/{id}", module.Diff)
+	a.GET("/module/build_book/{id}", module.BuildBook)
 
-	r.HandleFunc("/favicon.ico", faviconHandler)
-	r.HandleFunc("/debug/pprof/", pprof.Index)
-	r.HandleFunc("/debug/pprof/profile", pprof.Profile)
-	r.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-	r.HandleFunc("/debug/pprof/profile", pprof.Trace)
+	a.GET("/bench/current", bench.Current)                                   // view current bench
+	a.GET("/bench/new", view.Template("bench/new.tmpl", "EDeA - New Bench")) // new bench form
+	a.POST("/bench/new", bench.Create)                                       // add a new bench
+	r.GET("/bench/explore", bench.Explore)                                   // explore public workbenches
+	a.POST("/bench/{id}", bench.Update)                                      // update a bench
+	r.GET("/bench/{id}", bench.View)                                         // view a bench
+	a.GET("/bench/update/{id}", bench.ViewUpdate)                            // update form view of a bench
+	a.GET("/bench/add/{id}", bench.AddModule)                                // add a module to the active bench
+	a.GET("/bench/remove/{id}", bench.RemoveModule)                          // remove module from workbench
+	a.GET("/bench/delete/{id}", bench.Delete)                                // delete the workbench
+	r.GET("/bench/user/{id}", bench.ListUser)                                // list workbenches of a specific user
+	a.GET("/bench/fork/{id}", bench.Fork)                                    // fork a workbench
+	a.GET("/bench/activate/{id}", bench.SetActive)                           // set a workbench as active
+	r.GET("/bench/merge/{id}", bench.Merge)
+
+	r.GET("/favicon.ico", faviconHandler)
 
 	// api routes
 	//r.HandleFunc("/api/module", api.REST(&api.Module{}))
@@ -65,35 +60,35 @@ func routes(r *mux.Router) {
 	//r.HandleFunc("/api/bench", api.REST(&api.Bench{}))
 
 	// static files
-	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("./static/css/"))))
-	r.PathPrefix("/js/").Handler(http.StripPrefix("/js/", http.FileServer(http.Dir("./static/js/"))))
-	r.PathPrefix("/img/").Handler(http.StripPrefix("/img/", http.FileServer(http.Dir("./static/img/"))))
-	r.PathPrefix("/fonts/").Handler(http.StripPrefix("/fonts/", http.FileServer(http.Dir("./static/fonts/"))))
-	r.PathPrefix("/icons/").Handler(http.StripPrefix("/icons/", http.FileServer(http.Dir("./static/icons/"))))
+	r.Static("/css", "./static/css")
+	r.Static("/js", "./static/js")
+	r.Static("/img", "./static/img")
+	r.Static("/fonts", "./static/fonts")
+	r.Static("/icons", "./static/icons")
 
 	// mdbooks are built and served from here
-	r.PathPrefix("/module/doc/").Handler(http.StripPrefix("/module/doc/", http.FileServer(http.Dir(config.Cfg.Cache.Book.Base))))
+	r.Static("/module/doc", config.Cfg.Cache.Book.Base)
 
 	// TODO: let our IAP do that
-	r.Handle("/profile", auth.RequireAuth(http.HandlerFunc(user.Profile))).Methods("GET")
-	r.Handle("/profile", auth.RequireAuth(http.HandlerFunc(user.UpdateProfile))).Methods("POST")
-	r.Handle("/profile/export", auth.RequireAuth(http.HandlerFunc(user.DataExport))).Methods("GET")
+	a.GET("/profile", user.Profile)
+	a.POST("/profile", user.UpdateProfile)
+	a.GET("/profile/export", user.DataExport)
 
-	r.HandleFunc("/callback", auth.CallbackHandler)
-	r.HandleFunc("/logout_callback", auth.LogoutCallbackHandler)
-	r.HandleFunc("/login", auth.LoginHandler)
-	r.HandleFunc("/logout", auth.LogoutHandler)
+	r.GET("/callback", auth.CallbackHandler)
+	r.GET("/logout_callback", auth.LogoutCallbackHandler)
+	r.POST("/login", auth.LoginHandler)
+	r.POST("/logout", auth.LogoutHandler)
 
-	r.Handle("/search/_bulk_update", auth.RequireAuth(http.HandlerFunc(search.ReIndexDB)))
-	r.Handle("/_module/_bulk_update", auth.RequireAuth(http.HandlerFunc(module.PullAllRepos)))
+	a.GET("/search/_bulk_update", search.ReIndexDB)
+	a.GET("/_module/_bulk_update", module.PullAllRepos)
 
 	// the login action redirects to the OIDC provider, with mock auth we have to provide this ourselves
 	if config.Cfg.Auth.UseMock {
-		r.HandleFunc("/auth", auth.LoginFormHandler).Methods("GET")
-		r.HandleFunc("/auth", auth.LoginPostHandler).Methods("POST")
-		r.HandleFunc("/.well-known/openid-configuration", auth.WellKnown)
-		r.HandleFunc("/keys", auth.Keys)
-		r.HandleFunc("/userinfo", auth.Userinfo)
-		r.HandleFunc("/token", auth.Token).Methods("POST")
+		r.GET("/auth", auth.LoginFormHandler)
+		r.POST("/auth", auth.LoginPostHandler)
+		r.GET("/.well-known/openid-configuration", auth.WellKnown)
+		r.GET("/keys", auth.Keys)
+		r.GET("/userinfo", auth.Userinfo)
+		r.POST("/token", auth.Token)
 	}
 }

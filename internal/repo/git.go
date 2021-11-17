@@ -19,7 +19,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/storer"
 	"gitlab.com/edea-dev/edead/internal/util"
 	"go.uber.org/zap"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type Git struct {

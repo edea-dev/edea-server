@@ -11,7 +11,6 @@ import (
 
 func initAuth() {
 	a := config.Cfg.Auth.OIDC
-	k := config.Cfg.Auth.Kratos
 
 	provider := &auth.OIDC{
 		ClientID:      a.ClientID,
@@ -41,11 +40,5 @@ func initAuth() {
 
 	if err := auth.Init(provider); err != nil {
 		zap.L().Error("could not create OIDC provider", zap.Error(err))
-	}
-
-	if k.Use {
-		if err := auth.InitKratos(); err != nil {
-			zap.L().Error("could not create auth provider for Kratos", zap.Error(err))
-		}
 	}
 }

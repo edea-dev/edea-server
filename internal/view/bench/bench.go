@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	"gitlab.com/edea-dev/edead/internal/merge"
 	"gitlab.com/edea-dev/edead/internal/model"
 	"gitlab.com/edea-dev/edead/internal/search"
@@ -21,26 +21,25 @@ import (
 	"gorm.io/gorm"
 )
 
-func viewHelper(id, tmpl string, w http.ResponseWriter, r *http.Request) {
+func viewHelper(id, tmpl string, c *gin.Context) {
 	// View the current active bench or another bench if a parameter is supplied
 	bench := &model.Bench{}
-	ctx := r.Context()
-	user, _ := ctx.Value(util.UserContextKey).(*model.User)
+	user, _ := c.Value(util.UserContextKey).(*model.User)
 
 	// check if we even have a module id
 	if id == "" {
 		if user != nil {
 			result := model.DB.Model(bench).Where("user_id = ? and active = true", user.ID).First(bench)
 			if result.Error != nil {
-				view.RenderErrMarkdown(ctx, w, "bench/404.md", result.Error)
+				view.RenderErrMarkdown(c, "bench/404.md", result.Error)
 				return
 			}
 		} else {
 			msg := map[string]interface{}{
 				"Error": "Unfortunately you didn't give us much to work with, try again with a bench id.",
 			}
-			w.WriteHeader(http.StatusNotFound)
-			view.RenderMarkdown("bench/404.md", msg, w)
+			c.Status(http.StatusNotFound)
+			view.RenderMarkdown(c, "bench/404.md", msg)
 			return
 		}
 	}
@@ -65,8 +64,8 @@ func viewHelper(id, tmpl string, w http.ResponseWriter, r *http.Request) {
 
 	// nope, no bench
 	if bench.ID == uuid.Nil {
-		w.WriteHeader(http.StatusNotFound)
-		view.RenderErrTemplate(ctx, w, "bench/404.tmpl", errors.New("Bench was not found or is private"))
+		c.Status(http.StatusNotFound)
+		view.RenderErrTemplate(c, "bench/404.tmpl", errors.New("Bench was not found or is private"))
 		return
 	}
 
@@ -90,35 +89,28 @@ func viewHelper(id, tmpl string, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// and ready to go
-	view.RenderTemplate(ctx, tmpl, "", m, w)
+	view.RenderTemplate(c, tmpl, "", m)
 }
 
 // View a Bench
-func View(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
-
-	viewHelper(id, "bench/view.tmpl", w, r)
+func View(c *gin.Context) {
+	viewHelper(c.Param("id"), "bench/view.tmpl", c)
 }
 
 // ViewUpdate is the same as view but renders the update form for a bench
-func ViewUpdate(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
-
-	viewHelper(id, "bench/update.tmpl", w, r)
+func ViewUpdate(c *gin.Context) {
+	viewHelper(c.Param("id"), "bench/update.tmpl", c)
 }
 
 // SetActive sets the requested bench as active and inactivates all the others
-func SetActive(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	benchID := vars["id"]
-	user := view.CurrentUser(r)
+func SetActive(c *gin.Context) {
+	benchID := c.Param("id")
+	user := view.CurrentUser(c)
 
 	// TODO: more error checking and input validation
 
 	// set other benches as inactive, activate the requested one
-	tx := model.DB.WithContext(r.Context()).Begin()
+	tx := model.DB.WithContext(c).Begin()
 
 	tx.Model(&model.Bench{}).Where("user_id = ? and active = true", user.ID).Update("active", false)
 	tx.Model(&model.Bench{}).Where("id = ? and user_id = ?", benchID, user.ID).Update("active", true)
@@ -131,23 +123,21 @@ func SetActive(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// redirect to the bench
-	http.Redirect(w, r, fmt.Sprintf("/bench/%s", benchID), http.StatusSeeOther)
+	c.Redirect(http.StatusSeeOther, fmt.Sprintf("/bench/%s", benchID))
 }
 
 // Delete a bench
-func Delete(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	benchID := vars["id"]
-	ctx := r.Context()
-	user := ctx.Value(util.UserContextKey).(*model.User)
+func Delete(c *gin.Context) {
+	benchID := c.Param("id")
+	user := c.Value(util.UserContextKey).(*model.User)
 
 	if benchID == "" {
-		view.RenderErrTemplate(ctx, w, "404.tmpl", fmt.Errorf(`no such bench: "%s"`, benchID))
+		view.RenderErrTemplate(c, "404.tmpl", fmt.Errorf(`no such bench: "%s"`, benchID))
 		return
 	}
 
 	if user == nil {
-		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		c.Redirect(http.StatusTemporaryRedirect, "/login")
 		return
 	}
 
@@ -161,29 +151,26 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		zap.L().Panic("could not update search index", zap.Error(err))
 	}
 
-	http.Redirect(w, r, "/bench/user/me", http.StatusTemporaryRedirect)
+	c.Redirect(http.StatusTemporaryRedirect, "/bench/user/me")
 }
 
 // Fork a bench, this only copies it to the current user as we don't have any versioning (yet)
-func Fork(w http.ResponseWriter, r *http.Request) {
+func Fork(c *gin.Context) {
 	// Fork a bench
-	ctx := r.Context()
-	user := ctx.Value(util.UserContextKey).(*model.User)
-
-	vars := mux.Vars(r)
-	id := vars["id"]
+	user := c.Value(util.UserContextKey).(*model.User)
+	id := c.Param("id")
 
 	b := &model.Bench{}
 
 	result := model.DB.Model(b).Where("id = ? and (user_id = ? OR public = true)", id, user.ID).First(b)
 	if result.Error != nil {
-		view.RenderErrMarkdown(ctx, w, "bench/404.md", result.Error)
+		view.RenderErrMarkdown(c, "bench/404.md", result.Error)
 		return
 	}
 
 	// no such (public) bench
 	if b.ID == uuid.Nil {
-		view.RenderErrTemplate(ctx, w, "bench/404.tmpl", fmt.Errorf("could not find bench or bench is private"))
+		view.RenderErrTemplate(c, "bench/404.tmpl", fmt.Errorf("could not find bench or bench is private"))
 		return
 	}
 
@@ -200,7 +187,7 @@ func Fork(w http.ResponseWriter, r *http.Request) {
 	b.Public = false
 	b.Active = true
 
-	tx := model.DB.WithContext(r.Context()).Begin()
+	tx := model.DB.WithContext(c).Begin()
 
 	tx.Model(&model.Bench{}).Where("user_id = ? and active = true", user.ID).Update("active", false)
 	tx.Create(b)
@@ -237,7 +224,7 @@ func Fork(w http.ResponseWriter, r *http.Request) {
 			zap.L().Panic("could not remove newly created bench", zap.Error(result.Error), zap.String("bench_id", b.ID.String()))
 		}
 
-		view.RenderErrTemplate(ctx, w, "500.tmpl", fmt.Errorf("could not fork the bench"))
+		view.RenderErrTemplate(c, "500.tmpl", fmt.Errorf("could not fork the bench"))
 		return
 	}
 
@@ -247,22 +234,16 @@ func Fork(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// if everything went well, present the user with a newly forked bench
-	viewHelper(b.ID.String(), "bench/update.tmpl", w, r)
+	viewHelper(b.ID.String(), "bench/update.tmpl", c)
 }
 
 // Create inserts a new bench
-func Create(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	user := ctx.Value(util.UserContextKey).(*model.User)
-
-	if err := r.ParseForm(); err != nil {
-		view.RenderErrMarkdown(ctx, w, "bench/new.md", err)
-		return
-	}
+func Create(c *gin.Context) {
+	user := c.Value(util.UserContextKey).(*model.User)
 
 	bench := new(model.Bench)
-	if err := util.FormDecoder.Decode(bench, r.Form); err != nil {
-		view.RenderErrMarkdown(ctx, w, "bench/new.md", err)
+	if err := c.Bind(bench); err != nil {
+		view.RenderErrMarkdown(c, "bench/new.md", err)
 		return
 	}
 
@@ -271,7 +252,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	bench.UserID = user.ID
 
 	// set other benches as inactive, activate the requested one
-	tx := model.DB.WithContext(ctx).Begin()
+	tx := model.DB.WithContext(c).Begin()
 
 	tx.Model(&model.Bench{}).Where("user_id = ? and active = true", user.ID).Update("active", false)
 	tx.Create(bench)
@@ -289,19 +270,15 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// redirect to newly created module page
-	http.Redirect(w, r, fmt.Sprintf("/bench/%s", bench.ID), http.StatusSeeOther)
+	c.Redirect(http.StatusSeeOther, fmt.Sprintf("/bench/%s", bench.ID))
 }
 
 // Update a bench
-func Update(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		view.RenderErrMarkdown(r.Context(), w, "bench/update.md", err)
-		return
-	}
+func Update(c *gin.Context) {
+	bench := &model.Bench{}
 
-	bench := new(model.Bench)
-	if err := util.FormDecoder.Decode(bench, r.Form); err != nil {
-		view.RenderErrMarkdown(r.Context(), w, "bench/update.md", err)
+	if err := c.Bind(bench); err != nil {
+		view.RenderErrMarkdown(c, "bench/update.md", err)
 		return
 	}
 
@@ -319,41 +296,38 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// redirect to the bench
-	http.Redirect(w, r, fmt.Sprintf("/bench/%s", bench.ID), http.StatusSeeOther)
+	c.Redirect(http.StatusSeeOther, fmt.Sprintf("/bench/%s", bench.ID))
 }
 
 // Current redirects to the users active bench
-func Current(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	user := ctx.Value(util.UserContextKey).(*model.User)
+func Current(c *gin.Context) {
+	user := c.Value(util.UserContextKey).(*model.User)
 
 	bench := new(model.Bench)
 
-	result := model.DB.WithContext(ctx).Where("user_id = ? and active = true", user.ID).Find(bench)
+	result := model.DB.WithContext(c).Where("user_id = ? and active = true", user.ID).Find(bench)
 	if result.Error != nil {
 		zap.L().Panic("could not create a new bench", zap.Error(result.Error))
 	}
 
 	if bench.ID == uuid.Nil {
-		http.Redirect(w, r, "/bench/user/me", http.StatusSeeOther)
+		c.Redirect(http.StatusSeeOther, "/bench/user/me")
 		return
 	}
 
 	// redirect to newly created module page
-	http.Redirect(w, r, fmt.Sprintf("/bench/%s", bench.ID), http.StatusSeeOther)
+	c.Redirect(http.StatusSeeOther, fmt.Sprintf("/bench/%s", bench.ID))
 }
 
 // ListUser lists all Benches belonging to a User
-func ListUser(w http.ResponseWriter, r *http.Request) {
+func ListUser(c *gin.Context) {
 	var result *gorm.DB
 	var benches []model.Bench
 	var user *model.User
 
-	vars := mux.Vars(r)
-	userID := vars["id"]
-	ctx := r.Context()
+	userID := c.Param("id")
 
-	if v := ctx.Value(util.UserContextKey); v != nil {
+	if v := c.Value(util.UserContextKey); v != nil {
 		user = v.(*model.User)
 	}
 
@@ -365,7 +339,7 @@ func ListUser(w http.ResponseWriter, r *http.Request) {
 			result = model.DB.Where("user_id = ?", user.ID).Find(&benches)
 		} else {
 			// a user must be logged in to see their own benches
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			c.Redirect(http.StatusSeeOther, "/login")
 			return
 		}
 	} else {
@@ -383,7 +357,7 @@ func ListUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result.Error != nil {
-		view.RenderErrMarkdown(ctx, w, "bench/404.md", result.Error)
+		view.RenderErrMarkdown(c, "bench/404.md", result.Error)
 		return
 	}
 
@@ -392,26 +366,24 @@ func ListUser(w http.ResponseWriter, r *http.Request) {
 	m["Error"] = nil
 
 	// and ready to go
-	view.RenderTemplate(ctx, "bench/list_user.tmpl", "", m, w)
+	view.RenderTemplate(c, "bench/list_user.tmpl", "", m)
 }
 
 // Merge a bench into a new kicad project
-func Merge(w http.ResponseWriter, r *http.Request) {
+func Merge(c *gin.Context) {
 	var userID uuid.UUID
 
-	vars := mux.Vars(r)
-	id := vars["id"]
-	ctx := r.Context()
+	id := c.Param("id")
 
 	bench := new(model.Bench)
 
-	user, ok := ctx.Value(util.UserContextKey).(*model.User)
+	user, ok := c.Value(util.UserContextKey).(*model.User)
 	if ok {
 		userID = user.ID
 	}
 
 	// try to fetch all the benchmodules
-	result := model.DB.WithContext(ctx).Preload("Modules.Module").Where("id = ? AND (user_id = ? OR public = true)", id, userID).Find(bench)
+	result := model.DB.WithContext(c).Preload("Modules.Module").Where("id = ? AND (user_id = ? OR public = true)", id, userID).Find(bench)
 	if result.Error != nil {
 		zap.L().Panic("could not create a new bench", zap.Error(result.Error))
 	}
@@ -434,7 +406,7 @@ func Merge(w http.ResponseWriter, r *http.Request) {
 			m["Error"] = err.Err
 			m["Hint"] = err.Hint
 		}
-		view.RenderTemplate(ctx, "bench/merge_error.tmpl", "Merge Error", m, w)
+		view.RenderTemplate(c, "bench/merge_error.tmpl", "Merge Error", m)
 		return
 	}
 
@@ -442,6 +414,6 @@ func Merge(w http.ResponseWriter, r *http.Request) {
 
 	fileName := fmt.Sprintf("%s.zip", bench.Name)
 
-	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
-	http.ServeContent(w, r, fileName, time.Now(), buf)
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	http.ServeContent(c.Writer, c.Request, fileName, time.Now(), buf)
 }

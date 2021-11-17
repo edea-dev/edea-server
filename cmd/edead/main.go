@@ -11,7 +11,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/gorilla/mux"
+	ginzap "github.com/gin-contrib/zap"
+	"github.com/gin-gonic/gin"
 	"gitlab.com/edea-dev/edead/internal/config"
 	"gitlab.com/edea-dev/edead/internal/repo"
 	"gitlab.com/edea-dev/edead/internal/search"
@@ -34,9 +35,14 @@ func main() {
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.Parse()
 
-	r := mux.NewRouter()
+	r := gin.Default()
+	r.Use(ginzap.GinzapWithConfig(zl, &ginzap.Config{
+		TimeFormat: time.RFC3339,
+		UTC:        true,
+		SkipPaths:  []string{"/css", "/js", "/img", "/fonts", "/icons"},
+	}))
+
 	routes(r)
-	logger(r)
 	middleware(r)
 
 	// start embedded postgres DB

@@ -3,16 +3,12 @@ package main
 // SPDX-License-Identifier: EUPL-1.2
 
 import (
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"gitlab.com/edea-dev/edead/internal/auth"
-	mw "gitlab.com/edea-dev/edead/internal/middleware"
 )
 
-func middleware(r *mux.Router) {
+func middleware(r *gin.Engine) {
 	r.Use(
-		mw.RecoveryHandler(mw.PrintRecoveryStack(true), mw.PrintRoutes(true, r)),
-		handlers.ProxyHeaders,
-		auth.Authenticate,
+		auth.Authenticate(),
 	)
 }

@@ -5,6 +5,7 @@ package user
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"gitlab.com/edea-dev/edead/internal/model"
 	"gitlab.com/edea-dev/edead/internal/util"
 	"gitlab.com/edea-dev/edead/internal/view"
@@ -12,9 +13,8 @@ import (
 )
 
 // Profile displays the user data
-func Profile(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	u := ctx.Value(util.UserContextKey).(*model.User)
+func Profile(c *gin.Context) {
+	u := c.Value(util.UserContextKey).(*model.User)
 
 	p := model.Profile{UserID: u.ID}
 
@@ -27,31 +27,26 @@ func Profile(w http.ResponseWriter, r *http.Request) {
 		"Profile": p,
 	}
 
-	view.RenderTemplate(ctx, "profile.tmpl", "EDeA - Profile", data, w)
+	view.RenderTemplate(c, "profile.tmpl", "EDeA - Profile", data)
 }
 
 // UpdateProfile updates the user data
-func UpdateProfile(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		view.RenderErrTemplate(r.Context(), w, "user/profile.tmpl", err)
-		return
-	}
+func UpdateProfile(c *gin.Context) {
 	// update the id of the current user only
-	ctx := r.Context()
-	u := ctx.Value(util.UserContextKey).(*model.User)
+	u := c.Value(util.UserContextKey).(*model.User)
 
 	profile := new(model.Profile)
-	if err := util.FormDecoder.Decode(profile, r.Form); err != nil {
-		view.RenderErrTemplate(ctx, w, "user/profile.tmpl", err)
+	if err := c.Bind(profile); err != nil {
+		view.RenderErrTemplate(c, "user/profile.tmpl", err)
 		return
 	}
 
 	profile.UserID = u.ID
 
-	result := model.DB.WithContext(ctx).Save(profile)
+	result := model.DB.WithContext(c).Save(profile)
 	if result.Error != nil {
 		zap.L().Panic("could not update profile", zap.Error(result.Error))
 	}
 
-	http.Redirect(w, r, "/profile", http.StatusSeeOther)
+	c.Redirect(http.StatusSeeOther, "/profile")
 }

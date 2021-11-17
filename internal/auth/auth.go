@@ -3,7 +3,6 @@ package auth
 // SPDX-License-Identifier: EUPL-1.2
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -11,8 +10,8 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/gin-gonic/gin"
 	"gitlab.com/edea-dev/edead/internal/model"
-	"gitlab.com/edea-dev/edead/internal/util"
 	"go.uber.org/zap"
 )
 
@@ -29,26 +28,22 @@ var (
 	verifier *oidc.IDTokenVerifier
 )
 
-func processAuth(w http.ResponseWriter, r *http.Request) (context.Context, error) {
-	var raw string
-
-	auth := r.Header.Get("Authorization")
-	s, err := r.Cookie("jwt")
+func processAuth(c *gin.Context) error {
+	auth := c.GetHeader("Authorization")
+	raw, err := c.Cookie("jwt")
 
 	if err != nil && len(auth) == 0 {
-		return nil, model.ErrUnauthorized
+		return model.ErrUnauthorized
 	}
 
 	if len(auth) > 0 {
 		raw = strings.Replace(auth, "Bearer ", "", 1)
-	} else {
-		raw = s.Value
 	}
 
 	claims := model.AuthClaims{}
 
 	// verify claims
-	idToken, err := verifier.Verify(r.Context(), raw)
+	idToken, err := verifier.Verify(c, raw)
 	if err != nil {
 		zap.L().Error("could not verify jwt", zap.Error(err))
 
@@ -59,61 +54,57 @@ func processAuth(w http.ResponseWriter, r *http.Request) (context.Context, error
 			Expires:  time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC),
 			SameSite: http.SameSiteStrictMode,
 		}
-		http.SetCookie(w, &cookie)
+		http.SetCookie(c.Writer, &cookie)
 
-		return nil, err
+		return err
 	}
 
 	if err := idToken.Claims(&claims); err != nil {
 		// claims aren't there?
-		return nil, err
+		return err
 	}
 
 	// get the current user object from the database
 	user := &model.User{AuthUUID: claims.Subject}
 	result := model.DB.Model(user).Where(user).First(user)
 	if result.Error != nil {
-		return nil, fmt.Errorf("could not fetch user data for %s (%v)", claims.Subject, result.Error)
+		return fmt.Errorf("could not fetch user data for %s (%v)", claims.Subject, result.Error)
 	}
 
 	// add claims and user object to the context
-	ctx := context.WithValue(r.Context(), model.AuthContextKey, claims)
-	ctx = context.WithValue(ctx, util.UserContextKey, user)
+	c.Keys["auth"] = claims
+	c.Keys["user"] = user
 
-	return ctx, nil
+	return nil
 }
 
 // RequireAuth checks if there is a valid json web token in the request
-func RequireAuth(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if v := r.Context().Value(model.AuthContextKey); v == nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			_, _ = w.Write([]byte("Authorization header/session cookie missing"))
+func RequireAuth() gin.HandlerFunc {
+	return gin.HandlerFunc(func(c *gin.Context) {
+		if v := c.Value(model.AuthContextKey); v == nil {
+			c.AbortWithError(
+				http.StatusUnauthorized,
+				errors.New("Authorization header/session cookie missing"),
+			)
 			return
 		}
 
-		// context is set, everything is fine
-		next.ServeHTTP(w, r)
+		// auth key is set, everything is fine
+		c.Next()
 	})
 }
 
 // Authenticate checks if an authorization header or cookie is present and processes it
-func Authenticate(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx, err := processAuth(w, r)
-		if err != nil {
+func Authenticate() gin.HandlerFunc {
+	return gin.HandlerFunc(func(c *gin.Context) {
+		if err := processAuth(c); err != nil {
 			// only show an error if something is wrong with the token (expired tokens are not an error)
 			if !errors.Is(err, model.ErrUnauthorized) && !strings.Contains(err.Error(), "expired") {
 				zap.L().Error("could not process authentication cookie/header", zap.Error(err))
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintln(w, err)
+				c.AbortWithError(http.StatusInternalServerError, err)
 			}
 		}
-		if ctx == nil {
-			next.ServeHTTP(w, r)
-		} else {
-			next.ServeHTTP(w, r.WithContext(ctx))
-		}
+		c.Next()
 	})
 }
 
