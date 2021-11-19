@@ -7,14 +7,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gitlab.com/edea-dev/edead/internal/model"
-	"gitlab.com/edea-dev/edead/internal/util"
 	"gitlab.com/edea-dev/edead/internal/view"
 	"go.uber.org/zap"
 )
 
 // Profile displays the user data
 func Profile(c *gin.Context) {
-	u := c.Value(util.UserContextKey).(*model.User)
+	u := c.Keys["user"].(*model.User)
 
 	p := model.Profile{UserID: u.ID}
 
@@ -33,7 +32,7 @@ func Profile(c *gin.Context) {
 // UpdateProfile updates the user data
 func UpdateProfile(c *gin.Context) {
 	// update the id of the current user only
-	u := c.Value(util.UserContextKey).(*model.User)
+	u := c.Keys["user"].(*model.User)
 
 	profile := new(model.Profile)
 	if err := c.Bind(profile); err != nil {

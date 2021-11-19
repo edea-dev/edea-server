@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -38,7 +39,7 @@ func (u *User) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 
 // BeforeUpdate checks if the current user is allowed to do that
 func (u *User) BeforeUpdate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
+	ctx := tx.Statement.Context.(*gin.Context)
 
 	return isAuthorized(ctx, u.ID, u)
 }

@@ -11,7 +11,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gitlab.com/edea-dev/edead/internal/model"
-	"gitlab.com/edea-dev/edead/internal/util"
 	"gitlab.com/edea-dev/edead/internal/view"
 	"gopkg.in/yaml.v3"
 )
@@ -25,7 +24,7 @@ func DataExport(c *gin.Context) {
 	var modules []model.Module
 	var profile model.Profile
 
-	u := c.Value(util.UserContextKey).(*model.User)
+	u := c.Keys["user"].(*model.User)
 
 	// load a users benches
 	result := model.DB.Model(&model.Bench{}).Preload("Modules").Where("user_id = ?", u.ID).Find(benches)

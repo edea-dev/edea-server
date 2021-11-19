@@ -17,7 +17,8 @@ func faviconHandler(c *gin.Context) {
 	c.File("./static/img/favicon.ico")
 }
 
-func routes(r *gin.Engine) {
+func routes(router *gin.Engine) {
+	r := router.Group("/", auth.Authenticate())
 	r.GET("/", view.Template("index.tmpl", "EDeA"))              // index
 	r.GET("/about", view.Template("about.tmpl", "EDeA - About")) // about EDeA
 
@@ -60,14 +61,14 @@ func routes(r *gin.Engine) {
 	//r.HandleFunc("/api/bench", api.REST(&api.Bench{}))
 
 	// static files
-	r.Static("/css", "./static/css")
-	r.Static("/js", "./static/js")
-	r.Static("/img", "./static/img")
-	r.Static("/fonts", "./static/fonts")
-	r.Static("/icons", "./static/icons")
+	router.Static("/css", "./static/css")
+	router.Static("/js", "./static/js")
+	router.Static("/img", "./static/img")
+	router.Static("/fonts", "./static/fonts")
+	router.Static("/icons", "./static/icons")
 
 	// mdbooks are built and served from here
-	r.Static("/module/doc", config.Cfg.Cache.Book.Base)
+	router.Static("/module/doc", config.Cfg.Cache.Book.Base)
 
 	// TODO: let our IAP do that
 	a.GET("/profile", user.Profile)
@@ -75,8 +76,9 @@ func routes(r *gin.Engine) {
 	a.GET("/profile/export", user.DataExport)
 
 	r.GET("/callback", auth.CallbackHandler)
+	r.POST("/callback", auth.CallbackHandler)
 	r.GET("/logout_callback", auth.LogoutCallbackHandler)
-	r.POST("/login", auth.LoginHandler)
+	r.GET("/login", auth.LoginHandler)
 	r.POST("/logout", auth.LogoutHandler)
 
 	a.GET("/search/_bulk_update", search.ReIndexDB)
@@ -84,11 +86,11 @@ func routes(r *gin.Engine) {
 
 	// the login action redirects to the OIDC provider, with mock auth we have to provide this ourselves
 	if config.Cfg.Auth.UseMock {
-		r.GET("/auth", auth.LoginFormHandler)
-		r.POST("/auth", auth.LoginPostHandler)
-		r.GET("/.well-known/openid-configuration", auth.WellKnown)
-		r.GET("/keys", auth.Keys)
-		r.GET("/userinfo", auth.Userinfo)
-		r.POST("/token", auth.Token)
+		router.GET("/auth", auth.LoginFormHandler)
+		router.POST("/auth", auth.LoginPostHandler)
+		router.GET("/.well-known/openid-configuration", auth.WellKnown)
+		router.GET("/keys", auth.Keys)
+		router.GET("/userinfo", auth.Userinfo)
+		router.POST("/token", auth.Token)
 	}
 }

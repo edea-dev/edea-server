@@ -15,6 +15,7 @@
     "bootstrap-table": "^1.17.1",
     "jquery": "^3.6.0",
     "meilisearch": "^0.19.0",
+    "playwright": "^1.16.3",
     "popper.js": "^1.16.1",
     "sass": "^1.26.10",
     "tagify": "^0.1.1"
@@ -22,5 +23,7 @@
   "browserslist": [
     "last 2 versions"
   ],
-  "devDependencies": {}
+  "devDependencies": {
+    "@playwright/test": "^1.16.3"
+  }
 }

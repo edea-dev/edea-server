@@ -72,6 +72,7 @@ func processAuth(c *gin.Context) error {
 	}
 
 	// add claims and user object to the context
+	c.Keys = make(map[string]interface{})
 	c.Keys["auth"] = claims
 	c.Keys["user"] = user
 
@@ -81,7 +82,7 @@ func processAuth(c *gin.Context) error {
 // RequireAuth checks if there is a valid json web token in the request
 func RequireAuth() gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
-		if v := c.Value(model.AuthContextKey); v == nil {
+		if _, ok := c.Keys["auth"]; !ok {
 			c.AbortWithError(
 				http.StatusUnauthorized,
 				errors.New("Authorization header/session cookie missing"),

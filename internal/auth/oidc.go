@@ -92,6 +92,7 @@ func CallbackHandler(c *gin.Context) {
 	}
 
 	if c.Query("state") != state {
+		zap.L().Error("expected different state", zap.String("expected", state), zap.String("actual", c.Query("state")))
 		c.AbortWithError(http.StatusBadRequest, errors.New("invalid state parameter"))
 		return
 	}
@@ -154,7 +155,7 @@ func LoginHandler(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	state := base64.StdEncoding.EncodeToString(b)
+	state := base64.URLEncoding.EncodeToString(b)
 
 	// store the nonce as a temporary cookie and allow for some time to complete the login flow
 	http.SetCookie(c.Writer, &http.Cookie{Name: "state", Value: state, MaxAge: 3600})
@@ -195,7 +196,7 @@ func LogoutHandler(c *gin.Context) {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
-		state := base64.StdEncoding.EncodeToString(b)
+		state := base64.URLEncoding.EncodeToString(b)
 
 		// store the nonce as a temporary cookie and allow for some time to complete the login flow
 		http.SetCookie(c.Writer, &http.Cookie{Name: "state", Value: state, MaxAge: 3600})

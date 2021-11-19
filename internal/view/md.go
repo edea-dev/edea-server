@@ -19,7 +19,6 @@ import (
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
 	"gitlab.com/edea-dev/edead/internal/model"
-	"gitlab.com/edea-dev/edead/internal/util"
 	"go.uber.org/zap"
 )
 
@@ -153,7 +152,7 @@ func Markdown(page string) gin.HandlerFunc {
 
 // RenderErrMarkdown renders a page with error information
 func RenderErrMarkdown(c *gin.Context, tmpl string, err error) {
-	user := c.Value(util.UserContextKey).(*model.User)
+	user := c.Keys["user"].(*model.User)
 	data := map[string]interface{}{
 		"User":  user,
 		"Error": err.Error(),

@@ -12,7 +12,6 @@ import (
 	"gitlab.com/edea-dev/edead"
 	"gitlab.com/edea-dev/edead/internal/config"
 	"gitlab.com/edea-dev/edead/internal/model"
-	"gitlab.com/edea-dev/edead/internal/util"
 	"go.uber.org/zap"
 )
 
@@ -34,7 +33,7 @@ func Icon(name string) (html string, err error) {
 }
 
 // RenderTemplate renders a go template
-func RenderTemplate(ctx *gin.Context, fn, title string, data map[string]interface{}) {
+func RenderTemplate(c *gin.Context, fn, title string, data map[string]interface{}) {
 	tmplFile := filepath.Join(tmplPath, fn)
 
 	if data == nil {
@@ -46,7 +45,7 @@ func RenderTemplate(ctx *gin.Context, fn, title string, data map[string]interfac
 		data["Title"] = title
 	}
 
-	u, ok := ctx.Value(util.UserContextKey).(*model.User)
+	u, ok := c.Keys["user"].(*model.User)
 	if ok {
 		data["User"] = u
 		var moduleCount int64
@@ -86,7 +85,7 @@ func RenderTemplate(ctx *gin.Context, fn, title string, data map[string]interfac
 	}
 
 	// run our template with the data to render and the fragments
-	if err := t.ExecuteTemplate(ctx.Writer, fn, data); err != nil {
+	if err := t.ExecuteTemplate(c.Writer, fn, data); err != nil {
 		zap.L().Panic("failed to render template", zap.Error(err))
 	}
 }

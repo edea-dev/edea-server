@@ -24,7 +24,7 @@ import (
 func viewHelper(id, tmpl string, c *gin.Context) {
 	// View the current active bench or another bench if a parameter is supplied
 	bench := &model.Bench{}
-	user, _ := c.Value(util.UserContextKey).(*model.User)
+	user, _ := c.Keys["user"].(*model.User)
 
 	// check if we even have a module id
 	if id == "" {
@@ -129,7 +129,7 @@ func SetActive(c *gin.Context) {
 // Delete a bench
 func Delete(c *gin.Context) {
 	benchID := c.Param("id")
-	user := c.Value(util.UserContextKey).(*model.User)
+	user := c.Keys["user"].(*model.User)
 
 	if benchID == "" {
 		view.RenderErrTemplate(c, "404.tmpl", fmt.Errorf(`no such bench: "%s"`, benchID))
@@ -157,7 +157,7 @@ func Delete(c *gin.Context) {
 // Fork a bench, this only copies it to the current user as we don't have any versioning (yet)
 func Fork(c *gin.Context) {
 	// Fork a bench
-	user := c.Value(util.UserContextKey).(*model.User)
+	user := c.Keys["user"].(*model.User)
 	id := c.Param("id")
 
 	b := &model.Bench{}
@@ -239,7 +239,7 @@ func Fork(c *gin.Context) {
 
 // Create inserts a new bench
 func Create(c *gin.Context) {
-	user := c.Value(util.UserContextKey).(*model.User)
+	user := c.Keys["user"].(*model.User)
 
 	bench := new(model.Bench)
 	if err := c.Bind(bench); err != nil {
@@ -301,7 +301,7 @@ func Update(c *gin.Context) {
 
 // Current redirects to the users active bench
 func Current(c *gin.Context) {
-	user := c.Value(util.UserContextKey).(*model.User)
+	user := c.Keys["user"].(*model.User)
 
 	bench := new(model.Bench)
 
@@ -327,7 +327,7 @@ func ListUser(c *gin.Context) {
 
 	userID := c.Param("id")
 
-	if v := c.Value(util.UserContextKey); v != nil {
+	if v := c.Keys["user"]; v != nil {
 		user = v.(*model.User)
 	}
 
@@ -377,7 +377,7 @@ func Merge(c *gin.Context) {
 
 	bench := new(model.Bench)
 
-	user, ok := c.Value(util.UserContextKey).(*model.User)
+	user, ok := c.Keys["user"].(*model.User)
 	if ok {
 		userID = user.ID
 	}

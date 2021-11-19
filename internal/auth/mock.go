@@ -10,13 +10,14 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"gitlab.com/edea-dev/edead/internal/config"
 	"gitlab.com/edea-dev/edead/internal/view"
 	"go.uber.org/zap"
 	jose "gopkg.in/square/go-jose.v2"
@@ -59,6 +60,25 @@ type mockUser struct {
 	Email         string `json:"email"`
 	EmailVerified bool   `json:"email_verified"`
 	IsAdmin       bool   `json:"is_admin"`
+}
+
+type accessToken struct {
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int    `json:"expires_in"`
+	IDToken      string `json:"id_token"`
+}
+
+type idToken struct {
+	Subject  string `json:"sub"`
+	Issuer   string `json:"iss"`
+	Audience string `json:"aud"`
+	Nonce    string `json:"nonce,omitempty"`
+	AuthTime int    `json:"auth_time,omitempty"`
+	ACR      string `json:"acr,omitempty"`
+	IssuedAt int    `json:"iat"`
+	Expires  int    `json:"exp"`
 }
 
 // InitMockAuth initialises a keyset and provides a new mock authenticator
@@ -139,7 +159,7 @@ func InitMockAuth() error {
 // LoginFormHandler provides a simple local login form for test purposes
 func LoginFormHandler(c *gin.Context) {
 	m := map[string]interface{}{
-		"State": c.PostForm("state"),
+		"State": c.Query("state"),
 	}
 
 	// TODO: show a simple login form
@@ -192,13 +212,18 @@ func Keys(c *gin.Context) {
 }
 
 func generateIDToken(u mockUser) (string, error) {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return "", err
+	tok := idToken{
+		Subject:  u.Subject,
+		Issuer:   config.Cfg.Auth.OIDC.ProviderURL,
+		Audience: config.Cfg.Auth.OIDC.ClientID,
+		IssuedAt: int(time.Now().Unix()),
+		Expires:  int(time.Now().Unix() + 3600),
 	}
 
+	b, _ := json.Marshal(&tok)
+
 	sig, _ := mockSigner.Sign(b)
-	return sig.FullSerialize(), nil
+	return sig.CompactSerialize()
 }
 
 // Userinfo endpoint provides the claims for a logged in user given a bearer token
@@ -209,7 +234,13 @@ func Userinfo(c *gin.Context) {
 	// here would be the place to verify the bearer token against the issued ones
 	// instead of using just static tokens which double as passwords
 
-	s, err := generateIDToken(mockUsers[raw])
+	user, ok := mockUsers[raw]
+	if !ok {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	s, err := generateIDToken(user)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -231,13 +262,12 @@ func Token(c *gin.Context) {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
+
+		tok := accessToken{"SlAV32hkKG", "Bearer", "8xLOxBtZp8", 3600, s}
+		zap.S().Infof("mock token: %+v", tok)
+
 		// return token
-		tok := fmt.Sprintf(`{"access_token": "%s", "token_type": "Bearer", "refresh_token": "%s", "expires_in": 3600, "id_token": "%s"}`,
-			"SlAV32hkKG",
-			"8xLOxBtZp8",
-			s,
-		)
-		c.String(http.StatusOK, tok)
+		c.JSONP(http.StatusOK, tok)
 	} else {
 		c.AbortWithError(http.StatusUnauthorized, errors.New("unauthorized"))
 	}

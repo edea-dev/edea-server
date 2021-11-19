@@ -3,10 +3,9 @@ package model
 // SPDX-License-Identifier: EUPL-1.2
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"gitlab.com/edea-dev/edead/internal/util"
 	"go.uber.org/zap"
-	"golang.org/x/net/context"
 	"gorm.io/gorm"
 )
 
@@ -30,8 +29,8 @@ func CreateTables() {
 
 }
 
-func isAuthorized(ctx context.Context, userID uuid.UUID, _ interface{}) error {
-	u := ctx.Value(util.UserContextKey).(*User)
+func isAuthorized(c *gin.Context, userID uuid.UUID, _ interface{}) error {
+	u := c.Keys["user"].(*User)
 
 	// log if it's done by an admin
 	if u.IsAdmin {

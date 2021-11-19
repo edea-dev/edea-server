@@ -18,9 +18,6 @@ var (
 	ErrUnauthorized = errors.New("user is not authorized to change this row")
 	// ErrNoSuchSubject is returned on empty sub parameter or if no user with a matching subject exists
 	ErrNoSuchSubject = errors.New("no subject given or subject does not exist")
-
-	// AuthContextKey is the request context key for the session data
-	AuthContextKey = AuthClaims{}
 )
 
 func isInUsers(users []*User, sub string) bool {

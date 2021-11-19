@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gitlab.com/edea-dev/edead/internal/model"
-	"gitlab.com/edea-dev/edead/internal/util"
 	"gitlab.com/edea-dev/edead/internal/view"
 	"go.uber.org/zap"
 )
@@ -55,7 +54,7 @@ func Explore(c *gin.Context) {
 // ExploreUser lists all the public modules by a specific user
 func ExploreUser(c *gin.Context) {
 	userID := c.Param("id")
-	currentUser, _ := c.Value(util.UserContextKey).(*model.User)
+	currentUser, _ := c.Keys["user"].(*model.User)
 
 	if userID == "" {
 		zap.L().Panic("explore_user: no user id specified")

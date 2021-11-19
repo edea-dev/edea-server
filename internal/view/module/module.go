@@ -38,7 +38,7 @@ type Board struct {
 
 // Create a new module
 func Create(c *gin.Context) {
-	user := c.Value(util.UserContextKey).(*model.User)
+	user := c.Keys["user"].(*model.User)
 
 	module := new(model.Module)
 
@@ -217,7 +217,7 @@ func Pull(c *gin.Context) {
 		return
 	}
 
-	user := c.Value(util.UserContextKey).(*model.User)
+	user := c.Keys["user"].(*model.User)
 
 	// try to fetch the module
 	module := &model.Module{}
@@ -413,7 +413,7 @@ func getModule(c *gin.Context) (user *model.User, module *model.Module) {
 		return nil, nil
 	}
 
-	user, _ = c.Value(util.UserContextKey).(*model.User)
+	user, _ = c.Keys["user"].(*model.User)
 
 	// try to fetch the module
 	var result *gorm.DB

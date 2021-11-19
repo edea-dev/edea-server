@@ -3,6 +3,7 @@ package model
 // SPDX-License-Identifier: EUPL-1.2
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -27,7 +28,7 @@ type Module struct {
 
 // BeforeUpdate checks if the current user is allowed to do that
 func (m *Module) BeforeUpdate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
+	ctx := tx.Statement.Context.(*gin.Context)
 
 	return isAuthorized(ctx, m.UserID, m)
 }

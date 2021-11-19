@@ -43,7 +43,6 @@ func main() {
 	}))
 
 	routes(r)
-	middleware(r)
 
 	// start embedded postgres DB
 	err := db()
