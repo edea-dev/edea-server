@@ -126,6 +126,9 @@ func createUser(claims *model.AuthClaims) {
 	}
 
 	p := model.Profile{DisplayName: claims.Nickname, Avatar: claims.Picture, UserID: u.ID}
+	if p.DisplayName == "" {
+		p.DisplayName = claims.Subject
+	}
 
 	if result := model.DB.Model(&p).Create(&p); result.Error != nil {
 		zap.L().Panic("could not create new user", zap.Error(result.Error), zap.String("auth_uuid", claims.Subject))

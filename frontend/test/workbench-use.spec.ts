@@ -1,6 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 
-test.describe.serial('user workflow', () => {
+test.describe.serial('user workflow - alice', () => {
     let page: Page;
 
     test.beforeAll(async ({ browser }) => {
@@ -87,8 +87,45 @@ test.describe.serial('user workflow', () => {
         const module_page = page.locator('h1').first();
         await expect(module_page).toContainText("USB-C");
     });
+});
 
-    test('add modules to bench', async () => {
-        // page is signed in.  
+test.describe.serial('user workflow - bob', () => {
+    let page: Page;
+
+    test.beforeAll(async ({ browser }) => {
+        page = await browser.newPage();
+
+        await page.goto('http://localhost:3000/');
+        const logo = page.locator('.navbar-brand');
+        await expect(logo).toHaveAttribute("aria-label", "EDeA")
+
+        await page.click('text=Login');
+
+        await page.fill('#user', 'bob');
+        await page.fill('#password', 'bob');
+        await page.click('text=Submit');
+
+        const logout = page.locator('a[href="/logout"]');
+        await expect(logout).toHaveText("Logout");
+    });
+
+    test.afterAll(async () => {
+        await page.close();
+    });
+
+    test('new module (HT7533)', async () => {
+        await page.click('#navbarModulesDD');
+        await page.click('a[href="/module/new"]');
+
+        await page.fill('#name', 'HT7533 3V3 LDO');
+        await page.fill('#sub', 'HT7533-a');
+        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules');
+        await page.fill('#description', 'Holtek HT7533, a cheap LDO for 3V3');
+        await page.selectOption('#category', { label: 'Power' });
+
+        await page.click('text=Submit');
+
+        const module_page = page.locator('h1').first();
+        await expect(module_page).toContainText("HT7533");
     });
 });
