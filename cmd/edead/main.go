@@ -14,6 +14,7 @@ import (
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/edea-dev/edead/internal/config"
+	"gitlab.com/edea-dev/edead/internal/middleware"
 	"gitlab.com/edea-dev/edead/internal/repo"
 	"gitlab.com/edea-dev/edead/internal/search"
 	"go.uber.org/zap"
@@ -41,6 +42,7 @@ func main() {
 		UTC:        true,
 		SkipPaths:  []string{"/css", "/js", "/img", "/fonts", "/icons"},
 	}))
+	r.Use(gin.CustomRecoveryWithWriter(nil, middleware.Recovery))
 
 	routes(r)
 

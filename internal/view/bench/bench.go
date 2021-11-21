@@ -337,6 +337,11 @@ func ListUser(c *gin.Context) {
 		if user != nil {
 			// select a users own benches
 			result = model.DB.Where("user_id = ?", user.ID).Find(&benches)
+
+			if len(benches) == 0 {
+				view.RenderTemplate(c, "bench/no_user_benches.tmpl", "EDeA - No bench yet", nil)
+				return
+			}
 		} else {
 			// a user must be logged in to see their own benches
 			c.Redirect(http.StatusSeeOther, "/login")

@@ -28,12 +28,13 @@ var (
 	mockSigner jose.Signer
 	// user info map
 	mockUsers = map[string]mockUser{
-		"alicealice": {
+		"alice": {
 			Subject:       "alice",
 			Profile:       "alice",
 			Email:         "alice@acme.co",
 			EmailVerified: true,
 			IsAdmin:       false,
+			Password:      "alicealice",
 		},
 		"bob": {
 			Subject:       "bob",
@@ -41,13 +42,15 @@ var (
 			Email:         "bob@acme.co",
 			EmailVerified: true,
 			IsAdmin:       false,
+			Password:      "bob",
 		},
-		"12345": {
+		"admin": {
 			Subject:       "admin",
 			Profile:       "admin",
 			Email:         "admin@acme.co",
 			EmailVerified: true,
 			IsAdmin:       true,
+			Password:      "12345",
 		},
 	}
 	CallbackURL string
@@ -60,6 +63,7 @@ type mockUser struct {
 	Email         string `json:"email"`
 	EmailVerified bool   `json:"email_verified"`
 	IsAdmin       bool   `json:"is_admin"`
+	Password      string `json:"password"`
 }
 
 type accessToken struct {
@@ -173,7 +177,7 @@ func LoginPostHandler(c *gin.Context) {
 	pass := c.PostForm("password")
 
 	// do a basic auth "check", this *really* is just a mock authenticator
-	if u, ok := mockUsers[pass]; ok {
+	if u, ok := mockUsers[user]; ok && u.Password == pass {
 		if u.Profile != user {
 			zap.S().Panicf("invalid user/password combination for %s", user)
 		}

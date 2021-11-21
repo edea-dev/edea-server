@@ -14,14 +14,14 @@ type Module struct {
 	gorm.Model
 	ID          uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
 	UserID      uuid.UUID `gorm:"type:uuid"`
-	ShortCode   string    `schema:"short_code"`
+	ShortCode   string    `form:"short_code"`
 	User        User
-	Private     bool      `gorm:"default:false" schema:"private"`
-	RepoURL     string    `schema:"repourl,required"`
-	Name        string    `schema:"name,required"`
-	Sub         string    `schema:"sub"`
-	Description string    `schema:"description"`
-	CategoryID  uuid.UUID `gorm:"type:uuid" schema:"category"`
+	Private     bool      `gorm:"default:false" form:"private"`
+	RepoURL     string    `form:"repourl,required"`
+	Name        string    `form:"name,required"`
+	Sub         string    `form:"sub"`
+	Description string    `form:"description"`
+	CategoryID  uuid.UUID `gorm:"type:uuid" form:"category"`
 	Category    Category
 	Metadata    datatypes.JSON
 }

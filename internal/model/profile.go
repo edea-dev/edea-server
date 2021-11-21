@@ -11,13 +11,13 @@ import (
 // Profile data for Users
 type Profile struct {
 	gorm.Model
-	ID          uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID          string    `gorm:"type:uuid;default:uuid_generate_v4()" form:"id" binding:"required,uuid"`
 	UserID      uuid.UUID `gorm:"type:uuid"`
 	User        User
-	DisplayName string `schema:"display_name,required"`
-	Location    string
-	Biography   string
-	Avatar      string
+	DisplayName string `form:"display_name" binding:"required"`
+	Location    string `form:"location"`
+	Biography   string `form:"biography"`
+	Avatar      string `form:"avatar"`
 }
 
 // BeforeUpdate checks if the current user is allowed to do that
