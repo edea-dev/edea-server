@@ -12,6 +12,7 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/edea-dev/edead/internal/model"
+	"gitlab.com/edea-dev/edead/internal/view"
 	"go.uber.org/zap"
 )
 
@@ -87,7 +88,7 @@ func RequireAuth() gin.HandlerFunc {
 				http.StatusUnauthorized,
 				errors.New("Authorization header/session cookie missing"),
 			)
-			return
+			view.RenderTemplate(c, "403.tmpl", "Forbidden", nil)
 		}
 
 		// auth key is set, everything is fine

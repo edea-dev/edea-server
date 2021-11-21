@@ -1,6 +1,6 @@
 module gitlab.com/edea-dev/edead
 
-go 1.18
+go 1.17
 
 require (
 	github.com/alecthomas/chroma v0.9.4

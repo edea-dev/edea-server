@@ -14,7 +14,6 @@ cache:
     schema: ./tmp/sch
     layout: ./tmp/pcb
 auth:
-  kratos:
   oidc: # rename to oidc for auth0
     use: true
     provider_url:

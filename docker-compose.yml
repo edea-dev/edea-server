@@ -1,13 +1,5 @@
 version: "3.9"
 services:
-  edea:
-    image: edea
-    build:
-      dockerfile: Dockerfile
-      context: .
-      target: dev
-    ports:
-      - 3000:3000
   db:
     image: docker.io/postgres:14-alpine
     container_name: edea-postgres
@@ -17,6 +9,8 @@ services:
       POSTGRES_DB: edea
       POSTGRES_USER: edea
       POSTGRES_PASSWORD: edea
+    ports:
+      - 5432:5432
   search:
     image: docker.io/getmeili/meilisearch:latest
     container_name: edea-meilisearch
@@ -28,6 +22,8 @@ services:
       MEILI_MASTER_KEY: meiliedea
     expose:
       - 7700
+    ports:
+      - 7700:7700
 
 volumes:
   data:
