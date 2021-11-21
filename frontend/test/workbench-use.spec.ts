@@ -1,6 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 
-test.describe.serial('login to merged project download', () => {
+test.describe.serial('user workflow', () => {
     let page: Page;
 
     test.beforeAll(async ({ browser }) => {
@@ -24,8 +24,68 @@ test.describe.serial('login to merged project download', () => {
         await page.close();
     });
 
-    test('browse modules', async () => {
-        // page is signed in.
+    test('new module (LDO)', async () => {
+        await page.click('#navbarModulesDD');
+        await page.click('a[href="/module/new"]');
+
+        await page.fill('#name', 'NCP1117 3V3 LDO');
+        await page.fill('#sub', '3v3ldo');
+        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules');
+        await page.fill('#description', 'A simple 3.3-V LDO');
+        await page.selectOption('#category', { label: 'Power' });
+
+        await page.click('text=Submit');
+
+        const module_page = page.locator('h1').first();
+        await expect(module_page).toContainText("NCP1117");
+    });
+
+    test('new module (5vpol)', async () => {
+        await page.click('#navbarModulesDD');
+        await page.click('a[href="/module/new"]');
+
+        await page.fill('#name', 'TPS62135 5V PoL');
+        await page.fill('#sub', '5vpol');
+        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules');
+        await page.fill('#description', '16-V Input 3-A Output Point-of-Load with TPS62135');
+        await page.selectOption('#category', { label: 'Power' });
+
+        await page.click('text=Submit');
+
+        const module_page = page.locator('h1').first();
+        await expect(module_page).toContainText("TPS62135");
+    });
+
+    test('new module (GD32)', async () => {
+        await page.click('#navbarModulesDD');
+        await page.click('a[href="/module/new"]');
+
+        await page.fill('#name', 'GD32E103CBT6');
+        await page.fill('#sub', 'GD32E103CBT6');
+        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules');
+        await page.fill('#description', 'GD32E103CBT6 based module with required passives');
+        await page.selectOption('#category', { label: 'MCU' });
+
+        await page.click('text=Submit');
+
+        const module_page = page.locator('h1').first();
+        await expect(module_page).toContainText("GD32E103CBT6");
+    });
+
+    test('new module (USB-C)', async () => {
+        await page.click('#navbarModulesDD');
+        await page.click('a[href="/module/new"]');
+
+        await page.fill('#name', 'USB-C');
+        await page.fill('#sub', 'USB-C');
+        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules');
+        await page.fill('#description', 'A simple USB-C module');
+        await page.selectOption('#category', { label: 'Connector' });
+
+        await page.click('text=Submit');
+
+        const module_page = page.locator('h1').first();
+        await expect(module_page).toContainText("USB-C");
     });
 
     test('add modules to bench', async () => {

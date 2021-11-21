@@ -16,12 +16,12 @@ type Module struct {
 	UserID      uuid.UUID `gorm:"type:uuid"`
 	ShortCode   string    `form:"short_code"`
 	User        User
-	Private     bool      `gorm:"default:false" form:"private"`
-	RepoURL     string    `form:"repourl,required"`
-	Name        string    `form:"name,required"`
-	Sub         string    `form:"sub"`
-	Description string    `form:"description"`
-	CategoryID  uuid.UUID `gorm:"type:uuid" form:"category"`
+	Private     bool   `gorm:"default:false" form:"private"`
+	RepoURL     string `form:"repourl,required"`
+	Name        string `form:"name,required"`
+	Sub         string `form:"sub"`
+	Description string `form:"description"`
+	CategoryID  string `gorm:"type:uuid" form:"category"`
 	Category    Category
 	Metadata    datatypes.JSON
 }

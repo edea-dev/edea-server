@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Model interface defines which methods our models need to implement
@@ -27,6 +28,20 @@ func CreateTables() {
 		zap.L().Fatal("could not run automigrations", zap.Error(err))
 	}
 
+}
+
+func CreateCategories() {
+	var categories = []Category{
+		{Name: "Uncategorized", Description: "Not yet categorized"},
+		{Name: "Power", Description: "Power electronics such as LDOs or DC/DC modules"},
+		{Name: "MCU", Description: "Microcontroller modules"},
+		{Name: "Test", Description: "Test modules - do not use"},
+		{Name: "Connector", Description: "Connector modules"},
+	}
+	result := DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&categories)
+	if result.Error != nil {
+		zap.L().Fatal("could not run automigrations", zap.Error(result.Error))
+	}
 }
 
 func isAuthorized(c *gin.Context, userID uuid.UUID, _ interface{}) error {

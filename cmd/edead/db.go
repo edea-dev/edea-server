@@ -23,6 +23,7 @@ func db() error {
 	}
 
 	model.CreateTables()
+	model.CreateCategories()
 
 	return nil
 }
