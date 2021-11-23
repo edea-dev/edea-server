@@ -1,7 +1,7 @@
 {{template "header" .}}
 <main role="main">
 	<div class="container" id="content">
-		<div class="jumbotron bg-primary text-white d-none d-lg-block mb-2">
+		<div class="bg-primary text-white d-none d-lg-block mb-2 p-4 pb-0 align-items-center rounded-3 border shadow-lg">
 			<!-- .d-sm-none hides the element on mobile entirely. use it only for design. -->
 			<h1 class="mt-5">{{.Bench.Name}}</h1>
 			<p class="lead">{{.Bench.Description}}</p>
@@ -9,22 +9,29 @@
 
 		<div class="flex-row d-flex justify-content-end pb-2">
 			{{if .User}}
-			<a href="/bench/fork/{{.Bench.ID}}" role="button" class="btn btn-primary">Fork</a>
 			{{if eq .Bench.UserID .User.ID}}
 			{{if .Bench.Active}}
-			<a href="#" role="button" class="btn btn-success ml-2">Active</a>
+			<div class="ms-1 d-flex align-items-center"><span style="color: green;">{{icon "circle-fill"}}</span>&nbsp;Active</div>
 			{{else}}
-			<a href="/bench/activate/{{.Bench.ID}}" role="button" class="btn btn-info ml-2">Set Active</a>
+			<a href="/bench/activate/{{.Bench.ID}}" role="button" class="btn btn-info ms-1">Set Active</a>
 			{{end}}
 			{{end}}
 			{{end}}
-			<a href="/bench/merge/{{.Bench.ID}}" role="button" class="btn btn-warning ml-2">{{icon "download"}}&nbsp;Merge</a>
-			{{if .User}}
-			{{if eq .Bench.UserID .User.ID}}
-			<a href="/bench/update/{{.Bench.ID}}" role="button" class="btn btn-secondary ml-2">Update</a>
-			<a href="/bench/delete/{{.Bench.ID}}" role="button" class="btn btn-danger ml-2">Delete</a>
-			{{end}}
-			{{end}}
+			<a href="/bench/merge/{{.Bench.ID}}" role="button" class="btn btn-warning ms-1">{{icon "download"}}&nbsp;Merge</a>
+			<div class="dropdown">
+				<button type="button" class="btn btn-light dropdown-toggle ms-1" data-bs-toggle="dropdown" aria-expanded="false">
+					{{icon "list"}} Actions
+				</button>
+				<ul class="dropdown-menu">
+					{{if .User}}
+					<li><a href="/bench/fork/{{.Bench.ID}}" role="button" class="dropdown-item">{{icon "bezier"}} Fork</a></li>
+					{{if eq .Bench.UserID .User.ID}}
+					<li><a href="/bench/update/{{.Bench.ID}}" role="button" class="dropdown-item">{{icon "cloud-arrow-down"}} Update</a></li>
+					<li><a href="/bench/delete/{{.Bench.ID}}" role="button" class="dropdown-item">{{icon "trash"}} Delete</a></li>
+					{{end}}
+					{{end}}
+				</ul>
+			</div>
 		</div>
 
 		{{if gt (len .Modules) 0}}

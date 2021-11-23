@@ -11,6 +11,6 @@ import (
 type Category struct {
 	gorm.Model
 	ID          uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
-	Name        string
+	Name        string    `gorm:"unique"`
 	Description string
 }

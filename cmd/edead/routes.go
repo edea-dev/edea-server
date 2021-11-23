@@ -42,6 +42,7 @@ func routes(router *gin.Engine) {
 	a.GET("/bench/new", view.Template("bench/new.tmpl", "EDeA - New Bench")) // new bench form
 	a.POST("/bench/new", bench.Create)                                       // add a new bench
 	r.GET("/bench/explore", bench.Explore)                                   // explore public workbenches
+	a.GET("/bench/my", bench.ExploreOwn)                                     // explore my workbenches
 	a.POST("/bench/:id", bench.Update)                                       // update a bench
 	r.GET("/bench/:id", bench.View)                                          // view a bench
 	a.GET("/bench/update/:id", bench.ViewUpdate)                             // update form view of a bench

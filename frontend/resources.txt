@@ -30,7 +30,7 @@ node_modules/bootstrap-table/dist/extensions/mobile/* $WEBROOT/bt/
 
 # dependencies of bootstrap
 node_modules/jquery/dist/*.* $WEBROOT/js/
-node_modules/popper.js/dist/umd/*.* $WEBROOT/js/
+node_modules/@popperjs/core/dist/umd/*.* $WEBROOT/js/
 
 # meilisearch
 node_modules/meilisearch/dist/bundles/meilisearch.umd.* $WEBROOT/js/

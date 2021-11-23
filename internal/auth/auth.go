@@ -103,7 +103,8 @@ func Authenticate() gin.HandlerFunc {
 			// only show an error if something is wrong with the token (expired tokens are not an error)
 			if !errors.Is(err, model.ErrUnauthorized) && !strings.Contains(err.Error(), "expired") {
 				zap.L().Error("could not process authentication cookie/header", zap.Error(err))
-				c.AbortWithError(http.StatusInternalServerError, err)
+				c.Abort()
+				c.String(http.StatusInternalServerError, "authentication is valid but there's no such user, try deleting your cookies\n\nerror: %v", err)
 			}
 		}
 		c.Next()

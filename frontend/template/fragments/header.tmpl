@@ -67,9 +67,10 @@
               Workbenches
             </a>
             <ul class="dropdown-menu" aria-labelledby="navbarWorkbenchesDD">
-              <li><a class="dropdown-item" href="/bench/explore">Browse Public Workbenches</a></li>
+              <li><a class="dropdown-item" href="/bench/explore">Explore</a></li>
               <li>
               {{if .User}}
+              <li><a class="dropdown-item" href="/bench/my">My Workbenches</a></li>
               <a class="dropdown-item" href="/bench/new">
               {{else}}
               <a class="dropdown-item disabled" aria-disabled="true" tabindex="-1" href="#">
