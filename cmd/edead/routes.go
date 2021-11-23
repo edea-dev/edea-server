@@ -14,7 +14,7 @@ import (
 )
 
 func faviconHandler(c *gin.Context) {
-	c.File("./static/img/favicon.ico")
+	c.File("./static/favicon.ico")
 }
 
 func routes(router *gin.Engine) {

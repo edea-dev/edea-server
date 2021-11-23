@@ -1,37 +1,23 @@
-{{template "header" .}}
-  <main role="main"> <!-- min-vh-100 is a hack to make footer stick below the screen. for some reason the standard way (mt-auto) did not work -->
-    <div class="container"  id="content">
-      <div class="jumbotron bg-primary text-white">
-        <h1 class="mt-5">Mock Login</h1>
-      </div>
-      <div class="row">
-        <div class="col-sm-12 col-lg-8 offset-lg-0 offset-xl-2 col-xl-6">
+{{template "header_login" .}}
+<main class="form-signin">
+  <form action="/auth" method="post">
+    <img class="mb-4" src="/img/icon.svg" alt="" width="72" height="57">
+    <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
 
-        <form action="/auth" method="post">
-            <input type="hidden" id="state" name="state" value="{{ .State }}">
-            <div class="row form-group">
-                <label class="col-sm-12 col-md-4 col-form-label" for="user">User:</label>
-                <div class="col-sm-12 col-md-8">
-                    <input class="form-control" type="text" id="user" name="user" value="">
-                </div>
-            </div>
+    <input type="hidden" id="state" name="state" value="{{ .State }}">
 
-            <div class="row form-group">
-                <label class="col-sm-12 col-md-4 col-form-label" for="password">Password:</label>
-                <div class="col-sm-12 col-md-8">
-                    <input class="form-control" type="password" id="password" name="password">
-                </div>
-            </div>
-
-            <div class="row form-group">
-                <div class="col-sm-12 col-md-8 offset-sm-0 offset-md-4">
-                  <button type="submit" class="btn btn-primary w-100">Submit</button>
-                </div>
-            </div>
-
-            </form>
-        </div>
+    <div class="form-floating">
+      <input class="form-control" type="text" id="user" name="user" value="">
+      <label for="user">User</label>
     </div>
+
+    <div class="form-floating">
+      <input class="form-control" type="password" id="password" name="password">
+      <label for="password">Password</label>
     </div>
-  </main>
-{{template "footer" .}}
+
+    <button type="submit" class="btn btn-primary w-100">Submit</button>
+    <p class="mt-5 mb-3 text-muted">🄯 2020–2022</p>
+  </form>
+</main>
+</body>
