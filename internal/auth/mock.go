@@ -17,11 +17,31 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gitlab.com/edea-dev/edead/internal/config"
 	"gitlab.com/edea-dev/edead/internal/view"
 	"go.uber.org/zap"
 	jose "gopkg.in/square/go-jose.v2"
 )
+
+/*
+How this works:
+
+	Endpoints:
+	/.well-known/openid-configuration	| points to the endpoints below
+	/auth								| user authenticates with username and password here, returns a bearer token
+	/token								| exchanges bearer token from /auth for access, id and refresh tokens
+	/keys								| returns the public part of our JWKS
+	/userinfo							| returns an ID token of the user
+
+Here's how we differentiate which token we got:
+
+auth response token: encrypted
+id token: email field
+access token: no email field
+
+A good guide that explains the whole flow: https://connect2id.com/learn/openid-connect
+*/
 
 var (
 	keySet     *jose.JSONWebKeySet
@@ -55,6 +75,10 @@ var (
 	}
 	CallbackURL string
 	Endpoint    string // where our mock OIDC server resides
+
+	accessTokenLifetime = time.Hour * 24 * 7
+
+	codes = make(map[string]string)
 )
 
 type mockUser struct {
@@ -69,20 +93,20 @@ type mockUser struct {
 type accessToken struct {
 	AccessToken  string `json:"access_token"`
 	TokenType    string `json:"token_type"`
-	RefreshToken string `json:"refresh_token"`
-	ExpiresIn    int    `json:"expires_in"`
-	IDToken      string `json:"id_token"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+	ExpiresIn    int64  `json:"expires_in"`
+	IDToken      string `json:"id_token,omitempty"`
 }
 
-type idToken struct {
+type oidcToken struct {
 	Subject  string `json:"sub"`
 	Issuer   string `json:"iss"`
 	Audience string `json:"aud"`
 	Nonce    string `json:"nonce,omitempty"`
 	AuthTime int    `json:"auth_time,omitempty"`
 	ACR      string `json:"acr,omitempty"`
-	IssuedAt int    `json:"iat"`
-	Expires  int    `json:"exp"`
+	IssuedAt int64  `json:"iat"`
+	Expires  int64  `json:"exp"`
 }
 
 // InitMockAuth initialises a keyset and provides a new mock authenticator
@@ -162,11 +186,19 @@ func InitMockAuth() error {
 
 // LoginFormHandler provides a simple local login form for test purposes
 func LoginFormHandler(c *gin.Context) {
+	zap.L().Debug("authorisation ep",
+		zap.String("response_type", c.Query("response_type")),
+		zap.String("scope", c.Query("scope")),
+		zap.String("client_id", c.Query("client_id")),
+	)
+
+	// display different login page based on client id here
+
 	m := map[string]interface{}{
-		"State": c.Query("state"),
+		"State":       c.Query("state"),
+		"RedirectURI": c.Query("redirect_uri"),
 	}
 
-	// TODO: show a simple login form
 	view.RenderTemplate(c, "mock_login.tmpl", "EDeA - Login", m)
 }
 
@@ -175,24 +207,42 @@ func LoginPostHandler(c *gin.Context) {
 	state := c.PostForm("state")
 	user := c.PostForm("user")
 	pass := c.PostForm("password")
+	redirectURI := c.PostForm("redirect_uri")
 
-	// do a basic auth "check", this *really* is just a mock authenticator
-	if u, ok := mockUsers[user]; ok && u.Password == pass {
-		if u.Profile != user {
+	// do a basic auth check, this is the place to add a user database
+	uo, ok := mockUsers[user]
+	if ok && uo.Password == pass {
+		if uo.Profile != user {
 			zap.S().Panicf("invalid user/password combination for %s", user)
 		}
 	}
 
-	u, err := url.Parse(cfg.RedirectURL)
+	// TODO: make redirect url a []string
+	if redirectURI != cfg.RedirectURL {
+		zap.L().Error("got invalid redirect_uri from client", zap.String("redirect_uri", redirectURI))
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	u, err := url.Parse(redirectURI)
 	if err != nil {
 		zap.L().Panic("could not parse callback url for mock auth", zap.Error(err))
 	}
 
 	ref := u.Query()
 	ref.Set("state", state)
-	// we could also generate a token here which is valid to get the info for the specified user
-	// it would be a good starting point for a more complete OIDC server
-	ref.Set("code", pass)
+
+	// generate our authorization grant code
+	code, err := uuid.NewRandom()
+	if err != nil {
+		zap.L().Panic("could not generate uuid code", zap.Error(err))
+	}
+
+	// store the authorization grant, temporarily
+	codes[code.String()] = user
+
+	// TODO: are we POST-ing this? can we add parameters to a POST redirect?
+	ref.Set("code", code.String())
 	u.RawQuery = ref.Encode()
 
 	c.Redirect(http.StatusTemporaryRedirect, u.String())
@@ -215,13 +265,16 @@ func Keys(c *gin.Context) {
 	c.JSONP(http.StatusOK, keySet)
 }
 
-func generateIDToken(u mockUser) (string, error) {
-	tok := idToken{
-		Subject:  u.Subject,
+func generateToken(sub string, expires time.Duration) (string, error) {
+	now := time.Now()
+	exp := now.Add(expires)
+
+	tok := oidcToken{
+		Subject:  sub,
 		Issuer:   config.Cfg.Auth.OIDC.ProviderURL,
 		Audience: config.Cfg.Auth.OIDC.ClientID,
-		IssuedAt: int(time.Now().Unix()),
-		Expires:  int(time.Now().Unix() + 3600),
+		IssuedAt: now.Unix(),
+		Expires:  exp.Unix(),
 	}
 
 	b, _ := json.Marshal(&tok)
@@ -231,6 +284,7 @@ func generateIDToken(u mockUser) (string, error) {
 }
 
 // Userinfo endpoint provides the claims for a logged in user given a bearer token
+// returns an id_token
 func Userinfo(c *gin.Context) {
 	auth := c.GetHeader("Authorization")
 	raw := strings.Replace(auth, "Bearer ", "", 1)
@@ -238,13 +292,18 @@ func Userinfo(c *gin.Context) {
 	// here would be the place to verify the bearer token against the issued ones
 	// instead of using just static tokens which double as passwords
 
+	zap.L().Debug("userinfo bearer", zap.String("token", raw))
+
 	user, ok := mockUsers[raw]
 	if !ok {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
-	s, err := generateIDToken(user)
+	s, err := generateToken(user.Subject, time.Hour)
+
+	// TOOD: fill with user info
+
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -256,31 +315,42 @@ func Userinfo(c *gin.Context) {
 
 // Token exchanges a "code" against a token which contains the id_token of the requested user specified in "code"
 func Token(c *gin.Context) {
-	id := c.PostForm("client_id")
-	secret := c.PostForm("client_secret")
 	code := c.PostForm("code")
+	grantType := c.PostForm("grant_type")
 
-	if cfg.ClientID == id && cfg.ClientSecret == secret {
-		s, err := generateIDToken(mockUsers[code])
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
+	zap.L().Debug("token ep", zap.String("grant_type", grantType))
 
-		tok := accessToken{"SlAV32hkKG", "Bearer", "8xLOxBtZp8", 3600, s}
-		zap.S().Infof("mock token: %+v", tok)
+	// TODO: check which tokens are being requested
 
-		// return token
-		c.JSONP(http.StatusOK, tok)
-	} else {
+	sub, ok := codes[code]
+	if !ok {
+		zap.L().Debug("token exchange unauthorized")
 		c.AbortWithError(http.StatusUnauthorized, errors.New("unauthorized"))
+		return
 	}
+
+	// codes are single-use only
+	delete(codes, code)
+
+	s, err := generateToken(mockUsers[sub].Subject, accessTokenLifetime)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	// TODO: return all the requested token types
+	tok := accessToken{s, "Bearer", "", int64(accessTokenLifetime / time.Millisecond), s}
+	zap.S().Infof("mock token: %+v", tok)
+
+	// return token
+	c.JSONP(http.StatusOK, tok)
 }
 
 // LogoutEndpoint handles logging out the user, e.g. this should invalidate
 // the token auth-side so that if it is presented to us again we know that it
 // has been invalidated
 func LogoutEndpoint(c *gin.Context) {
+	// TODO: blacklist jti of the access token here for the remaining duration
 	u := c.PostForm("post_logout_redirect_uri")
 	zap.S().Infof("got to logout, redirecting to: %s", u)
 	c.Redirect(http.StatusTemporaryRedirect, u)
