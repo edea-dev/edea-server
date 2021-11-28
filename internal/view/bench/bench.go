@@ -243,7 +243,7 @@ func Create(c *gin.Context) {
 
 	bench := new(model.Bench)
 	if err := c.Bind(bench); err != nil {
-		view.RenderErrMarkdown(c, "bench/new.md", err)
+		view.RenderErrTemplate(c, "bench/new.tmpl", err)
 		return
 	}
 

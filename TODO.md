@@ -1,37 +1,9 @@
 # EDeA Backend TODO
 
-## Modules
+- Convert all old md templates to go templates
+- Proxy search requests to make private stuff searchable for logged in users
+- short IDs as in fastparts
 
-Tasks for basic module functionality
+## Bugs noticed while testing
 
-- Add new module link
-- Add my modules link
-
-## Bench
-
-- Add new bench link
-- Add my benches link
-
-## Bench Modules
-
-- Add edit function
-
-## Login
-
-- Integrate the login form in our website for a better experience
-- Integrate Kratos
-- Add logout button
-
-## Merge tool integration
-
-- Code to run the merge on modules specified in a bench
-
-## Search
-
-Integrate with meilisearch to search through modules/benches.
-
-# Bugs noticed while testing
-
-/explore/user/{id} return 404.
-
-/help returns 404
+- Create help page
