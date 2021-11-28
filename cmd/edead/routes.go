@@ -23,6 +23,7 @@ func routes(router *gin.Engine) {
 	r.GET("/about", view.Template("about.tmpl", "EDeA - About")) // about EDeA
 
 	r.GET("/search", view.Template("search.tmpl", "EDeA - Search")) // Search page
+	r.GET("/meili", search.Search)
 
 	a := r.Group("/", auth.RequireAuth())
 

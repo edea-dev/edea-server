@@ -13,13 +13,15 @@ import (
 
 // Entry for the search index, expand with necessary data
 type Entry struct {
-	ID          string
-	Type        string
-	Name        string
-	Description string
-	Author      string
-	Tags        map[string]string
-	Metadata    map[string]interface{}
+	ID          string                 `json:"id"`
+	Type        string                 `json:"type"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	Author      string                 `json:"author"`
+	UserID      string                 `json:"user_id"`
+	Public      bool                   `json:"public"`
+	Tags        map[string]string      `json:"tags"`
+	Metadata    map[string]interface{} `json:"metadata"`
 }
 
 var meiliClient meilisearch.ClientInterface
@@ -41,7 +43,12 @@ func Init(host, index, apiKey string) error {
 		return err
 	}
 
-	return nil
+	_, err = meiliClient.Index(index).UpdateFilterableAttributes(&[]string{
+		"user_id",
+		"public",
+	})
+
+	return err
 }
 
 // BenchToEntry converts a Bench model to a Search Entry
@@ -52,6 +59,8 @@ func BenchToEntry(b model.Bench) Entry {
 		Name:        b.Name,
 		Description: b.Description,
 		Author:      b.User.Handle,
+		UserID:      b.UserID.String(),
+		Public:      b.Public,
 	}
 }
 
@@ -65,7 +74,9 @@ func ModuleToEntry(m model.Module) Entry {
 		Name:        m.Name,
 		Description: m.Description,
 		Author:      m.User.Handle,
-		Tags:        map[string]string{"Category": m.Category.Name},
+		UserID:      m.UserID.String(),
+		Public:      !m.Private,
+		Tags:        map[string]string{"category": m.Category.Name},
 		Metadata:    meta,
 	}
 }
@@ -77,7 +88,7 @@ func ReIndexDB(c *gin.Context) {
 	var modules []model.Module
 	var documents []Entry
 
-	result := model.DB.Model(&model.Bench{}).Where("public = true").Preload("User").Find(&benches)
+	result := model.DB.Model(&model.Bench{}).Preload("User").Find(&benches)
 	if result.Error != nil {
 		zap.L().Panic("could not fetch all public benches", zap.Error(result.Error))
 		zap.L().Panic("", zap.Error(result.Error))
@@ -87,7 +98,7 @@ func ReIndexDB(c *gin.Context) {
 		documents = append(documents, BenchToEntry(b))
 	}
 
-	result = model.DB.Model(&model.Module{}).Where("private = false").Preload("Category").Preload("User").Find(&modules)
+	result = model.DB.Model(&model.Module{}).Preload("Category").Preload("User").Find(&modules)
 	if result.Error != nil {
 		zap.L().Panic("could not fetch all public modules", zap.Error(result.Error))
 	}
@@ -139,4 +150,31 @@ func DeleteEntry(e Entry) error {
 	}
 
 	return nil
+}
+
+func Search(c *gin.Context) {
+	var filter string
+
+	q := c.Query("q")
+	v, ok := c.Keys["user"]
+
+	if ok {
+		id := v.(*model.User).ID.String()
+		filter = fmt.Sprintf("user_id = %s OR public = true", id)
+	} else {
+		filter = "public = true"
+	}
+
+	searchRes, err := meiliClient.Index("edea").Search(q,
+		&meilisearch.SearchRequest{
+			AttributesToHighlight: []string{"*"},
+			Filter:                filter,
+		})
+
+	if err != nil {
+		zap.L().Error("search error", zap.Error(err), zap.String("query", q))
+		c.String(http.StatusInternalServerError, "err")
+	}
+
+	c.JSON(http.StatusOK, searchRes)
 }
