@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	meilisearch "github.com/meilisearch/meilisearch-go"
 	"gitlab.com/edea-dev/edead/internal/model"
+	"gitlab.com/edea-dev/edead/internal/view"
 	"go.uber.org/zap"
 )
 
@@ -153,28 +154,45 @@ func DeleteEntry(e Entry) error {
 }
 
 func Search(c *gin.Context) {
-	var filter string
+	var filter, q string
+	m := make(map[string]interface{})
 
-	q := c.Query("q")
-	v, ok := c.Keys["user"]
-
-	if ok {
-		id := v.(*model.User).ID.String()
-		filter = fmt.Sprintf("user_id = %s OR public = true", id)
+	// allow GET and POST
+	if c.Request.Method == "GET" {
+		q = c.Query("q")
 	} else {
-		filter = "public = true"
+		q = c.PostForm("q")
 	}
 
-	searchRes, err := meiliClient.Index("edea").Search(q,
-		&meilisearch.SearchRequest{
-			AttributesToHighlight: []string{"*"},
-			Filter:                filter,
-		})
+	if q != "" {
+		// check if the user is logged in to include private results
+		v, ok := c.Keys["user"]
+		if ok {
+			id := v.(*model.User).ID.String()
+			filter = fmt.Sprintf("user_id = %s OR public = true", id)
+		} else {
+			filter = "public = true"
+		}
 
-	if err != nil {
-		zap.L().Error("search error", zap.Error(err), zap.String("query", q))
-		c.String(http.StatusInternalServerError, "err")
+		searchRes, err := meiliClient.Index("edea").Search(q,
+			&meilisearch.SearchRequest{
+				AttributesToHighlight: []string{"*"},
+				Filter:                filter,
+			})
+
+		if err != nil {
+			zap.L().Error("search error", zap.Error(err), zap.String("query", q))
+			c.String(http.StatusInternalServerError, "err")
+		}
+
+		// check if it's an AJAX request
+		if c.ContentType() == "application/json" {
+			c.JSON(http.StatusOK, searchRes)
+			return
+		}
+
+		m["Result"] = searchRes
 	}
 
-	c.JSON(http.StatusOK, searchRes)
+	view.RenderTemplate(c, "search.tmpl", "EDeA - Search", m)
 }

@@ -22,8 +22,8 @@ func routes(router *gin.Engine) {
 	r.GET("/", view.Template("index.tmpl", "EDeA"))              // index
 	r.GET("/about", view.Template("about.tmpl", "EDeA - About")) // about EDeA
 
-	r.GET("/search", view.Template("search.tmpl", "EDeA - Search")) // Search page
-	r.GET("/meili", search.Search)
+	r.GET("/search", search.Search)  // Search page
+	r.POST("/search", search.Search) // allow POST requests too
 
 	a := r.Group("/", auth.RequireAuth())
 
