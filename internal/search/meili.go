@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/meilisearch/meilisearch-go"
+	meilisearch "github.com/meilisearch/meilisearch-go"
 	"gitlab.com/edea-dev/edead/internal/model"
 	"go.uber.org/zap"
 )
@@ -108,7 +108,7 @@ func ReIndexDB(c *gin.Context) {
 // UpdateEntry adds or updates a single search entry
 func UpdateEntry(e Entry) error {
 	// gracefully ignore but warn if meilisearch doesn't work
-	if meiliClient != nil {
+	if meiliClient == nil {
 		zap.L().Warn("meilisearch not initialized")
 		return nil
 	}
@@ -125,7 +125,7 @@ func UpdateEntry(e Entry) error {
 // DeleteEntry removes an Entry from the search index
 func DeleteEntry(e Entry) error {
 	// gracefully ignore but warn if meilisearch doesn't work
-	if meiliClient != nil {
+	if meiliClient == nil {
 		zap.L().Warn("meilisearch not initialized")
 		return nil
 	}

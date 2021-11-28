@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/gitsight/go-vcsurl"
-	"github.com/go-git/go-git/v5"
+	vcsurl "github.com/gitsight/go-vcsurl"
+	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/google/uuid"
 	"gitlab.com/edea-dev/edead/internal/model"
@@ -19,9 +19,7 @@ import (
 )
 
 /*
-Git Repository Cache
-
-
+	Git Repository Cache
 */
 
 type Repository interface {
@@ -93,6 +91,7 @@ func (c *RepoCache) urlToRepoPath(url string) (path string, err error) {
 
 // Add a new repository to the cache
 func (c *RepoCache) Add(url string) (err error) {
+	var repoFolderExists bool
 	path, err := c.urlToRepoPath(url)
 	if err != nil {
 		return err
@@ -110,25 +109,27 @@ func (c *RepoCache) Add(url string) (err error) {
 			return err
 		}
 	} else {
-		zap.S().Errorf("repo cache folder conflict for %s, %s", url, path)
-		return ErrCacheExists
+		zap.S().Warnf("repo cache folder conflict for %s, %s", url, path)
+		repoFolderExists = true
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
+	if !repoFolderExists {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
 
-	// TODO: cache different VCS types other than git
-	repo := &GitRepository{URL: url, Path: path}
-	if err = repo.Clone(ctx); err != nil {
-		if ferr := os.RemoveAll(path); ferr != nil {
-			// what a bad day :(
-			zap.L().Error("couldn't remove dir after failed clone",
-				zap.NamedError("rmdir", ferr),
-				zap.NamedError("git clone", err),
-				zap.String("path", path))
-		}
-		if !errors.Is(err, transport.ErrEmptyRemoteRepository) {
-			return err
+		// TODO: cache different VCS types other than git
+		repo := &GitRepository{URL: url, Path: path}
+		if err = repo.Clone(ctx); err != nil {
+			if ferr := os.RemoveAll(path); ferr != nil {
+				// what a bad day :(
+				zap.L().Error("couldn't remove dir after failed clone",
+					zap.NamedError("rmdir", ferr),
+					zap.NamedError("git clone", err),
+					zap.String("path", path))
+			}
+			if !errors.Is(err, transport.ErrEmptyRemoteRepository) {
+				return err
+			}
 		}
 	}
 
