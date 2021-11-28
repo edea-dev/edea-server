@@ -68,6 +68,12 @@ func Create(c *gin.Context) {
 		zap.L().Panic("could not create new module", zap.Error(result.Error))
 	}
 
+	// get the full object from the database to update it in meilisearch
+	result = model.DB.WithContext(c).Preload("User").Preload("Category").First(module)
+	if result.Error != nil {
+		zap.L().Panic("could not create load new module", zap.Error(result.Error))
+	}
+
 	// update search index
 	if err := search.UpdateEntry(search.ModuleToEntry(*module)); err != nil {
 		zap.L().Panic("could not update search index", zap.Error(err))
@@ -153,6 +159,12 @@ func Update(c *gin.Context) {
 	result := model.DB.WithContext(c).Save(module)
 	if result.Error != nil {
 		zap.L().Panic("could not update module", zap.Error(result.Error))
+	}
+
+	// get the full object from the database to update it in meilisearch
+	result = model.DB.WithContext(c).Preload("User").Preload("Category").First(module)
+	if result.Error != nil {
+		zap.L().Panic("could not create load new module", zap.Error(result.Error))
 	}
 
 	// update search index
@@ -253,6 +265,12 @@ func Pull(c *gin.Context) {
 	result = model.DB.WithContext(c).Save(module)
 	if result.Error != nil {
 		zap.L().Panic("could not update submodule", zap.Error(result.Error))
+	}
+
+	// get the full object from the database to update it in meilisearch
+	result = model.DB.WithContext(c).Preload("User").Preload("Category").First(module)
+	if result.Error != nil {
+		zap.L().Panic("could not create load new module", zap.Error(result.Error))
 	}
 
 	// update search index
@@ -505,7 +523,7 @@ func BuildBook(c *gin.Context) {
 func PullAllRepos(c *gin.Context) {
 	var modules []model.Module
 
-	result := model.DB.Find(&modules)
+	result := model.DB.Preload("User").Preload("Category").Find(&modules)
 	if result.Error != nil {
 		zap.L().Panic("could not fetch all modules", zap.Error(result.Error))
 	}
