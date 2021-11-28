@@ -34,12 +34,6 @@ How this works:
 	/keys								| returns the public part of our JWKS
 	/userinfo							| returns an ID token of the user
 
-Here's how we differentiate which token we got:
-
-auth response token: encrypted
-id token: email field
-access token: no email field
-
 A good guide that explains the whole flow: https://connect2id.com/learn/openid-connect
 */
 
@@ -76,10 +70,20 @@ var (
 	CallbackURL string
 	Endpoint    string // where our mock OIDC server resides
 
-	accessTokenLifetime = time.Hour * 24 * 7
+	// the amount of time a client has to exchange a code for a token
+	grantLifetime = time.Minute
 
-	codes = make(map[string]string)
+	accessTokenLifetime = time.Hour
+	idTokenLifetime     = time.Hour * 24 * 7
+
+	// authorization grant codes
+	codes = make(map[string]grant)
 )
+
+type grant struct {
+	sub string
+	exp time.Time
+}
 
 type mockUser struct {
 	Subject       string `json:"sub"`
@@ -99,14 +103,17 @@ type accessToken struct {
 }
 
 type oidcToken struct {
-	Subject  string `json:"sub"`
-	Issuer   string `json:"iss"`
-	Audience string `json:"aud"`
-	Nonce    string `json:"nonce,omitempty"`
-	AuthTime int    `json:"auth_time,omitempty"`
-	ACR      string `json:"acr,omitempty"`
-	IssuedAt int64  `json:"iat"`
-	Expires  int64  `json:"exp"`
+	Subject       string `json:"sub"`
+	Issuer        string `json:"iss"`
+	Audience      string `json:"aud"`
+	Nonce         string `json:"nonce,omitempty"`
+	AuthTime      int    `json:"auth_time,omitempty"`
+	ACR           string `json:"acr,omitempty"`
+	Profile       string `json:"profile,omitempty"`
+	Email         string `json:"email,omitempty"`
+	EmailVerified bool   `json:"email_verified,omitempty"`
+	IssuedAt      int64  `json:"iat"`
+	Expires       int64  `json:"exp,omitempty"`
 }
 
 // InitMockAuth initialises a keyset and provides a new mock authenticator
@@ -239,7 +246,7 @@ func LoginPostHandler(c *gin.Context) {
 	}
 
 	// store the authorization grant, temporarily
-	codes[code.String()] = user
+	codes[code.String()] = grant{user, time.Now().Add(grantLifetime)}
 
 	// TODO: are we POST-ing this? can we add parameters to a POST redirect?
 	ref.Set("code", code.String())
@@ -265,16 +272,22 @@ func Keys(c *gin.Context) {
 	c.JSONP(http.StatusOK, keySet)
 }
 
-func generateToken(sub string, expires time.Duration) (string, error) {
+func generateToken(user mockUser, expires time.Duration, info bool) (string, error) {
 	now := time.Now()
 	exp := now.Add(expires)
 
 	tok := oidcToken{
-		Subject:  sub,
+		Subject:  user.Subject,
 		Issuer:   config.Cfg.Auth.OIDC.ProviderURL,
 		Audience: config.Cfg.Auth.OIDC.ClientID,
 		IssuedAt: now.Unix(),
 		Expires:  exp.Unix(),
+	}
+
+	if info {
+		tok.Email = user.Email
+		tok.Profile = user.Profile
+		tok.EmailVerified = user.EmailVerified
 	}
 
 	b, _ := json.Marshal(&tok)
@@ -300,9 +313,7 @@ func Userinfo(c *gin.Context) {
 		return
 	}
 
-	s, err := generateToken(user.Subject, time.Hour)
-
-	// TOOD: fill with user info
+	s, err := generateToken(user, time.Hour, true)
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -322,7 +333,7 @@ func Token(c *gin.Context) {
 
 	// TODO: check which tokens are being requested
 
-	sub, ok := codes[code]
+	g, ok := codes[code]
 	if !ok {
 		zap.L().Debug("token exchange unauthorized")
 		c.AbortWithError(http.StatusUnauthorized, errors.New("unauthorized"))
@@ -332,15 +343,24 @@ func Token(c *gin.Context) {
 	// codes are single-use only
 	delete(codes, code)
 
-	s, err := generateToken(mockUsers[sub].Subject, accessTokenLifetime)
+	if g.exp.Before(time.Now()) {
+		c.String(http.StatusUnauthorized, "code expired")
+		return
+	}
+
+	auth, err := generateToken(mockUsers[g.sub], accessTokenLifetime, false)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	// TODO: return all the requested token types
-	tok := accessToken{s, "Bearer", "", int64(accessTokenLifetime / time.Millisecond), s}
-	zap.S().Infof("mock token: %+v", tok)
+	id, err := generateToken(mockUsers[g.sub], idTokenLifetime, true)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	tok := accessToken{auth, "Bearer", "", int64(accessTokenLifetime / time.Millisecond), id}
 
 	// return token
 	c.JSONP(http.StatusOK, tok)
