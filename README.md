@@ -26,13 +26,7 @@ $GOPATH:/bin/edead
 
 0. Install Dependencies
 
-We use [modd](https://github.com/cortesi/modd) for live reloading and Go auto-building
-
-```sh
-env GO111MODULE=on go get github.com/cortesi/modd/cmd/modd
-```
-
-Alternatively, use your system's package manager. On Arch Linux, if you use `yay`, just run `yay -S modd`. For the frontend you'll also need yarn.
+We use [tilt](https://tilt.dev/) for live updating and docker compose for the database and search images.
 
 1. Clone the repository
 
@@ -40,38 +34,13 @@ Alternatively, use your system's package manager. On Arch Linux, if you use `yay
 git clone https://gitlab.com/edea-dev/edead && cd edead
 ```
 
-2. Configure the database connection
-
-Copy `config.template.yml` to `config.yml`, and edit it to point to your PostgreSQL installation. Installing and configuring PostgreSQL is left as an exercise for the reader.
-
-3. Prepare the Frontend Files
-
-Currently only Linux is supported.
+2. Run a local dev environment with tilt
 
 ```sh
-cd frontend
-./install-dependencies.sh
-./build-fe.sh
-```
-
-These should finish without any error. Now the webserver's static files are prepared in the `static/` directory.
-
-3. Run the server
-
-```sh
-modd
+tilt up
 ```
 
 That's it.
-
-Live reload currently does not watch frontend files. You'll need to re-run `./build-fe` in the `frontend` folder when you change the JS/Sass/CSS files or graphic assets.
-
-## Deployment
-
-```sh
-rsync -avz static edea.dev:~/edea-test/
-scp -C edead edea.dev:~/edea-test/
-```
 
 ## Administration
 

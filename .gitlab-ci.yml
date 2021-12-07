@@ -1,2 +1,13 @@
+# only runs tests for now
+
 include:
   - template: Security/SAST.gitlab-ci.yml
+
+stages: 
+  - test
+
+tests:
+  stage: test
+  image: mcr.microsoft.com/playwright:v1.17.0-focal
+  script:
+    - npx playwright test

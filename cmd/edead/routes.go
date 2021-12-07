@@ -72,7 +72,6 @@ func routes(router *gin.Engine) {
 	// mdbooks are built and served from here
 	router.Static("/module/doc", config.Cfg.Cache.Book.Base)
 
-	// TODO: let our IAP do that
 	a.GET("/profile", user.Profile)
 	a.POST("/profile", user.UpdateProfile)
 	a.GET("/profile/export", user.DataExport)

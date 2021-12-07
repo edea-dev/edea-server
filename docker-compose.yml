@@ -1,8 +1,24 @@
 version: "3.9"
 services:
+  edea:
+    image: edea
+    build:
+      dockerfile: Dockerfile
+      context: .
+      target: dev
+    volumes:
+      - data:/data
+    ports:
+      - 3000:3000
+    environment:
+      - DB_DSN=host=edea-db user=edea password=edea dbname=edea port=5432 sslmode=disable
+      - REPO_CACHE_BASE=/data/repo
+      - SEARCH_HOST=http://edea-meilisearch:7700
+      - SEARCH_INDEX=edea
+      - SEARCH_API_KEY=meiliedea
   db:
     image: docker.io/postgres:14.1-alpine
-    container_name: edea-postgres
+    container_name: edea-db
     volumes:
       - data:/var/lib/postgresql/data
     environment:

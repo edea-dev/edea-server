@@ -1,9 +1,11 @@
 package search
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	meilisearch "github.com/meilisearch/meilisearch-go"
@@ -34,6 +36,22 @@ func Init(host, index, apiKey string) error {
 		Host:   host,
 		APIKey: apiKey,
 	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+
+	for {
+		if !meiliClient.IsHealthy() {
+			zap.S().Info("meilisearch not ready yet")
+			select {
+			case <-ctx.Done():
+				zap.L().Fatal("timed out waiting for meilisearch")
+			case <-time.After(time.Second):
+			}
+		} else {
+			cancel()
+			break
+		}
+	}
 
 	// Create an index if your index does not already exist
 	_, err := meiliClient.GetOrCreateIndex(&meilisearch.IndexConfig{

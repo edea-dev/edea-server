@@ -23,12 +23,6 @@ auth:
     session_secret:
     logout_url:
     post_logout_url:
-  mock_oidc: # rename to oidc to use mock auth
-    provider_url:
-    client_id:
-    client_secret:
-    redirect_url:
-    session_secret:
   use_mock: false
 search:
   host: http://127.0.0.1:7700

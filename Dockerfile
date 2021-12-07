@@ -4,7 +4,7 @@ RUN apk add --update make bash yarn ncurses
 FROM base as dev
 WORKDIR /build
 ADD . /build
-RUN make
+RUN make build
 
 CMD ["./edead"]
 
