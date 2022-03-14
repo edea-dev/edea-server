@@ -1,4 +1,4 @@
-FROM golang:1.17-alpine3.14 as base
+FROM golang:1.17-alpine3.15 as base
 RUN apk add --update make bash yarn ncurses
 
 FROM base as dev
@@ -8,7 +8,7 @@ RUN make build
 
 CMD ["./edead"]
 
-FROM docker.io/alpine:3.14 AS prod
+FROM docker.io/alpine:3.15 AS prod
 WORKDIR /app
 COPY --from=dev /build/edead .
 CMD [ "./edead" ]

@@ -54,9 +54,7 @@ func Init(host, index, apiKey string) error {
 	}
 
 	// Create an index if your index does not already exist
-	_, err := meiliClient.GetOrCreateIndex(&meilisearch.IndexConfig{
-		Uid: index,
-	})
+	_, err := meiliClient.CreateIndex(&meilisearch.IndexConfig{Uid: index})
 
 	if err != nil {
 		return err
@@ -131,8 +129,8 @@ func ReIndexDB(c *gin.Context) {
 		zap.L().Panic("could not add/update the search index in bulk", zap.Error(result.Error))
 	}
 
-	zap.L().Debug("bulk update", zap.Int64("meili_update_id", updateRes.UpdateID))
-	c.String(http.StatusOK, "bulk update update_id: %d", updateRes.UpdateID)
+	zap.L().Debug("bulk update", zap.Int64("meili_update_id", updateRes.UID))
+	c.String(http.StatusOK, "bulk update update_id: %d", updateRes.UID)
 }
 
 // UpdateEntry adds or updates a single search entry
@@ -148,7 +146,7 @@ func UpdateEntry(e Entry) error {
 		return fmt.Errorf("could not add/update the search index: %w", err)
 	}
 
-	zap.L().Debug("single entry update", zap.Int64("meili_update_id", updateRes.UpdateID))
+	zap.L().Debug("single entry update", zap.Int64("meili_update_id", updateRes.UID))
 	return nil
 }
 
