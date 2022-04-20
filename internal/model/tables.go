@@ -40,7 +40,7 @@ func CreateCategories() {
 	}
 	result := DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&categories)
 	if result.Error != nil {
-		zap.L().Fatal("could not run automigrations", zap.Error(result.Error))
+		zap.L().Fatal("could not create categories", zap.Error(result.Error))
 	}
 }
 

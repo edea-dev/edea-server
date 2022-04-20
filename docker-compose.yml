@@ -17,7 +17,7 @@ services:
       - SEARCH_INDEX=edea
       - SEARCH_API_KEY=meiliedea
   db:
-    image: docker.io/postgres:14.1-alpine
+    image: docker.io/postgres:14.2-alpine
     container_name: edea-db
     volumes:
       - data:/var/lib/postgresql/data
@@ -30,7 +30,7 @@ services:
     ports:
       - 5432:5432
   search:
-    image: docker.io/getmeili/meilisearch:v0.24.0
+    image: docker.io/getmeili/meilisearch:v0.26.1
     container_name: edea-meilisearch
     volumes:
       - data:/var/lib/meilisearch/data
