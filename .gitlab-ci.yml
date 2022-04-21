@@ -10,11 +10,13 @@ services:
   - docker:dind    
 
 tests:
+  services:
+    - docker:dind
   stage: test
-  image: alpine:latest
+  image: docker:git
   script:
     - mkdir -p ~/.docker/cli-plugins
-    - apk add --no-cache npm curl docker
+    - apk add --no-cache npm curl
     - curl https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
     - chmod +x ~/.docker/cli-plugins/docker-compose
     - docker version
