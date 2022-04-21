@@ -26,4 +26,4 @@ tests:
     - make build
     - ./edead &
     - sleep 5
-    - npx playwright test
+    - (cd frontend; npx playwright test)
