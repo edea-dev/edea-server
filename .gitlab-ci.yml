@@ -1,7 +1,7 @@
 # only runs tests for now
 
-include:
-  - template: Security/SAST.gitlab-ci.yml
+#include:
+#  - template: Security/SAST.gitlab-ci.yml
 
 stages: 
   - test
@@ -17,6 +17,7 @@ tests:
     - apk add --no-cache npm curl
     - curl https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
     - chmod +x ~/.docker/cli-plugins/docker-compose
+    - ls ~/.docker/cli-plugins
     - docker compose up
     - npm install -D @playwright/test
     - npx playwright install
