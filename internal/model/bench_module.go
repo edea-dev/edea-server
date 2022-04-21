@@ -3,16 +3,17 @@ package model
 // SPDX-License-Identifier: EUPL-1.2
 
 import (
+	"database/sql"
+	"time"
+
 	"github.com/google/uuid"
 	"go.uber.org/zap/zapcore"
 	"gorm.io/datatypes"
-	"gorm.io/gorm"
 )
 
 // BenchModule contains the configuration for a Module as part of a Bench
 type BenchModule struct {
-	gorm.Model
-	ID          uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID          uuid.UUID `gorm:"type:uuid;primarykey;default:uuid_generate_v4()"`
 	Name        string
 	Description string
 	Conf        datatypes.JSON
@@ -20,6 +21,10 @@ type BenchModule struct {
 	Module      Module
 	BenchID     uuid.UUID `gorm:"type:uuid"`
 	Bench       Bench
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt sql.NullTime `gorm:"index"`
 }
 
 // MarshalLogObject provides the object representation for logging

@@ -42,6 +42,15 @@ tilt up
 
 That's it.
 
+### Running tests
+
+To run the frontend tests:
+
+```sh
+cd frontend
+npx playwright test
+```
+
 ## Administration
 
 We'll add any routine administrative tasks to the documentation as they arise after the portal goes live on [edea.dev](https://edea.dev).

@@ -19,8 +19,7 @@ import (
 
 // User mapping from IDs to the authentication provider data
 type User struct {
-	gorm.Model
-	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID        uuid.UUID `gorm:"type:uuid;primarykey;default:uuid_generate_v4()"`
 	AuthUUID  string    `gorm:"unique"` // unique id from authentication provider
 	Handle    string    `gorm:"unique"` // user handle as it will be used in the url
 	CreatedAt time.Time

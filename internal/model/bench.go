@@ -13,7 +13,7 @@ import (
 // Bench contains a number of modules with their configuration
 type Bench struct {
 	gorm.Model
-	ID          uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4()" form:"id"`
+	ID          uuid.UUID     `gorm:"type:uuid;primarykey;default:uuid_generate_v4()" form:"id"`
 	UserID      uuid.UUID     `gorm:"type:uuid" form:"-"`
 	ShortCode   string        `form:"short_code"`
 	User        User          `form:"-"`

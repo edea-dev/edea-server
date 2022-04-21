@@ -3,6 +3,9 @@ package model
 // SPDX-License-Identifier: EUPL-1.2
 
 import (
+	"database/sql"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
@@ -11,8 +14,7 @@ import (
 
 // Module model
 type Module struct {
-	gorm.Model
-	ID          uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID          uuid.UUID `gorm:"type:uuid;primarykey;default:uuid_generate_v4()"`
 	UserID      uuid.UUID `gorm:"type:uuid"`
 	ShortCode   string    `form:"short_code"`
 	User        User
@@ -24,6 +26,10 @@ type Module struct {
 	CategoryID  string `gorm:"type:uuid" form:"category"`
 	Category    Category
 	Metadata    datatypes.JSON
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt sql.NullTime `gorm:"index"`
 }
 
 // BeforeUpdate checks if the current user is allowed to do that
