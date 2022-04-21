@@ -22,6 +22,7 @@ tests:
     - apk add --no-cache npm make bash yarn ncurses
     - npm install -D @playwright/test
     - npx playwright install
+    - (cd frontend; ./install-dependencies.sh)
     - make build
     - ./edead &
     - sleep 5
