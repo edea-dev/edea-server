@@ -16,7 +16,7 @@ tests:
   image: docker/compose:latest
   script:
     - apk add --no-cache npm
-    - docker compose up
+    - docker-compose up
     - npm install -D @playwright/test
     - npx playwright install
     - npx playwright test
