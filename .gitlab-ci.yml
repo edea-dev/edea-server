@@ -3,20 +3,26 @@
 #include:
 #  - template: Security/SAST.gitlab-ci.yml
 
+variables:
+  POSTGRES_DB: edea
+  POSTGRES_USER: edea
+  POSTGRES_PASSWORD: edea
+  MEILI_MASTER_KEY: meiliedea
+
 stages: 
   - test
 
-services:
-  - docker:dind    
-
 tests:
   services:
-    - docker:dind
+    - postgresql:14.2-alpine
+    - docker.io/getmeili/meilisearch:v0.26.1
   stage: test
-  image: docker/compose:latest
+  image: golang:latest
   script:
     - apk add --no-cache npm
-    - docker-compose up
     - npm install -D @playwright/test
     - npx playwright install
+    - make build
+    - ./edead &
+    - sleep 5
     - npx playwright test
