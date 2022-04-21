@@ -1,6 +1,6 @@
 build:
-	go build ./cmd/edead
 	(cd frontend; TERM=xterm-256color ./build-fe.sh)
+	go build ./cmd/edead
 
 live-backend:
 	go build ./cmd/edead
