@@ -19,7 +19,7 @@ tests:
   stage: test
   image: golang:1.18-alpine
   script:
-    - apk add --no-cache npm make bash yarn ncurses
+    - apk add --no-cache npm make bash yarn ncurses git
     - npm install -D @playwright/test
     - npx playwright install
     - (cd frontend; ./install-dependencies.sh)
