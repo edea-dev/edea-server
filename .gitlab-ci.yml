@@ -13,13 +13,9 @@ tests:
   services:
     - docker:dind
   stage: test
-  image: alpine:latest
+  image: docker/compose:latest
   script:
-    - mkdir -p ~/.docker/cli-plugins
-    - apk add --no-cache npm curl docker
-    - curl https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
-    - chmod +x ~/.docker/cli-plugins/docker-compose
-    - docker version
+    - apk add --no-cache npm
     - docker compose up
     - npm install -D @playwright/test
     - npx playwright install
