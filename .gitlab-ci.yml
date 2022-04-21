@@ -11,13 +11,13 @@ services:
 
 tests:
   stage: test
-  image: docker
+  image: docker:latest
   script:
     - mkdir -p ~/.docker/cli-plugins
     - apk add --no-cache npm curl
     - curl https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
     - chmod +x ~/.docker/cli-plugins/docker-compose
-    - ls ~/.docker/cli-plugins
+    - docker plugin ls
     - docker compose up
     - npm install -D @playwright/test
     - npx playwright install
