@@ -6,9 +6,15 @@ include:
 stages: 
   - test
 
+services:
+  - docker:dind    
+
 tests:
   stage: test
-  image: mcr.microsoft.com/playwright:v1.21.0-focal
+  image: docker
   script:
+    - docker compose up -d
+    - apk add --no-cache npm
     - npm install -D @playwright/test
+    - npx playwright install
     - npx playwright test
