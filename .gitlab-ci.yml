@@ -14,7 +14,7 @@ stages:
 
 tests:
   services:
-    - postgresql:14.2-alpine
+    - postgres:14.2-alpine
     - docker.io/getmeili/meilisearch:v0.26.1
   stage: test
   image: golang:latest
