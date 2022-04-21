@@ -13,7 +13,7 @@ tests:
   services:
     - docker:dind
   stage: test
-  image: docker:git
+  image: alpine:latest
   script:
     - mkdir -p ~/.docker/cli-plugins
     - apk add --no-cache npm curl
