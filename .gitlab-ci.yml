@@ -8,7 +8,7 @@ variables:
   POSTGRES_USER: edea
   POSTGRES_PASSWORD: edea
   MEILI_MASTER_KEY: meiliedea
-  SERVER_HOST: 127.0.0.2
+  SERVER_HOST: 127.0.0.1
   SERVER_PORT: 3000
   DB_DSN: host=postgres user=edea password=edea dbname=edea port=5432 sslmode=disable
   MERGE_TOOL: merge-tool/edea_merge_tool
