@@ -8,14 +8,33 @@ variables:
   POSTGRES_USER: edea
   POSTGRES_PASSWORD: edea
   MEILI_MASTER_KEY: meiliedea
+  SERVER_HOST: 127.0.0.2
+  SERVER_PORT: 3000
+  DB_DSN: host=postgres user=edea password=edea dbname=edea port=5432 sslmode=disable
+  MERGE_TOOL: merge-tool/edea_merge_tool
+  PLOTPCB: cmd/plotpcb/plotpcb.py
+  REPO_CACHE_BASE: ./tmp/git
+  BOOK_CACHE_BASE: ./tmp/doc
+  AUTH_PROVIDER_URL: http://localhost:3000
+  AUTH_CLIENT_ID: LGqqvVYdSGmv8FZmvHRYq9aYgxyx8ULd
+  AUTH_CLIENT_SECRET: SUXHrS77iEyZfNoAeZE5LYb8yRSTGW4LBftNRDG2xFYcnH62qo279bGBzyLW7Qzr
+  AUTH_REDIRECT_URL: http://localhost:3000/callback
+  AUTH_LOGOUT_URL: http://localhost:3000/logout_callback
+  AUTH_POST_LOGOUT_URL: http://localhost:3000/
+  USE_AUTH_MOCK: "true"
+  SEARCH_HOST: http://search:7700
+  SEARCH_INDEX: edea
+  SEARCH_API_KEY: meiliedea
 
 stages: 
   - test
 
 tests:
   services:
-    - postgres:14.2-alpine
-    - docker.io/getmeili/meilisearch:v0.26.1
+    - name: postgres:14.2-alpine
+      alias: postgres
+    - name: docker.io/getmeili/meilisearch:v0.26.1
+      alias: search
   stage: test
   image: golang:1.18-alpine
   script:
@@ -24,6 +43,7 @@ tests:
     - npx playwright install
     - (cd frontend; ./install-dependencies.sh)
     - make build
+    - (mkdir -p tmp/git; mkdir tmp/doc)
     - ./edead &
     - sleep 5
     - (cd frontend; npx playwright test)
