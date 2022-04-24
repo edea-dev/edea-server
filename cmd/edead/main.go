@@ -71,6 +71,8 @@ func main() {
 		Handler:      r, // Pass our instance of gorilla/mux in.
 	}
 
+	fmt.Printf("THE CONFIG: %#v", config.Cfg)
+
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
 		zap.S().Infof("Listening on: http://%s", addr)

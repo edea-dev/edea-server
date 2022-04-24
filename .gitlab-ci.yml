@@ -67,5 +67,5 @@ tests:
   script:
     - cd frontend
     - npm i -D @playwright/test
-    - npx playwright install --with-deps
+    - npx playwright install
     - npx playwright test
