@@ -66,6 +66,7 @@ tests:
   stage: test
   image: mcr.microsoft.com/playwright:v1.21.0-focal
   script:
-    - npm ci
+    - cd frontend
+    - npm i -D @playwright/test
     - npx playwright install --with-deps
-    - (cd frontend; npx playwright test)
+    - npx playwright test
