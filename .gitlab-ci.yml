@@ -27,7 +27,6 @@ variables:
   SEARCH_API_KEY: meiliedea
   TEST_HOST: http://edea:3000
 
-
 docker-build:
   image: docker:latest
   stage: build
@@ -54,7 +53,6 @@ docker-build:
       exists:
         - Dockerfile
 
-
 tests:
   services:
     - name: postgres:14.2-alpine
@@ -63,6 +61,8 @@ tests:
       alias: search
     - name: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
       alias: edea
+      variables:
+        PORT: 3000
   stage: test
   image: mcr.microsoft.com/playwright:v1.21.0-focal
   script:
