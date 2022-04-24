@@ -13,7 +13,7 @@ if (!edea_url) {
     edea_url = "http://localhost:3000"
 }
 
-console.log("testing: ${edea_url}");
+console.log(`testing: ${edea_url}`);
 
 test.describe.serial('user workflow - alice', () => {
     let page: Page;
