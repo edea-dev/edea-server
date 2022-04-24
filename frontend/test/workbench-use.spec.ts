@@ -1,8 +1,12 @@
 import { test, expect, Page, PlaywrightTestConfig } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
-  // Concise 'dot' for CI, default 'list' when running locally
-  reporter: process.env.CI ? 'dot' : 'list',
+    // Concise 'dot' for CI, default 'list' when running locally
+    reporter: process.env.CI ? 'dot' : 'list',
+    // use firefox instead of chrome
+    use: {
+        channel: 'firefox',
+    },
 };
 
 export default config;
@@ -27,12 +31,11 @@ test.describe.serial('user workflow - alice', () => {
 
         await page.fill('#user', 'alice');
         await page.fill('#password', 'alicealice');
-  
+
         await page.click('text=Submit');
 
         // TODO: temp fix until we figure out why it doesn't redirect in CI
         await page.waitForTimeout(1000);
-        await page.goto(edea_url);
 
         const buffer = await page.screenshot();
         console.log(buffer.toString('base64'));
