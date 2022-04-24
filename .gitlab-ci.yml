@@ -61,8 +61,8 @@ tests:
       alias: search
     - name: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
       alias: edea
-      variables:
-        PORT: 3000
+  variables:
+    FF_NETWORK_PER_BUILD: "true"
   stage: test
   image: mcr.microsoft.com/playwright:v1.21.0-focal
   script:
