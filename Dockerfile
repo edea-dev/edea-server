@@ -1,5 +1,5 @@
 FROM golang:1.18-alpine3.15 as base
-RUN apk add --update make bash yarn ncurses
+RUN apk add --update make bash yarn ncurses git
 
 FROM base as dev
 WORKDIR /build
