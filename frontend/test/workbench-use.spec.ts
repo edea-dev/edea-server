@@ -13,8 +13,6 @@ if (!edea_url) {
     edea_url = "http://localhost:3000"
 }
 
-console.log(`testing: ${edea_url}`);
-
 test.describe.serial('user workflow - alice', () => {
     let page: Page;
 
@@ -29,10 +27,11 @@ test.describe.serial('user workflow - alice', () => {
 
         await page.fill('#user', 'alice');
         await page.fill('#password', 'alicealice');
-        await page.click('text=Submit');
-
-        const buffer = await page.screenshot();
-        console.log(buffer.toString('base64'));
+  
+        await Promise.all([
+            page.waitForNavigation(),
+            page.click('text=Submit'),
+        ]);
 
         const logout = page.locator('a[href="/logout"]');
         await expect(logout).toHaveText("Logout");
@@ -121,7 +120,11 @@ test.describe.serial('user workflow - bob', () => {
 
         await page.fill('#user', 'bob');
         await page.fill('#password', 'bob');
-        await page.click('text=Submit');
+
+        await Promise.all([
+            page.waitForNavigation(),
+            page.click('text=Submit'),
+        ]);
 
         const logout = page.locator('a[href="/logout"]');
         await expect(logout).toHaveText("Logout");
