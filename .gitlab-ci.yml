@@ -65,6 +65,8 @@ tests:
   stage: test
   image: mcr.microsoft.com/playwright:v1.21.0-focal
   script:
+    - apt install curl
+    - curl http://edea
     - cd frontend
     - npm i -D @playwright/test
     - npx playwright install --with-deps
