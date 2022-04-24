@@ -6,10 +6,11 @@ WORKDIR /build
 ADD . /build
 RUN make deps
 RUN make build
-
+EXPOSE 3000/tcp
 CMD ["./edead"]
 
 FROM docker.io/alpine:3.15 AS prod
 WORKDIR /app
 COPY --from=dev /build/edead .
+EXPOSE 3000/tcp
 CMD [ "./edead" ]
