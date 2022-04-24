@@ -40,7 +40,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag edea-server:${{env.GITHUB_HEAD_REF}}
+      run: docker build . --file Dockerfile --tag edea-server:${{github.head_ref}}
 
   test:
     services:
@@ -53,7 +53,7 @@ jobs:
         ports:
           - 7700:7700
       edea:
-        image: edea-server:${{env.GITHUB_HEAD_REF}}
+        image: edea-server:${{github.head_ref}}
         ports:
           - 80:80
       
