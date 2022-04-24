@@ -31,6 +31,9 @@ test.describe.serial('user workflow - alice', () => {
         await page.fill('#password', 'alicealice');
         await page.click('text=Submit');
 
+        const buffer = await page.screenshot();
+        console.log(buffer.toString('base64'));
+
         const logout = page.locator('a[href="/logout"]');
         await expect(logout).toHaveText("Logout");
     });
