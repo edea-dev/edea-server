@@ -6,7 +6,7 @@ test.describe.serial('user workflow - alice', () => {
     test.beforeAll(async ({ browser }) => {
         page = await browser.newPage();
 
-        await page.goto('http://localhost:3000/');
+        await page.goto('http://edea:3000/');
         const logo = page.locator('.navbar-brand');
         await expect(logo).toHaveAttribute("aria-label", "EDeA")
 
@@ -95,7 +95,7 @@ test.describe.serial('user workflow - bob', () => {
     test.beforeAll(async ({ browser }) => {
         page = await browser.newPage();
 
-        await page.goto('http://localhost:3000/');
+        await page.goto('http://edea:3000/');
         const logo = page.locator('.navbar-brand');
         await expect(logo).toHaveAttribute("aria-label", "EDeA")
 
