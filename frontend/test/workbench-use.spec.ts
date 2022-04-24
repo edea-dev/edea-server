@@ -31,7 +31,10 @@ test.describe.serial('user workflow - alice', () => {
         await page.click('text=Submit');
 
         // TODO: temp fix until we figure out why it doesn't redirect in CI
-        await page.goto(edea_url);
+        await page.waitForTimeout(1000);
+
+        const buffer = await page.screenshot();
+        console.log(buffer.toString('base64'));
 
         const logout = page.locator('a[href="/logout"]');
         await expect(logout).toHaveText("Logout");
