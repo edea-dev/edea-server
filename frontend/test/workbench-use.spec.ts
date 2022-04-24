@@ -32,6 +32,7 @@ test.describe.serial('user workflow - alice', () => {
 
         // TODO: temp fix until we figure out why it doesn't redirect in CI
         await page.waitForTimeout(1000);
+        await page.goto(edea_url);
 
         const buffer = await page.screenshot();
         console.log(buffer.toString('base64'));
