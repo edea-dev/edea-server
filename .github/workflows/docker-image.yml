@@ -33,14 +33,6 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag edea-server:${{ github.ref_name }}
-
-  test:
     services:
       postgres:
         image: postgres:14.2-alpine
@@ -50,24 +42,22 @@ jobs:
         image: docker.io/getmeili/meilisearch:v0.26.1
         ports:
           - 7700:7700
-      edea:
-        image: edea-server:${{ github.ref_name }}
-        ports:
-          - 80:80
 
     timeout-minutes: 60
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: "14.x"
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag edea-server:${{ github.ref_name }}
+      - name: Run Docker image
+        run: docker run --rm edea-server:${{ github.ref_name }} -d
       - name: Install dependencies
         run: (cd frontend; npm ci)
       - name: Install Playwright
         run: (cd frontend; npx playwright install --with-deps)
       - name: Run Playwright tests
         run: (cd frontend; npx playwright test)
-        env:
-          # This might depend on your test-runner/language binding
-          PLAYWRIGHT_TEST_BASE_URL: http://edea
