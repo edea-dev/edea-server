@@ -54,7 +54,7 @@ jobs:
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag edea-server:${{ github.ref_name }}
       - name: Run Docker image
-        run: docker run -d -p --rm edea-server:${{ github.ref_name }}
+        run: docker run -d -p 3000:3000 --rm edea-server:${{ github.ref_name }}
       - name: Install dependencies
         run: (cd frontend; npm i -D @playwright/test)
       - name: Install Playwright
