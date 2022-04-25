@@ -56,7 +56,7 @@ jobs:
       - name: Run Docker image
         run: docker run -d --rm edea-server:${{ github.ref_name }}
       - name: Install dependencies
-        run: (cd frontend; npm ci)
+        run: (cd frontend; npm i -D @playwright/test)
       - name: Install Playwright
         run: (cd frontend; npx playwright install --with-deps)
       - name: Run Playwright tests
