@@ -2,9 +2,9 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ main, ci-shenanigans ]
+    branches: [main, ci-shenanigans]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   FF_NETWORK_PER_BUILD: 1
@@ -32,15 +32,13 @@ env:
   TEST_HOST: http://edea
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag edea-server:${{ github.ref_name }}
+      - uses: actions/checkout@v3
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag edea-server:${{ github.ref_name }}
 
   test:
     services:
@@ -56,23 +54,20 @@ jobs:
         image: edea-server:${{ github.ref_name }}
         ports:
           - 80:80
-      
 
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    if: github.event.deployment_status.state == 'success'
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
-      with:
-        node-version: '14.x'
-    - name: Install dependencies
-      run: cd frontend; npm ci
-    - name: Install Playwright
-      run: npx playwright install --with-deps
-    - name: Run Playwright tests
-      run: npm run test
-      env:
-        # This might depend on your test-runner/language binding
-        PLAYWRIGHT_TEST_BASE_URL: ${{ github.event.deployment_status.target_url }}
-  
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "14.x"
+      - name: Install dependencies
+        run: (cd frontend; npm ci)
+      - name: Install Playwright
+        run: (cd frontend; npx playwright install --with-deps)
+      - name: Run Playwright tests
+        run: (cd frontend; npx playwright test)
+        env:
+          # This might depend on your test-runner/language binding
+          PLAYWRIGHT_TEST_BASE_URL: http://edea
