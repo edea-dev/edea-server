@@ -32,7 +32,9 @@ integration-test:
     COPY docker-compose.yml ./
     COPY frontend/test ./
     COPY integration-test.sh ./
-    WITH DOCKER --compose docker-compose.yml
+    WITH DOCKER --compose docker-compose.yml \
+                --service db \
+                --service search
         RUN ./integration-test.sh
     END
 
