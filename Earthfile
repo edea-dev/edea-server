@@ -33,7 +33,6 @@ tester:
     WORKDIR /app
     COPY frontend/test .
     COPY integration-test.sh .
-    RUN apt update && apt install -y iputils-ping
     ENTRYPOINT ["/app/integration-test.sh"]
     SAVE IMAGE tester:latest
 
