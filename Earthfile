@@ -45,13 +45,16 @@ integration-test:
                 --service db \
                 --service search
         RUN while ! pg_isready --host=localhost --port=5432 --dbname=edea --username=edea; do sleep 1; done ;\
-            docker run -e "DB_DSN=host=edea-db user=edea password=edea dbname=edea port=5432 sslmode=disable" \
-                       -e "REPO_CACHE_BASE=/tmp/repo" \
-                       -e "SEARCH_HOST=http://edea-meilisearch:7700" \
-                       -e "SEARCH_INDEX=edea" \
-                       -e "SEARCH_API_KEY=meiliedea" \
-                       -d edea-server:latest; \
-            docker run -e "TEST_HOST=http://edea-server:3000" tester:latest
+            docker run  -e "DB_DSN=host=edea-db user=edea password=edea dbname=edea port=5432 sslmode=disable" \
+                        -e "REPO_CACHE_BASE=/tmp/repo" \
+                        -e "SEARCH_HOST=http://edea-meilisearch:7700" \
+                        -e "SEARCH_INDEX=edea" \
+                        -e "SEARCH_API_KEY=meiliedea" \
+                        --network edea-net \
+                        -d \
+                        edea-server:latest; \
+            docker run  -e "TEST_HOST=http://edea-server:3000" \
+                        --network edea-net tester:latest
     END
 
 all:

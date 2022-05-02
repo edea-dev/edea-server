@@ -29,6 +29,8 @@ services:
       - 5432
     ports:
       - 5432:5432
+    networks:
+      - edea-net
   search:
     image: docker.io/getmeili/meilisearch:v0.26.1
     container_name: edea-meilisearch
@@ -41,6 +43,11 @@ services:
       - 7700
     ports:
       - 7700:7700
+    networks:
+      - edea-net
 
 volumes:
   data:
+
+networks:
+  edea-net:
