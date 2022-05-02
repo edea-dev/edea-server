@@ -12,8 +12,8 @@ CMD ["./edead"]
 FROM docker.io/alpine:3.15 AS prod
 WORKDIR /app
 RUN mkdir -p ./frontend/template
-COPY --from=dev /build/edead .
+COPY --from=dev /build/edea-server .
 COPY --from=dev /build/frontend/template ./frontend/template
 COPY --from=dev /build/static ./static
 EXPOSE 3000/tcp
-CMD [ "./edead" ]
+CMD [ "./edea-server" ]

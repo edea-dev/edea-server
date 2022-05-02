@@ -1,71 +1,21 @@
 # only runs tests for now
 
-#include:
-#  - template: Security/SAST.gitlab-ci.yml
+include:
+  - template: Security/SAST.gitlab-ci.yml
 
-docker-build:
-  image: docker:latest
-  stage: build
-  services:
-    - docker:dind
-  before_script:
+image: docker
+services:
+  - docker:dind
+
+before_script:
+    - apk update && apk add git
+    - wget https://github.com/earthly/earthly/releases/download/v0.6.14/earthly-linux-amd64 -O /usr/local/bin/earthly
+    - chmod +x /usr/local/bin/earthly
+    - export FORCE_COLOR=1
+    - /usr/local/bin/earthly bootstrap
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-  # Default branch leaves tag empty (= latest tag)
-  # All other branches are tagged with the escaped branch name (commit ref slug)
-  script:
-    - |
-      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
-        tag=""
-        echo "Running on default branch '$CI_DEFAULT_BRANCH': tag = 'latest'"
-      else
-        tag=":$CI_COMMIT_REF_SLUG"
-        echo "Running on branch '$CI_COMMIT_BRANCH': tag = $tag"
-      fi
-    - docker build --pull -t "$CI_REGISTRY_IMAGE${tag}" .
-    - docker push "$CI_REGISTRY_IMAGE${tag}"
-  # Run this job in a branch where a Dockerfile exists
-  rules:
-    - if: $CI_COMMIT_BRANCH
-      exists:
-        - Dockerfile
 
-tests:
-  services:
-    - name: postgres:14.2-alpine
-      alias: postgres
-    - name: docker.io/getmeili/meilisearch:v0.26.1
-      alias: search
-    - name: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-      alias: edea
-  variables:
-    FF_NETWORK_PER_BUILD: 1
-    POSTGRES_DB: edea
-    POSTGRES_USER: edea
-    POSTGRES_PASSWORD: edea
-    MEILI_MASTER_KEY: meiliedea
-    SERVER_HOST: 0.0.0.0
-    SERVER_PORT: 80
-    DB_DSN: host=postgres user=edea password=edea dbname=edea port=5432 sslmode=disable
-    MERGE_TOOL: merge-tool/edea_merge_tool
-    PLOTPCB: cmd/plotpcb/plotpcb.py
-    REPO_CACHE_BASE: ./tmp/git
-    BOOK_CACHE_BASE: ./tmp/doc
-    AUTH_PROVIDER_URL: http://edea
-    AUTH_CLIENT_ID: LGqqvVYdSGmv8FZmvHRYq9aYgxyx8ULd
-    AUTH_CLIENT_SECRET: SUXHrS77iEyZfNoAeZE5LYb8yRSTGW4LBftNRDG2xFYcnH62qo279bGBzyLW7Qzr
-    AUTH_REDIRECT_URL: http://edea/callback
-    AUTH_LOGOUT_URL: http://edea/logout_callback
-    AUTH_POST_LOGOUT_URL: http://edea/
-    USE_AUTH_MOCK: "true"
-    SEARCH_HOST: http://search:7700
-    SEARCH_INDEX: edea
-    SEARCH_API_KEY: meiliedea
-    TEST_HOST: http://edea
-
-  stage: test
-  image: mcr.microsoft.com/playwright:v1.21.0-focal
+earthly:
+  stage: build
   script:
-    - cd frontend
-    - npm i -D @playwright/test
-    - npx playwright install
-    - npx playwright test
+    - earthly --ci --push -P +integration-test

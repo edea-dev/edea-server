@@ -1,5 +1,7 @@
-FROM golang:1.17-alpine3.15
+VERSION 0.6
+FROM earthly/dind:alpine
 WORKDIR /build
+RUN apk add postgresql-client go make bash yarn ncurses git
 
 deps:
     COPY go.mod go.sum ./
@@ -9,15 +11,32 @@ deps:
 
 build:
     FROM +deps
-    COPY embed.go .
-    COPY static ./static
-    COPY pkg ./pkg
-    COPY internal ./internal
-    COPY cmd ./cmd
-    RUN go build -o build/edead ./cmd/edead
-    SAVE ARTIFACT build/edead /edead AS LOCAL edead
+    WORKDIR /build
+    COPY . /build
+    RUN make deps
+    RUN make build
+    RUN go build -o build/edea-server ./cmd/edea-server
+    SAVE ARTIFACT build/edea-server /edea-server AS LOCAL edea-server
 
 docker:
-    COPY +build/edead .
-    ENTRYPOINT ["/build/edead"]
-    SAVE IMAGE edead:latest
+    COPY +build/edea-server .
+    RUN mkdir -p ./frontend/template
+    COPY --from=build edea-server .
+    COPY +build/frontend/template ./frontend/template
+    COPY +build/static ./static
+    ENTRYPOINT ["/build/edea-server"]
+    SAVE IMAGE --push edea-server:latest
+
+integration-test:
+    FROM +build
+    COPY docker-compose.yml ./
+    COPY frontend/test ./
+    COPY integration-test.sh ./
+    WITH DOCKER --compose docker-compose.yml --load=+docker
+        RUN ./integration-test.sh
+    END
+
+all:
+  BUILD +build
+  BUILD +unit-test
+  BUILD +integration-test

@@ -1,11 +1,11 @@
 version: "3.9"
 services:
-  edea:
-    image: edea
+  edea-server:
+    image: edea-server
     build:
       dockerfile: Dockerfile
       context: .
-      target: dev
+      target: prod
     volumes:
       - data:/data
     ports:
