@@ -41,14 +41,14 @@ integration-test:
     FROM +build
     COPY docker-compose.yml ./
     COPY ci.env ./ci.env
+    LOCALLY
     WITH DOCKER --load=edea-server:latest=+docker \
                 --load=tester:latest=+tester \
                 --compose docker-compose.yml \
                 --service db \
                 --service search
         RUN while ! pg_isready --host=localhost --port=5432 --dbname=edea --username=edea; do sleep 1; done ;\
-            docker run --env-file ci.env --network build_default --name edea-server -td edea-server:latest; \
-            sleep 5; docker ps; \
+            docker run --env-file ci.env --network build_default --name edea-server edea-server:latest; \
             docker run --env-file ci.env --network build_default tester:latest
     END
 

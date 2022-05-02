@@ -90,6 +90,12 @@ func main() {
 	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
 	signal.Notify(c, os.Interrupt)
 
+	// wait 10s then kill the service
+	go func() {
+		time.Sleep(time.Second * 10)
+		c <- os.Interrupt
+	}()
+
 	// Block until we receive our signal.
 	<-c
 
