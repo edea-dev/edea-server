@@ -24,7 +24,7 @@ docker:
     COPY +build/edea-server .
     COPY +build/frontend/template ./frontend/template
     COPY +build/static ./static
-    EXPOSE 3000
+    EXPOSE 80 3000
     ENTRYPOINT ["/build/edea-server"]
     SAVE IMAGE --push edea-server:latest
 
@@ -39,21 +39,15 @@ tester:
 integration-test:
     FROM +build
     COPY docker-compose.yml ./
+    COPY ci.env ./.env
     WITH DOCKER --load=edea-server:latest=+docker \
                 --load=tester:latest=+tester \
                 --compose docker-compose.yml \
                 --service db \
                 --service search
         RUN while ! pg_isready --host=localhost --port=5432 --dbname=edea --username=edea; do sleep 1; done ;\
-            docker run  -e "DB_DSN=host=edea-db user=edea password=edea dbname=edea port=5432 sslmode=disable" \
-                        -e "REPO_CACHE_BASE=/tmp/repo" \
-                        -e "SEARCH_HOST=http://edea-meilisearch:7700" \
-                        -e "SEARCH_INDEX=edea" \
-                        -e "SEARCH_API_KEY=meiliedea" \
-                        --network build_default \
-                        edea-server:latest; \
-            docker run  -e "TEST_HOST=http://edea-server:3000" \
-                        --network build_default tester:latest
+            docker run -d --network build_default --name edea-server edea-server:latest; \
+            docker run --network build_default tester:latest
     END
 
 all:
