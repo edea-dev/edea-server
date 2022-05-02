@@ -22,7 +22,6 @@ build:
 
 docker:
     COPY +build/edea-server .
-    COPY +build/edea-server .
     COPY +build/frontend/template ./frontend/template
     COPY +build/static ./static
     ENTRYPOINT ["/build/edea-server"]
@@ -30,9 +29,10 @@ docker:
 
 tester:
     FROM mcr.microsoft.com/playwright:v1.21.0-focal
+    WORKDIR /app
     COPY frontend/test .
     COPY integration-test.sh .
-    ENTRYPOINT ["./integration-test.sh"]
+    ENTRYPOINT ["/app/integration-test.sh"]
     SAVE IMAGE tester:latest
 
 integration-test:
