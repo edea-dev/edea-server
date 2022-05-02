@@ -18,4 +18,4 @@ before_script:
 earthly:
   stage: build
   script:
-    - earthly --ci --push -P +integration-test
+    - earthly --ci --push -P +all
