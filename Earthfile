@@ -38,11 +38,11 @@ tester:
 integration-test:
     FROM +build
     COPY docker-compose.yml ./
-    ENV DB_DSN host=edea-db user=edea password=edea dbname=edea port=5432 sslmode=disable
-    ENV REPO_CACHE_BASE=/tmp/repo
-    ENV SEARCH_HOST=http://edea-meilisearch:7700
-    ENV SEARCH_INDEX=edea
-    ENV SEARCH_API_KEY=meiliedea
+    ENV DB_DSN "host=edea-db user=edea password=edea dbname=edea port=5432 sslmode=disable"
+    ENV REPO_CACHE_BASE /tmp/repo
+    ENV SEARCH_HOST http://edea-meilisearch:7700
+    ENV SEARCH_INDEX edea
+    ENV SEARCH_API_KEY meiliedea
     WITH DOCKER --load=edea-server:latest=+docker \
                 --load=tester:latest=+tester \
                 --compose docker-compose.yml \
