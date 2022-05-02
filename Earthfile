@@ -41,7 +41,6 @@ integration-test:
     FROM +build
     COPY docker-compose.yml ./
     COPY ci.env ./ci.env
-    LOCALLY
     WITH DOCKER --load=edea-server:latest=+docker \
                 --load=tester:latest=+tester \
                 --compose docker-compose.yml \
