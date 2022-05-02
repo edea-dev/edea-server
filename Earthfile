@@ -51,7 +51,6 @@ integration-test:
                         -e "SEARCH_INDEX=edea" \
                         -e "SEARCH_API_KEY=meiliedea" \
                         --network build_default \
-                        -d \
                         edea-server:latest; \
             docker run  -e "TEST_HOST=http://edea-server:3000" \
                         --network build_default tester:latest
