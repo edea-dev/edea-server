@@ -13,8 +13,8 @@ build:
     FROM +deps
     WORKDIR /build
     COPY . /build
-    RUN make deps
-    RUN make build
+    RUN cd frontend; yarn install
+    RUN cd frontend; ./build-fe.sh
     RUN go build -o build/edea-server ./cmd/edea-server
     SAVE ARTIFACT build/edea-server /edea-server AS LOCAL edea-server
     SAVE ARTIFACT frontend/template /frontend/template
@@ -24,6 +24,7 @@ docker:
     COPY +build/edea-server .
     COPY +build/frontend/template ./frontend/template
     COPY +build/static ./static
+    EXPOSE 3000
     ENTRYPOINT ["/build/edea-server"]
     SAVE IMAGE --push edea-server:latest
 
@@ -38,19 +39,19 @@ tester:
 integration-test:
     FROM +build
     COPY docker-compose.yml ./
-    ENV DB_DSN "host=edea-db user=edea password=edea dbname=edea port=5432 sslmode=disable"
-    ENV REPO_CACHE_BASE /tmp/repo
-    ENV SEARCH_HOST http://edea-meilisearch:7700
-    ENV SEARCH_INDEX edea
-    ENV SEARCH_API_KEY meiliedea
     WITH DOCKER --load=edea-server:latest=+docker \
                 --load=tester:latest=+tester \
                 --compose docker-compose.yml \
                 --service db \
                 --service search
         RUN while ! pg_isready --host=localhost --port=5432 --dbname=edea --username=edea; do sleep 1; done ;\
-            docker run -d edea-server:latest; \
-            docker run tester:latest
+            docker run -e "DB_DSN=host=edea-db user=edea password=edea dbname=edea port=5432 sslmode=disable" \
+                       -e "REPO_CACHE_BASE=/tmp/repo" \
+                       -e "SEARCH_HOST=http://edea-meilisearch:7700" \
+                       -e "SEARCH_INDEX=edea" \
+                       -e "SEARCH_API_KEY=meiliedea" \
+                       -d edea-server:latest; \
+            docker run -e "TEST_HOST=http://edea-server:3000" tester:latest
     END
 
 all:
