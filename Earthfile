@@ -17,11 +17,12 @@ build:
     RUN make build
     RUN go build -o build/edea-server ./cmd/edea-server
     SAVE ARTIFACT build/edea-server /edea-server AS LOCAL edea-server
+    SAVE ARTIFACT frontend/template /frontend/template
+    SAVE ARTIFACT static /static AS LOCAL static
 
 docker:
     COPY +build/edea-server .
-    RUN mkdir -p ./frontend/template
-    COPY --from=build edea-server .
+    COPY +build/edea-server .
     COPY +build/frontend/template ./frontend/template
     COPY +build/static ./static
     ENTRYPOINT ["/build/edea-server"]
@@ -33,12 +34,11 @@ integration-test:
     COPY frontend/test ./
     COPY integration-test.sh ./
     WITH DOCKER --load=edea-server:latest=+docker \
-                --compose docker-compose.yml \
-                --service db \
-                --service search
+                --compose docker-compose.yml
         RUN ./integration-test.sh
     END
 
 all:
   BUILD +build
+  BUILD +docker
   BUILD +integration-test
