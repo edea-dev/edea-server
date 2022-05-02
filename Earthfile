@@ -33,21 +33,22 @@ tester:
     WORKDIR /app
     COPY frontend/test .
     COPY integration-test.sh .
+    RUN apt update && apt install -y iputils-ping
     ENTRYPOINT ["/app/integration-test.sh"]
     SAVE IMAGE tester:latest
 
 integration-test:
     FROM +build
     COPY docker-compose.yml ./
-    COPY ci.env ./.env
+    COPY ci.env ./ci.env
     WITH DOCKER --load=edea-server:latest=+docker \
                 --load=tester:latest=+tester \
                 --compose docker-compose.yml \
                 --service db \
                 --service search
         RUN while ! pg_isready --host=localhost --port=5432 --dbname=edea --username=edea; do sleep 1; done ;\
-            docker run -d --network build_default --name edea-server edea-server:latest; \
-            docker run --network build_default tester:latest
+            docker run --env-file ci.env --network build_default --name edea-server -d edea-server:latest; \
+            docker run --env-file ci.env --network build_default tester:latest
     END
 
 all:
