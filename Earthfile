@@ -28,17 +28,26 @@ docker:
     ENTRYPOINT ["/build/edea-server"]
     SAVE IMAGE --push edea-server:latest
 
+tester:
+    FROM mcr.microsoft.com/playwright:v1.21.0-focal
+    COPY frontend/test .
+    COPY integration-test.sh .
+    ENTRYPOINT ["./integration-test.sh"]
+    SAVE IMAGE tester:latest
+
 integration-test:
     FROM +build
     COPY docker-compose.yml ./
-    COPY frontend/test ./
-    COPY integration-test.sh ./
     WITH DOCKER --load=edea-server:latest=+docker \
-                --compose docker-compose.yml
-        RUN ./integration-test.sh
+                --load=tester:latest=+tester \
+                --compose docker-compose.yml \
+                --service db \
+                --service seearch
+        RUN while ! pg_isready --host=localhost --port=5432 --dbname=edea --username=edea; do sleep 1; done ;\
+            docker run edea-server:latest -d; \
+            docker run tester:latest
     END
 
 all:
   BUILD +build
-  BUILD +docker
   BUILD +integration-test

@@ -3,7 +3,7 @@ modd
 /vendor/
 /tmp/
 /edea
-/edead
+/edea-server
 
 /repo/_tmp
 /build
