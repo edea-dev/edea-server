@@ -49,7 +49,7 @@ integration-test:
                 --service db \
                 --service search
         RUN while ! pg_isready --host=localhost --port=5432 --dbname=edea --username=edea; do sleep 1; done ;\
-            docker run edea-server:latest -d; \
+            docker run -d edea-server:latest; \
             docker run tester:latest
     END
 
