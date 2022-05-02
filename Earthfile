@@ -32,7 +32,7 @@ integration-test:
     COPY docker-compose.yml ./
     COPY frontend/test ./
     COPY integration-test.sh ./
-    WITH DOCKER --compose docker-compose.yml --load=+docker
+    WITH DOCKER --compose docker-compose.yml
         RUN ./integration-test.sh
     END
 
