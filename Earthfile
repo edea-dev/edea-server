@@ -4,6 +4,7 @@ WORKDIR /build
 RUN apk add postgresql-client go make bash yarn ncurses git
 
 deps:
+    FROM docker.io/golang:1.18-alpine
     COPY go.mod go.sum ./
     RUN go mod download
     SAVE ARTIFACT go.mod AS LOCAL go.mod
@@ -15,7 +16,7 @@ numpy:
     ENV NUMPY_VERSION=1.22.3
 
     WORKDIR /build
-    RUN apk add --update musl-dev linux-headers g++ git
+    RUN apk add --update musl-dev linux-headers g++ git curl
     RUN curl -sSL https://github.com/numpy/numpy/releases/download/v${NUMPY_VERSION}/numpy-${NUMPY_VERSION}.tar.gz -o numpy.tar.gz
     RUN tar xf numpy.tar.gz
     RUN cd numpy-${NUMPY_VERSION}; pip wheel -w dist .
