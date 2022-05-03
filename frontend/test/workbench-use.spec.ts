@@ -1,4 +1,21 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, PlaywrightTestConfig } from '@playwright/test';
+
+const config: PlaywrightTestConfig = {
+    // Concise 'dot' for CI, default 'list' when running locally
+    reporter: process.env.CI ? 'dot' : 'list',
+    // use firefox instead of chrome
+    use: {
+        channel: 'firefox',
+    },
+};
+
+export default config;
+
+// take host to test against from env
+let edea_url = process.env.TEST_HOST
+if (!edea_url) {
+    edea_url = "http://localhost:3000"
+}
 
 test.describe.serial('user workflow - alice', () => {
     let page: Page;
@@ -6,7 +23,7 @@ test.describe.serial('user workflow - alice', () => {
     test.beforeAll(async ({ browser }) => {
         page = await browser.newPage();
 
-        await page.goto('http://localhost:3000/');
+        await page.goto(edea_url);
         const logo = page.locator('.navbar-brand');
         await expect(logo).toHaveAttribute("aria-label", "EDeA")
 
@@ -14,6 +31,7 @@ test.describe.serial('user workflow - alice', () => {
 
         await page.fill('#user', 'alice');
         await page.fill('#password', 'alicealice');
+
         await page.click('text=Submit');
 
         const logout = page.locator('a[href="/logout"]');
@@ -95,7 +113,7 @@ test.describe.serial('user workflow - bob', () => {
     test.beforeAll(async ({ browser }) => {
         page = await browser.newPage();
 
-        await page.goto('http://localhost:3000/');
+        await page.goto(edea_url);
         const logo = page.locator('.navbar-brand');
         await expect(logo).toHaveAttribute("aria-label", "EDeA")
 
@@ -103,6 +121,7 @@ test.describe.serial('user workflow - bob', () => {
 
         await page.fill('#user', 'bob');
         await page.fill('#password', 'bob');
+
         await page.click('text=Submit');
 
         const logout = page.locator('a[href="/logout"]');

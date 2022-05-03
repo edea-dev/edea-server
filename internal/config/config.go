@@ -61,18 +61,13 @@ func ReadConfig() {
 	readEnv(&Cfg)
 }
 
-func processError(err error) {
-	zap.L().Error("could not process config", zap.Error(err))
-	_ = zap.L().Sync()
-	os.Exit(2)
-}
-
 func readFile(cfg *Config) {
 	f, err := os.Open("config.yml")
 	if err != nil {
 		f, err = os.Open("/etc/edead.yml")
 		if err != nil {
-			processError(err)
+			zap.L().Warn("no config file provided, using env vars")
+			return
 		}
 	}
 	defer f.Close()
@@ -80,13 +75,17 @@ func readFile(cfg *Config) {
 	decoder := yaml.NewDecoder(f)
 	err = decoder.Decode(cfg)
 	if err != nil {
-		processError(err)
+		zap.L().Error("could not process config", zap.Error(err))
+		_ = zap.L().Sync()
+		os.Exit(2)
 	}
 }
 
 func readEnv(cfg *Config) {
 	err := envconfig.Process("", cfg)
 	if err != nil {
-		processError(err)
+		zap.L().Error("could not process config", zap.Error(err))
+		_ = zap.L().Sync()
+		os.Exit(2)
 	}
 }
