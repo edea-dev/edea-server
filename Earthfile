@@ -5,6 +5,7 @@ RUN apk add postgresql-client go make bash yarn ncurses git
 
 deps:
     FROM docker.io/golang:1.18-alpine
+    WORKDIR /build
     COPY go.mod go.sum ./
     RUN go mod download
     SAVE ARTIFACT go.mod AS LOCAL go.mod
@@ -45,6 +46,7 @@ build:
     FROM +deps
     WORKDIR /build
     COPY . /build
+    RUN apk add --update yarn bash git
     RUN cd frontend; yarn install
     RUN cd frontend; ./build-fe.sh
     RUN go build -o build/edea-server ./cmd/edea-server
