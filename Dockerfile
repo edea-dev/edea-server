@@ -4,13 +4,15 @@ RUN apk add --update make bash yarn ncurses git
 FROM base as dev
 WORKDIR /build
 ADD . /build
-RUN make deps
-RUN make build
+RUN cd frontend; yarn install
+RUN cd frontend; ./build-fe.sh
+RUN go build -o edea-server ./cmd/edea-server
 EXPOSE 3000/tcp
-CMD ["./edead"]
+CMD ["./edea-server"]
 
-FROM docker.io/alpine:3.15 AS prod
+FROM docker.io/python:3.10-alpine AS prod
 WORKDIR /app
+RUN apk add --update python3
 RUN mkdir -p ./frontend/template
 COPY --from=dev /build/edea-server .
 COPY --from=dev /build/frontend/template ./frontend/template

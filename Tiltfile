@@ -5,7 +5,7 @@ edea dev setup
 docker_compose("./docker-compose.yml")
 
 docker_build(
-    "edea",
+    "edea-server",
     ".",
     target = "dev",
     live_update = [
@@ -15,7 +15,8 @@ docker_build(
         sync("./static", "/build/static"),
         sync("./embed.go", "/build/embed.go"),
         sync("./go.mod", "/build/go.mod"),
-        sync("./go.mod", "/build/go.mod"),
+        sync("./go.sum", "/build/go.sum"),
+        sync("./vendor", "/build/vendor"),
         sync("./Makefile", "/build/Makefile"),
         run("make live-frontend", trigger = "./frontend"),
         run("make live-backend", trigger = ["./cmd", "./internal", "./go.mod", "./embed.go"]),

@@ -152,7 +152,7 @@ func Metadata(module *model.Module) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	mergeCmd := exec.CommandContext(ctx, "python3", "edea_merge_tool", "--meta", "1", "--module", dir)
+	mergeCmd := exec.CommandContext(ctx, "python", "-m", "edea", "--extract-meta", dir)
 
 	mergeCmd.Dir = config.Cfg.Tools.Merge
 
