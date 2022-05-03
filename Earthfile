@@ -5,6 +5,7 @@ RUN apk add postgresql-client go make bash yarn ncurses git
 
 deps:
     FROM docker.io/golang:1.18-alpine
+    RUN apk add --update git
     WORKDIR /build
     COPY go.mod go.sum ./
     RUN go mod download
@@ -42,36 +43,55 @@ edea-tool:
 
     SAVE ARTIFACT edea/dist/edea-${EDEA_VERSION}-py3-none-any.whl
 
-build:
+frontend:
     FROM +deps
     WORKDIR /build
-    COPY . /build
+    COPY --dir ./frontend /build
     RUN apk add --update yarn bash git
     RUN cd frontend; yarn install
     RUN cd frontend; ./build-fe.sh
-    RUN go build -o build/edea-server ./cmd/edea-server
-    SAVE ARTIFACT build/edea-server /edea-server
     SAVE ARTIFACT frontend/template /frontend/template
     SAVE ARTIFACT static /static
 
-docker:
+build:
+    FROM +deps
+    WORKDIR /build
+    COPY --dir ./cmd ./internal /build
+    COPY ./embed.go /build
+    COPY +frontend/static ./static
+    RUN go build -o edea-server ./cmd/edea-server
+    SAVE ARTIFACT edea-server /edea-server
+
+# create a base image with the python tools, speeds up incremental builds a lot
+docker-base:
     FROM docker.io/python:3.10-alpine
+    WORKDIR /build
 
     ENV NUMPY_VERSION=1.22.3
     ENV EDEA_VERSION=0.1.0
 
-    COPY +build/edea-server .
-    COPY +build/frontend/template ./frontend/template
-    COPY +build/static ./static
     COPY +edea-tool/edea-${EDEA_VERSION}-py3-none-any.whl .
     COPY +numpy/numpy-${NUMPY_VERSION}-cp310-cp310-linux_x86_64.whl .
 
     RUN pip install numpy-${NUMPY_VERSION}-cp310-cp310-linux_x86_64.whl
     RUN pip install edea-${EDEA_VERSION}-py3-none-any.whl
     RUN rm *.whl
+
+docker:
+    FROM +docker-base
+    ARG ref
+
+    COPY +build/edea-server .
+    COPY +frontend/frontend/template ./frontend/template
+    COPY +frontend/static ./static
+    
     EXPOSE 80 3000
-    ENTRYPOINT ["/build/edea-server"]
-    SAVE IMAGE --push edea-server:latest
+    ENTRYPOINT /build/edea-server
+    IF [ "$ref" = "" ]
+       SAVE IMAGE --push edea-server:latest
+    ELSE
+        SAVE IMAGE --push $ref
+    END
 
 tester:
     FROM mcr.microsoft.com/playwright:v1.21.0-focal
