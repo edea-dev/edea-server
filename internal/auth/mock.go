@@ -222,6 +222,9 @@ func LoginPostHandler(c *gin.Context) {
 		if uo.Profile != user {
 			zap.S().Panicf("invalid user/password combination for %s", user)
 		}
+	} else {
+		c.AbortWithStatus(http.StatusForbidden)
+		return
 	}
 
 	// TODO: make redirect url a []string
