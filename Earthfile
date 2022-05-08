@@ -19,9 +19,9 @@ edea-tool:
 
     WORKDIR /build
 
-    RUN apk add --update git curl py3-numpy poetry
+    RUN apk add --update git curl poetry
     RUN git clone https://gitlab.com/edea-dev/edea.git
-    RUN cd edea; ~/.poetry/bin/poetry build
+    RUN cd edea; poetry build
 
     SAVE ARTIFACT edea/dist/edea-${EDEA_VERSION}-py3-none-any.whl
 
