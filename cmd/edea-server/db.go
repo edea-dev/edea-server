@@ -8,8 +8,8 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
-	"gitlab.com/edea-dev/edead/internal/config"
-	"gitlab.com/edea-dev/edead/internal/model"
+	"gitlab.com/edea-dev/edea-server/internal/config"
+	"gitlab.com/edea-dev/edea-server/internal/model"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

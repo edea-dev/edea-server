@@ -17,7 +17,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
-	"gitlab.com/edea-dev/edead/internal/util"
+	"gitlab.com/edea-dev/edea-server/internal/util"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )

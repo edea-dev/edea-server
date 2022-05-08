@@ -13,10 +13,10 @@ import (
 
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
-	"gitlab.com/edea-dev/edead/internal/config"
-	"gitlab.com/edea-dev/edead/internal/middleware"
-	"gitlab.com/edea-dev/edead/internal/repo"
-	"gitlab.com/edea-dev/edead/internal/search"
+	"gitlab.com/edea-dev/edea-server/internal/config"
+	"gitlab.com/edea-dev/edea-server/internal/middleware"
+	"gitlab.com/edea-dev/edea-server/internal/repo"
+	"gitlab.com/edea-dev/edea-server/internal/search"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

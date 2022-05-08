@@ -3,10 +3,6 @@ import { test, expect, Page, PlaywrightTestConfig } from '@playwright/test';
 const config: PlaywrightTestConfig = {
     // Concise 'dot' for CI, default 'list' when running locally
     reporter: process.env.CI ? 'dot' : 'list',
-    // use firefox instead of chrome
-    use: {
-        channel: 'firefox',
-    },
 };
 
 export default config;
@@ -48,7 +44,7 @@ test.describe.serial('user workflow - alice', () => {
 
         await page.fill('#name', 'NCP1117 3V3 LDO');
         await page.fill('#sub', '3v3ldo');
-        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules');
+        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules.git');
         await page.fill('#description', 'A simple 3.3-V LDO');
         await page.selectOption('#category', { label: 'Power' });
 
@@ -64,7 +60,7 @@ test.describe.serial('user workflow - alice', () => {
 
         await page.fill('#name', 'TPS62135 5V PoL');
         await page.fill('#sub', '5vpol');
-        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules');
+        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules.git');
         await page.fill('#description', '16-V Input 3-A Output Point-of-Load with TPS62135');
         await page.selectOption('#category', { label: 'Power' });
 
@@ -80,7 +76,7 @@ test.describe.serial('user workflow - alice', () => {
 
         await page.fill('#name', 'GD32E103CBT6');
         await page.fill('#sub', 'GD32E103CBT6');
-        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules');
+        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules.git');
         await page.fill('#description', 'GD32E103CBT6 based module with required passives');
         await page.selectOption('#category', { label: 'MCU' });
 
@@ -96,7 +92,7 @@ test.describe.serial('user workflow - alice', () => {
 
         await page.fill('#name', 'USB-C');
         await page.fill('#sub', 'USB-C');
-        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules');
+        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules.git');
         await page.fill('#description', 'A simple USB-C module');
         await page.selectOption('#category', { label: 'Connector' });
 
@@ -138,7 +134,7 @@ test.describe.serial('user workflow - bob', () => {
 
         await page.fill('#name', 'HT7533 3V3 LDO');
         await page.fill('#sub', 'HT7533-a');
-        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules');
+        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules.git');
         await page.fill('#description', 'Holtek HT7533, a cheap LDO for 3V3');
         await page.selectOption('#category', { label: 'Power' });
 

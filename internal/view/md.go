@@ -18,7 +18,7 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
-	"gitlab.com/edea-dev/edead/internal/model"
+	"gitlab.com/edea-dev/edea-server/internal/model"
 	"go.uber.org/zap"
 )
 

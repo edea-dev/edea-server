@@ -15,13 +15,13 @@
     "bootstrap-table": "^1.19.1",
     "jquery": "^3.6.0",
     "meilisearch": "^0.23.0",
-    "playwright": "^1.16.3",
+    "playwright": "^1.21.1",
     "sass": "^1.43.4"
   },
   "browserslist": [
     "last 2 versions"
   ],
   "devDependencies": {
-    "@playwright/test": "^1.16.3"
+    "@playwright/test": "^1.21.1"
   }
 }

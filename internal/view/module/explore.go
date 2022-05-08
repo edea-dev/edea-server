@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"gitlab.com/edea-dev/edead/internal/model"
-	"gitlab.com/edea-dev/edead/internal/view"
+	"gitlab.com/edea-dev/edea-server/internal/model"
+	"gitlab.com/edea-dev/edea-server/internal/view"
 	"go.uber.org/zap"
 )
 

@@ -4,13 +4,13 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"gitlab.com/edea-dev/edead/internal/auth"
-	"gitlab.com/edea-dev/edead/internal/config"
-	"gitlab.com/edea-dev/edead/internal/search"
-	"gitlab.com/edea-dev/edead/internal/view"
-	"gitlab.com/edea-dev/edead/internal/view/bench"
-	"gitlab.com/edea-dev/edead/internal/view/module"
-	"gitlab.com/edea-dev/edead/internal/view/user"
+	"gitlab.com/edea-dev/edea-server/internal/auth"
+	"gitlab.com/edea-dev/edea-server/internal/config"
+	"gitlab.com/edea-dev/edea-server/internal/search"
+	"gitlab.com/edea-dev/edea-server/internal/view"
+	"gitlab.com/edea-dev/edea-server/internal/view/bench"
+	"gitlab.com/edea-dev/edea-server/internal/view/module"
+	"gitlab.com/edea-dev/edea-server/internal/view/user"
 )
 
 func faviconHandler(c *gin.Context) {

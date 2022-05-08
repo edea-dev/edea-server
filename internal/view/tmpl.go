@@ -9,9 +9,9 @@ import (
 	"text/template"
 
 	"github.com/gin-gonic/gin"
-	"gitlab.com/edea-dev/edead"
-	"gitlab.com/edea-dev/edead/internal/config"
-	"gitlab.com/edea-dev/edead/internal/model"
+	edea "gitlab.com/edea-dev/edea-server"
+	"gitlab.com/edea-dev/edea-server/internal/config"
+	"gitlab.com/edea-dev/edea-server/internal/model"
 	"go.uber.org/zap"
 )
 
@@ -24,7 +24,7 @@ var (
 // Icon returns the html code (as inline svg) for a icon from our icon library
 // this function gets called by the templates
 func Icon(name string) (html string, err error) {
-	b, err := edead.BootstrapIcons.ReadFile(fmt.Sprintf("static/icons/%s.svg", name))
+	b, err := edea.BootstrapIcons.ReadFile(fmt.Sprintf("static/icons/%s.svg", name))
 	if err != nil {
 		return "", err
 	}

@@ -14,10 +14,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"gitlab.com/edea-dev/edead/internal/config"
-	"gitlab.com/edea-dev/edead/internal/model"
-	"gitlab.com/edea-dev/edead/internal/repo"
-	"gitlab.com/edea-dev/edead/internal/util"
+	"gitlab.com/edea-dev/edea-server/internal/config"
+	"gitlab.com/edea-dev/edea-server/internal/model"
+	"gitlab.com/edea-dev/edea-server/internal/repo"
+	"gitlab.com/edea-dev/edea-server/internal/util"
 	"go.uber.org/zap"
 )
 
@@ -56,10 +56,10 @@ func Merge(benchName string, modules []model.BenchModule) ([]byte, error) {
 		moduleSpec = append(moduleSpec, dir)
 	}
 
-	argv := []string{"edea_merge_tool", "--output", projectDir, "--module"}
+	argv := []string{"-m", "edea", "--output", projectDir}
 	argv = append(argv, moduleSpec...)
 
-	mergeCmd := exec.CommandContext(ctx, "python3", argv...)
+	mergeCmd := exec.CommandContext(ctx, "python", argv...)
 
 	mergeCmd.Dir = config.Cfg.Tools.Merge
 
@@ -161,6 +161,7 @@ func Metadata(module *model.Module) (map[string]interface{}, error) {
 
 	// return the output of the tool and the error for the user to debug issues
 	if err != nil {
+		zap.L().Warn("metadata extraction failed", zap.String("path", dir))
 		return nil, util.HintError{
 			Hint: fmt.Sprintf("Something went wrong during the metadata extraction, below is the log which should provide more information:\n%s", logOutput),
 			Err:  err,

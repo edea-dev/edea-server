@@ -16,7 +16,8 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
-	"gitlab.com/edea-dev/edead/internal/model"
+	"gitlab.com/edea-dev/edea-server/internal/config"
+	"gitlab.com/edea-dev/edea-server/internal/model"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 )
@@ -131,8 +132,10 @@ func CallbackHandler(c *gin.Context) {
 		zap.S().Debugf("user %s already exists", tok.Subject)
 	}
 
-	// add the jwt as session cookie
-	c.SetCookie("jwt", rawIDToken, 3600, "/", "", true, false)
+	// add the jwt as session cookie, for mock auth we allow insecure connections
+	isSecure := !config.Cfg.Auth.UseMock
+	zap.S().Infof("got request, secure: %v", isSecure)
+	c.SetCookie("jwt", rawIDToken, 3600, "/", "", isSecure, false)
 
 	// do a meta-refresh redirect so that we lose the cross-origin flag
 	var html = `<html>

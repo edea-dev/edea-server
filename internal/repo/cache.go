@@ -13,7 +13,7 @@ import (
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/google/uuid"
-	"gitlab.com/edea-dev/edead/internal/model"
+	"gitlab.com/edea-dev/edea-server/internal/model"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/edea-dev/edead/internal/model"
-	"gitlab.com/edea-dev/edead/internal/util"
+	"gitlab.com/edea-dev/edea-server/internal/model"
+	"gitlab.com/edea-dev/edea-server/internal/util"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )

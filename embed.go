@@ -1,4 +1,4 @@
-package edead
+package edea
 
 // SPDX-License-Identifier: EUPL-1.2
 

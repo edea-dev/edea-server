@@ -4,7 +4,7 @@ WORKDIR /build
 RUN apk add postgresql-client go make bash yarn ncurses git
 
 deps:
-    FROM docker.io/golang:1.18-alpine
+    FROM golang:1.18-alpine
     RUN apk add --update git
     WORKDIR /build
     COPY go.mod go.sum ./
@@ -13,7 +13,7 @@ deps:
     SAVE ARTIFACT go.sum AS LOCAL go.sum
 
 numpy:
-    FROM docker.io/python:3.10-alpine
+    FROM python:3.10-alpine
 
     ENV NUMPY_VERSION=1.22.3
 
@@ -64,7 +64,7 @@ build:
 
 # create a base image with the python tools, speeds up incremental builds a lot
 docker-base:
-    FROM docker.io/python:3.10-alpine
+    FROM python:3.10-alpine
     WORKDIR /build
 
     ENV NUMPY_VERSION=1.22.3
@@ -95,14 +95,20 @@ docker:
 
 tester:
     FROM mcr.microsoft.com/playwright:v1.21.0-focal
+    ARG ref
+
     WORKDIR /app
     COPY frontend/test .
     COPY integration-test.sh .
     ENTRYPOINT ["/app/integration-test.sh"]
-    SAVE IMAGE tester:latest
+
+    IF [ "$ref" = "" ]
+       SAVE IMAGE --push tester:latest
+    ELSE
+        SAVE IMAGE --push $ref
+    END
 
 integration-test:
-    FROM +build
     COPY docker-compose.yml ./
     COPY ci.env ./ci.env
     WITH DOCKER --load=edea-server:latest=+docker \

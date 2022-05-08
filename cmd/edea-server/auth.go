@@ -4,8 +4,8 @@ package main
 
 import (
 	"github.com/coreos/go-oidc/v3/oidc"
-	"gitlab.com/edea-dev/edead/internal/auth"
-	"gitlab.com/edea-dev/edead/internal/config"
+	"gitlab.com/edea-dev/edea-server/internal/auth"
+	"gitlab.com/edea-dev/edea-server/internal/config"
 	"go.uber.org/zap"
 )
 

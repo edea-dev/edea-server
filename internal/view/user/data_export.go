@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"gitlab.com/edea-dev/edead/internal/model"
-	"gitlab.com/edea-dev/edead/internal/view"
+	"gitlab.com/edea-dev/edea-server/internal/model"
+	"gitlab.com/edea-dev/edea-server/internal/view"
 	"gopkg.in/yaml.v3"
 )
 
