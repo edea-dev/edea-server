@@ -12,32 +12,16 @@ deps:
     SAVE ARTIFACT go.mod AS LOCAL go.mod
     SAVE ARTIFACT go.sum AS LOCAL go.sum
 
-numpy:
-    FROM python:3.10-alpine
-
-    ENV NUMPY_VERSION=1.22.3
-
-    WORKDIR /build
-    RUN apk add --update musl-dev linux-headers g++ git curl
-    RUN curl -sSL https://github.com/numpy/numpy/releases/download/v${NUMPY_VERSION}/numpy-${NUMPY_VERSION}.tar.gz -o numpy.tar.gz
-    RUN tar xf numpy.tar.gz
-    RUN cd numpy-${NUMPY_VERSION}; pip wheel -w dist .
-    SAVE ARTIFACT numpy-${NUMPY_VERSION}/dist/numpy-${NUMPY_VERSION}-cp310-cp310-linux_x86_64.whl
-
 edea-tool:
     FROM docker.io/python:3.10-alpine
 
-    ENV NUMPY_VERSION=1.22.3
     ENV EDEA_VERSION=0.1.0
 
     WORKDIR /build
 
-    COPY +numpy/numpy-${NUMPY_VERSION}-cp310-cp310-linux_x86_64.whl .
-
-    RUN apk add --update git curl    
+    RUN apk add --update git curl py3-numpy
     RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
     RUN git clone https://gitlab.com/edea-dev/edea.git
-    RUN cd edea; ~/.poetry/bin/poetry run pip install /build/numpy-${NUMPY_VERSION}-cp310-cp310-linux_x86_64.whl
     RUN cd edea; ~/.poetry/bin/poetry install --no-dev
     RUN cd edea; ~/.poetry/bin/poetry build
 
@@ -66,14 +50,12 @@ build:
 docker-base:
     FROM python:3.10-alpine
     WORKDIR /build
+    RUN apk add --update py3-numpy
 
-    ENV NUMPY_VERSION=1.22.3
     ENV EDEA_VERSION=0.1.0
 
     COPY +edea-tool/edea-${EDEA_VERSION}-py3-none-any.whl .
-    COPY +numpy/numpy-${NUMPY_VERSION}-cp310-cp310-linux_x86_64.whl .
 
-    RUN pip install numpy-${NUMPY_VERSION}-cp310-cp310-linux_x86_64.whl
     RUN pip install edea-${EDEA_VERSION}-py3-none-any.whl
     RUN rm *.whl
 
