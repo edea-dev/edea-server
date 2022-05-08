@@ -98,9 +98,8 @@ integration-test:
                 --service search
         RUN while ! pg_isready --host=localhost --port=5432 --dbname=edea --username=edea; do sleep 1; done ;\
             docker run --env-file ci.env --network build_default --name edea-server -d edea-server:latest; \
-            docker run --env-file ci.env --network build_default tester:latest; \
-            docker stop edea-server; \
-            docker logs edea-server
+            docker run --env-file ci.env --network build_default tester:latest || docker logs edea-server; \
+            docker stop edea-server;
     END
 
 all:
