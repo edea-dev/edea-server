@@ -46,9 +46,9 @@ build:
 
 # create a base image with the python tools, speeds up incremental builds a lot
 docker-base:
-    FROM python:3.10-alpine
+    FROM alpine:edge
     WORKDIR /build
-    RUN apk add --update py3-numpy
+    RUN apk add --update py3-numpy py3-pip
 
     ENV EDEA_VERSION=0.1.0
 
