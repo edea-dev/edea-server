@@ -59,7 +59,7 @@ func Merge(benchName string, modules []model.BenchModule) ([]byte, error) {
 	argv := []string{"-m", "edea", "--output", projectDir}
 	argv = append(argv, moduleSpec...)
 
-	mergeCmd := exec.CommandContext(ctx, "python", argv...)
+	mergeCmd := exec.CommandContext(ctx, "python3", argv...)
 
 	mergeCmd.Dir = config.Cfg.Tools.Merge
 
@@ -152,7 +152,7 @@ func Metadata(module *model.Module) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	mergeCmd := exec.CommandContext(ctx, "python", "-m", "edea", "--extract-meta", dir)
+	mergeCmd := exec.CommandContext(ctx, "python3", "-m", "edea", "--extract-meta", dir)
 
 	// run the merge
 	logOutput, err := mergeCmd.CombinedOutput()
