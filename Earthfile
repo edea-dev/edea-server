@@ -20,9 +20,8 @@ edea-tool:
     WORKDIR /build
 
     RUN apk add --update git curl py3-numpy
-    RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+    RUN curl -sSL https://install.python-poetry.org | python3 -
     RUN git clone https://gitlab.com/edea-dev/edea.git
-    RUN cd edea; ~/.poetry/bin/poetry install --no-dev
     RUN cd edea; ~/.poetry/bin/poetry build
 
     SAVE ARTIFACT edea/dist/edea-${EDEA_VERSION}-py3-none-any.whl
