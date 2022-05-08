@@ -13,14 +13,13 @@ deps:
     SAVE ARTIFACT go.sum AS LOCAL go.sum
 
 edea-tool:
-    FROM docker.io/python:3.10-alpine
+    FROM alpine:edge
 
     ENV EDEA_VERSION=0.1.0
 
     WORKDIR /build
 
-    RUN apk add --update git curl py3-numpy
-    RUN curl -sSL https://install.python-poetry.org | python3 -
+    RUN apk add --update git curl py3-numpy poetry
     RUN git clone https://gitlab.com/edea-dev/edea.git
     RUN cd edea; ~/.poetry/bin/poetry build
 
