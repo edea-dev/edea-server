@@ -21,6 +21,7 @@
     "last 2 versions"
   ],
   "devDependencies": {
-    "@playwright/test": "^1.21.1"
+    "@playwright/test": "^1.21.1",
+    "@types/node": "^18.0.1"
   }
 }

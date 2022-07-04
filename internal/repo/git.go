@@ -46,8 +46,9 @@ type Commit struct {
 }
 
 // Readme searches for a readme.md file in the repository and returns it if found
-func (g *Git) Readme() (string, error) {
-	return g.File("readme.md", false)
+func (g *Git) Readme(revision string) (string, error) {
+	b, err := g.FileAt("readme.md", false, revision)
+	return string(b), err
 }
 
 // SubModuleDir looks if a sub-module exists or else returns the base path
@@ -76,11 +77,11 @@ func (g *Git) SubModuleDir(sub string) (string, error) {
 }
 
 // SubModuleReadme searches for a readme.md file in the repository and returns it if found
-func (g *Git) SubModuleReadme(sub string) (string, error) {
+func (g *Git) SubModuleReadme(sub, revision string) (string, error) {
 	p := &Project{}
 
 	// read and parse the module configuration out of the repo
-	s, err := g.File("edea.yml", false)
+	s, err := g.FileAt("edea.yml", false, revision)
 	if err != nil {
 		return "", errors.New("module does not contain an edea.yml file")
 	}
@@ -97,10 +98,11 @@ func (g *Git) SubModuleReadme(sub string) (string, error) {
 	// if the git library already does it, we could skip this, but needs verification
 	if m.Readme != "" {
 		path := filepath.Join(filepath.Base(m.Directory), filepath.Base(m.Readme))
-		return g.File(path, true)
+		b, err := g.FileAt(path, true, revision)
+		return string(b), err
 	}
-
-	return g.File(filepath.Join(filepath.Base(m.Directory), "readme.md"), false)
+	b, err := g.FileAt(filepath.Join(filepath.Base(m.Directory), "readme.md"), false, revision)
+	return string(b), err
 }
 
 // HasDocs searches for a book.toml file in the repository and returns true if found
@@ -312,8 +314,6 @@ func (g *Git) History(folder string) ([]*Commit, error) {
 		msg := strings.ReplaceAll(c.String(), "\n", "<br>")
 		v := &Commit{Message: msg, Ref: c.Hash.String()}
 		commits = append(commits, v)
-
-		fmt.Println(c.String())
 
 		return nil
 	})

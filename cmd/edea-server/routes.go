@@ -33,7 +33,7 @@ func routes(router *gin.Engine) {
 	r.GET("/module/user/:id", module.ExploreUser)    // view a users modules
 	a.POST("/module/:id", module.Update)             // view new module or adjust params
 	r.GET("/module/:id", module.View)                // view module
-	r.GET("/module/update/:id", module.UpdateView)   // update a module
+	a.GET("/module/update/:id", module.UpdateView)   // update a module
 	a.GET("/module/delete/:id", module.Delete)       // delete module
 	a.GET("/module/pull/:id", module.Pull)           // pull repo of module
 	r.GET("/module/history/:id", module.ViewHistory) // show revision history of a module

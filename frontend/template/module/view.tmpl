@@ -46,7 +46,9 @@
       <div class="card d-flex">
         <div class="card-body">
           {{if .Readme}}
+          <span id="readme">
           {{.Readme}}
+          </span>
           {{else}}
           <div class="alert alert-warning" role="alert">
             Looks like we couldn't find or render the readme.
@@ -100,4 +102,15 @@
     </div>
   </div>
 </main>
+
+<script>
+  // this is a little helper to make our markdown tables pretty
+  // goldmark unfortunately doesn't support setting attributes, yet.
+  window.onload = (e) => {
+    const tables = document.querySelectorAll("span#readme > table");
+    tables.forEach(function(t) {
+      t.setAttribute("class", "table");
+    });
+  };
+</script>
 {{template "footer" .}}

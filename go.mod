@@ -3,6 +3,7 @@ module gitlab.com/edea-dev/edea-server
 go 1.18
 
 require (
+	github.com/abhinav/goldmark-mermaid v0.1.1
 	github.com/alecthomas/chroma v0.10.0
 	github.com/coreos/go-oidc/v3 v3.2.0
 	github.com/gin-contrib/zap v0.0.2

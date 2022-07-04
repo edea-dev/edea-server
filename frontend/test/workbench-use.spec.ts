@@ -10,7 +10,7 @@ export default config;
 // take host to test against from env
 let edea_url = process.env.TEST_HOST
 if (!edea_url) {
-    edea_url = "http://localhost:3000"
+    edea_url = "http://tynan:3000"
 }
 
 test.describe.serial('user workflow - alice', () => {
@@ -84,6 +84,13 @@ test.describe.serial('user workflow - alice', () => {
 
         const module_page = page.locator('h1').first();
         await expect(module_page).toContainText("GD32E103CBT6");
+
+        // test viewing a specific revision of it
+        await page.click('text=History');
+        await page.locator('a[href*="7ada1b90dfda4a00a13df760bff05dc5bb22d95f"] >> text=View Module').click();
+
+        const historic_module_page = page.locator('p:has-text("testing the revision picker")');
+        await expect(historic_module_page).toContainText("testing the revision picker");
     });
 
     test('new module (USB-C)', async () => {

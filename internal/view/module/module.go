@@ -98,6 +98,10 @@ func Create(c *gin.Context) {
 // View a module
 func View(c *gin.Context) {
 	user, module := getModule(c)
+	ref := c.Query("ref")
+	if ref == "" {
+		ref = "HEAD"
+	}
 
 	// getModule already writes out the necessary error messages
 	if module == nil {
@@ -117,9 +121,9 @@ func View(c *gin.Context) {
 	var err error
 
 	if module.Sub != "" {
-		readme, err = g.SubModuleReadme(module.Sub)
+		readme, err = g.SubModuleReadme(module.Sub, ref)
 	} else {
-		readme, err = g.Readme()
+		readme, err = g.Readme(ref)
 	}
 
 	if err == nil {

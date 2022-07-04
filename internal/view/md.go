@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"errors"
 
+	mermaid "github.com/abhinav/goldmark-mermaid"
 	chromahtml "github.com/alecthomas/chroma/formatters/html"
 	"github.com/yuin/goldmark"
 	highlighting "github.com/yuin/goldmark-highlighting"
@@ -17,7 +18,6 @@ import (
 
 // TODO: make it settings
 var (
-	markdown goldmark.Markdown
 	readmeMD goldmark.Markdown
 	mdPath   = "./static/md/"
 	tmplPath = "./frontend/template/"
@@ -27,28 +27,6 @@ var (
 )
 
 func init() {
-	markdown = goldmark.New(
-		goldmark.WithExtensions(
-			meta.Meta,
-			highlighting.NewHighlighting(
-				highlighting.WithStyle(chroma),
-				highlighting.WithFormatOptions(
-					chromahtml.WithLineNumbers(true),
-				),
-			),
-			extension.DefinitionList,
-		),
-		goldmark.WithParserOptions(
-			parser.WithAutoHeadingID(),
-			parser.WithAttribute(),
-		),
-		goldmark.WithRendererOptions(
-			html.WithHardWraps(),
-			html.WithXHTML(),
-			html.WithUnsafe(),
-		),
-	)
-
 	readmeMD = goldmark.New(
 		goldmark.WithExtensions(
 			meta.Meta,
@@ -58,7 +36,9 @@ func init() {
 					chromahtml.WithLineNumbers(true),
 				),
 			),
+			extension.GFM,
 			extension.DefinitionList,
+			&mermaid.Extender{},
 		),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(),

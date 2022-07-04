@@ -1,23 +1,23 @@
 @import url('/css/fonts.css');
-$font-family-base:'Open Sans';
-$headings-font-family:'Quicksand';
-$enable-grid-classes:true;
-$secondary:#ef9d26;
-$primary:#427588;
+$font-family-base: 'Open Sans';
+$headings-font-family: 'Quicksand';
+$enable-grid-classes: true;
+$secondary: #ef9d26;
+$primary: #427588;
 $info: #888;
-$success:#28a745;
-$danger:#d72638;
-$light:#ececec;
-$dark:#1a1a1a;
-$enable-gradients:false;
-$spacer:1rem;
-$border-width:1px;
-$btn-border-radius:.25rem;
-$enable-shadows:true;
-$enable-responsive-font-sizes:true;
+$success: #28a745;
+$danger: #d72638;
+$light: #ececec;
+$dark: #1a1a1a;
+$enable-gradients: false;
+$spacer: 1rem;
+$border-width: 1px;
+$btn-border-radius: .25rem;
+$enable-shadows: true;
+$enable-responsive-font-sizes: true;
 
 .catbox {
-    min-height: 4rem;
+  min-height: 4rem;
 }
 
 /*main {
@@ -25,10 +25,10 @@ $enable-responsive-font-sizes:true;
 }*/
 
 .fsrow {
-    margin-left: 0;
-    margin-right: 0;
-    max-height: 80vh;
-    // width: 98%;
+  margin-left: 0;
+  margin-right: 0;
+  max-height: 80vh;
+  // width: 98%;
 }
 
 .form-signin {

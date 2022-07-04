@@ -8,12 +8,12 @@ import (
 )
 
 func Test_Git_Readme_Success(t *testing.T) {
-	if err := cache.Add("https://github.com/tachiniererin/nargh"); err != nil {
+	if err := cache.Add("https://gitlab.com/edea-dev/test-modules"); err != nil {
 		t.Fatal(err)
 	}
 
-	r := Git{URL: "https://github.com/tachiniererin/nargh"}
-	if s, err := r.Readme(); err != nil || s == "" {
+	r := Git{URL: "https://gitlab.com/edea-dev/test-modules"}
+	if s, err := r.Readme("HEAD"); err != nil || s == "" {
 		t.Error(err)
 	}
 }
@@ -43,7 +43,7 @@ func Test_Git_Readme_NoReadme(t *testing.T) {
 	}
 
 	r := Git{URL: "https://github.com/tachiniererin/ma-updater"}
-	_, err := r.Readme()
+	_, err := r.Readme("HEAD")
 	if err != nil {
 		if errors.Is(err, ErrNoFile) {
 			return
