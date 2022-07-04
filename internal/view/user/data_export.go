@@ -29,21 +29,21 @@ func DataExport(c *gin.Context) {
 	// load a users benches
 	result := model.DB.Model(&model.Bench{}).Preload("Modules").Where("user_id = ?", u.ID).Find(benches)
 	if result.Error != nil {
-		view.RenderErrMarkdown(c, "user/404.md", result.Error)
+		view.RenderErrTemplate(c, "user/404.tmpl", result.Error)
 		return
 	}
 
 	// load modules
 	result = model.DB.Model(&model.Module{}).Preload("Category").Where("user_id = ?", u.ID).Find(modules)
 	if result.Error != nil {
-		view.RenderErrMarkdown(c, "user/404.md", result.Error)
+		view.RenderErrTemplate(c, "user/404.tmpl", result.Error)
 		return
 	}
 
 	// profile info
 	result = model.DB.Model(&model.Profile{}).Where("user_id = ?", u.ID).Find(profile)
 	if result.Error != nil {
-		view.RenderErrMarkdown(c, "user/404.md", result.Error)
+		view.RenderErrTemplate(c, "user/404.tmpl", result.Error)
 		return
 	}
 

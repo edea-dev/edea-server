@@ -240,7 +240,7 @@ func Delete(c *gin.Context) {
 			"Error": "Unfortunately you didn't give us much to work with, try again with a module id.",
 		}
 		c.Status(http.StatusNotFound)
-		view.RenderMarkdown(c, "module/404.md", msg)
+		view.RenderTemplate(c, "module/404.tmpl", "Module not found", msg)
 		return
 	}
 
@@ -481,7 +481,7 @@ func getModule(c *gin.Context) (user *model.User, module *model.Module) {
 			"Error": "Unfortunately you didn't give us much to work with, try again with a module id.",
 		}
 		c.Status(http.StatusNotFound)
-		view.RenderMarkdown(c, "module/404.md", msg)
+		view.RenderTemplate(c, "module/404.tmpl", "Module not found", msg)
 		return nil, nil
 	}
 
@@ -505,7 +505,7 @@ func getModule(c *gin.Context) (user *model.User, module *model.Module) {
 	if module.ID == uuid.Nil {
 		c.Status(http.StatusNotFound)
 
-		view.RenderMarkdown(c, "module/404.md", nil)
+		view.RenderErrTemplate(c, "module/404.tmpl", nil)
 		return nil, nil
 	}
 

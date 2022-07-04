@@ -70,7 +70,6 @@ func readFile(cfg *Config) {
 			return
 		}
 	}
-	defer f.Close()
 
 	decoder := yaml.NewDecoder(f)
 	err = decoder.Decode(cfg)
@@ -79,6 +78,8 @@ func readFile(cfg *Config) {
 		_ = zap.L().Sync()
 		os.Exit(2)
 	}
+
+	_ = f.Close()
 }
 
 func readEnv(cfg *Config) {

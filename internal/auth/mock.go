@@ -117,7 +117,7 @@ type oidcToken struct {
 }
 
 // InitMockAuth initialises a keyset and provides a new mock authenticator
-func InitMockAuth() error {
+func InitMockAuth() {
 	var priv jose.JSONWebKey
 
 	if keySet == nil {
@@ -132,12 +132,13 @@ func InitMockAuth() error {
 			if err != nil {
 				zap.L().Fatal("could not read jwks from disk", zap.Error(err))
 			}
-			defer f.Close()
 			dec := json.NewDecoder(f)
 
 			if err := dec.Decode(&s); err != nil {
 				zap.L().Fatal("could not decode jwks from json", zap.Error(err))
 			}
+
+			_ = f.Close()
 
 			priv = s.Priv
 			keySet = new(jose.JSONWebKeySet)
@@ -166,7 +167,6 @@ func InitMockAuth() error {
 			if err != nil {
 				zap.L().Fatal("could not save jwks to disk", zap.Error(err))
 			}
-			defer f.Close()
 			enc := json.NewEncoder(f)
 			enc.SetIndent("", "\t")
 
@@ -178,6 +178,7 @@ func InitMockAuth() error {
 			if err := enc.Encode(s); err != nil {
 				zap.L().Fatal("could not encode jwks to json", zap.Error(err))
 			}
+			_ = f.Close()
 		}
 
 		// build a signer from our private key
@@ -187,8 +188,6 @@ func InitMockAuth() error {
 			zap.L().Panic("could not create new signer", zap.Error(err))
 		}
 	}
-
-	return nil
 }
 
 // LoginFormHandler provides a simple local login form for test purposes

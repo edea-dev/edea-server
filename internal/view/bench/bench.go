@@ -31,7 +31,7 @@ func viewHelper(id, tmpl string, c *gin.Context) {
 		if user != nil {
 			result := model.DB.Model(bench).Where("user_id = ? and active = true", user.ID).First(bench)
 			if result.Error != nil {
-				view.RenderErrMarkdown(c, "bench/404.md", result.Error)
+				view.RenderErrTemplate(c, "bench/404.tmpl", result.Error)
 				return
 			}
 		} else {
@@ -39,7 +39,7 @@ func viewHelper(id, tmpl string, c *gin.Context) {
 				"Error": "Unfortunately you didn't give us much to work with, try again with a bench id.",
 			}
 			c.Status(http.StatusNotFound)
-			view.RenderMarkdown(c, "bench/404.md", msg)
+			view.RenderTemplate(c, "bench/404.tmpl", "Bench not found", msg)
 			return
 		}
 	}
@@ -164,7 +164,7 @@ func Fork(c *gin.Context) {
 
 	result := model.DB.Model(b).Where("id = ? and (user_id = ? OR public = true)", id, user.ID).First(b)
 	if result.Error != nil {
-		view.RenderErrMarkdown(c, "bench/404.md", result.Error)
+		view.RenderErrTemplate(c, "bench/404.tmpl", result.Error)
 		return
 	}
 
@@ -278,11 +278,9 @@ func Update(c *gin.Context) {
 	bench := &model.Bench{}
 
 	if err := c.Bind(bench); err != nil {
-		view.RenderErrMarkdown(c, "bench/update.md", err)
+		view.RenderErrTemplate(c, "bench/update.tmpl", err)
 		return
 	}
-
-	// log.Debug().Msgf("%+v", bench)
 
 	// make sure that we update only the fields a user should be able to change
 	result := model.DB.Model(bench).Select("Name", "Description", "Public").Updates(bench)
@@ -362,7 +360,7 @@ func ListUser(c *gin.Context) {
 	}
 
 	if result.Error != nil {
-		view.RenderErrMarkdown(c, "bench/404.md", result.Error)
+		view.RenderErrTemplate(c, "bench/404.tmpl", result.Error)
 		return
 	}
 

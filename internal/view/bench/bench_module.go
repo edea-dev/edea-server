@@ -21,7 +21,7 @@ func AddModule(c *gin.Context) {
 
 	// we need to actually have an id to add it to the current bench
 	if moduleID == "" {
-		view.RenderErrMarkdown(c, "module/add_err.md", util.ErrImSorryDave)
+		view.RenderErrTemplate(c, "module/add_err.md", util.ErrImSorryDave)
 		return
 	}
 
@@ -30,7 +30,7 @@ func AddModule(c *gin.Context) {
 	// get the module by id but also check if it belongs to the user requesting it in case its a private module
 	result := model.DB.Where("id = ? and (user_id = ? or private = false)", moduleID, user.ID).Find(module)
 	if result.Error != nil {
-		view.RenderErrMarkdown(c, "module/add_err.md", util.ErrNoSuchModule)
+		view.RenderErrTemplate(c, "module/add_err.md", util.ErrNoSuchModule)
 		return
 	}
 
@@ -38,7 +38,7 @@ func AddModule(c *gin.Context) {
 	bench := new(model.Bench)
 	result = model.DB.Where("user_id = ? and active = true", user.ID).Find(bench)
 	if result.Error != nil {
-		view.RenderErrMarkdown(c, "module/add_err.md", util.ErrNoSuchBench)
+		view.RenderErrTemplate(c, "module/add_err.md", util.ErrNoSuchBench)
 		return
 	}
 
@@ -76,7 +76,7 @@ func RemoveModule(c *gin.Context) {
 
 	// we need to actually have an id to add it to the current bench
 	if benchModuleID == "" {
-		view.RenderErrMarkdown(c, "module/remove_err.md", util.ErrImSorryDave)
+		view.RenderErrTemplate(c, "module/remove_err.md", util.ErrImSorryDave)
 		return
 	}
 
@@ -84,13 +84,13 @@ func RemoveModule(c *gin.Context) {
 	bench := new(model.Bench)
 	result := model.DB.Where("user_id = ? and active = true", user.ID).Find(bench)
 	if result.Error != nil {
-		view.RenderErrMarkdown(c, "module/remove_err.md", util.ErrNoSuchBench)
+		view.RenderErrTemplate(c, "module/remove_err.md", util.ErrNoSuchBench)
 		return
 	}
 
 	if bench.ID == uuid.Nil {
 		// user tried to remove a module from an inactive bench, this will be supported through the API only
-		view.RenderErrMarkdown(c, "module/remove_err.md", util.ErrNoActiveBench)
+		view.RenderErrTemplate(c, "module/remove_err.md", util.ErrNoActiveBench)
 		return
 	}
 
