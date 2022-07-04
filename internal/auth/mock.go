@@ -224,6 +224,7 @@ func LoginPostHandler(c *gin.Context) {
 		}
 	} else {
 		c.AbortWithStatus(http.StatusForbidden)
+		view.RenderTemplate(c, "403.tmpl", "Forbidden", nil)
 		return
 	}
 

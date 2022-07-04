@@ -37,18 +37,20 @@ func Init(host, index, apiKey string) error {
 		APIKey: apiKey,
 	})
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
 
 	for {
 		if !meiliClient.IsHealthy() {
 			zap.S().Info("meilisearch not ready yet")
 			select {
 			case <-ctx.Done():
-				zap.L().Fatal("timed out waiting for meilisearch")
+				zap.L().Warn("timed out waiting for meilisearch")
+				meiliClient = nil
+				return nil
 			case <-time.After(time.Second):
 			}
 		} else {
-			cancel()
 			break
 		}
 	}

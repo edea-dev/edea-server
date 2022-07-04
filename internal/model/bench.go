@@ -5,6 +5,7 @@ package model
 import (
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap/zapcore"
 	"gorm.io/gorm"
@@ -34,7 +35,13 @@ func (b *Bench) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 
 // BeforeUpdate checks if the current user is allowed to do that
 func (b *Bench) BeforeUpdate(tx *gorm.DB) (err error) {
-	// ctx := tx.Statement.Context
+	ctx := tx.Statement.Context.(*gin.Context)
 
-	return nil // isAuthorized(ctx, b.UserID, b)
+	var tb Bench
+	result := tx.First(&tb, b.ID)
+	if result.Error != nil {
+		return err
+	}
+
+	return isAuthorized(ctx, tb.UserID)
 }

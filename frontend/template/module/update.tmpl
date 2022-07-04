@@ -1,0 +1,75 @@
+{{template "header" .}}
+<main role="main">
+    <!-- min-vh-100 is a hack to make footer stick below the screen. for some reason the standard way (mt-auto) did not work -->
+    <div class="container" id="content">
+        <div class="jumbotron bg-gradient-secondary d-none d-lg-block mb-2">
+            <h1 class="mt-5">Welcome to EDeAhub</h1>
+            <p class="lead">Your source for modular OSHW electronics.</p>
+        </div>
+        {{if .Error}}
+        <div class="flex-row">
+            <div class="alert alert-danger" role="alert">
+                {{.Error}}
+            </div>
+        </div>
+        {{end}}
+        <div class="flex-row">
+            <form action="/module/{{.Module.ID}}" method="post" id="moduleform">
+                <div class="mb-3">
+                    <label class="form-label" for="name">Module Name</label>
+                    <input class="form-control" type="text" id="name" name="name"
+                        placeholder="My low Iq/high PSRR 100mA LDO for 3.3V" aria-describedby="nameHelpBlock"
+                        value="{{.Module.Name}}">
+                    <div id="nameHelpBlock" class="form-text">
+                        Try to be short but descriptive. It should tell someone what the module does, more details
+                        should go into the description.
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="sub">Sub-Module Key</label>
+                    <input class="form-control" type="text" id="sub" name="sub" aria-describedby="subHelpBlock"
+                        disabled value="{{.Module.Sub}}">
+					<div id=" subHelpBlock" class="form-text">
+                    The key in edea.yml identifying the module, leave empty for a single module per repository.
+                </div>
+        </div>
+        <div class="mb-3 form-check">
+            <input class="form-check-input" type="checkbox" id="private" name="private" value="{{.Module.Private}}">
+            <label class="form-check-label" for="private" aria-describedby="visibilityHelpBlock">Private</label>
+            <div id="visibilityHelpBlock" class="form-text">
+                Should your module be visible to other users? You can always change the visibility setting later on too.
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="repourl">Repository URL</label>
+            <input class="form-control" type="text" id="repourl" name="repourl" disabled
+                value="{{.Module.RepoURL}}">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="description">Description</label>
+            <textarea class="form-control" form="moduleform" type="text" id="description" name="description"
+                aria-describedby="descriptionHelpBlock">{{.Module.Description}}</textarea>
+            <div id="descriptionHelpBlock" class="form-text">
+                A short description of what the module does, more detailed than the name, but information how to use it
+                etc. should go into the readme file of the repository.
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="category">Category</label>
+            <select class="form-select" id="category" name="category" aria-label="Category selection">
+                {{range .Categories}}
+                <option value="{{.ID}}" {{if eq .ID $.Module.CategoryID }} selected {{end}}>{{.Name}}</option>
+                {{end}}
+            </select>
+        </div>
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+        </form>
+    </div>
+    </div>
+</main>
+{{template "footer" .}}

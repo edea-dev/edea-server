@@ -149,7 +149,7 @@ func Metadata(module *model.Module) (map[string]interface{}, error) {
 
 	dir, err := repo.GetModulePath(module)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not get module path: %w", err)
 	}
 
 	mergeCmd := exec.CommandContext(ctx, "python3", "-m", "edea", "--extract-meta", dir)

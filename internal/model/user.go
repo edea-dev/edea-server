@@ -40,7 +40,7 @@ func (u *User) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 func (u *User) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context.(*gin.Context)
 
-	return isAuthorized(ctx, u.ID, u)
+	return isAuthorized(ctx, u.ID)
 }
 
 // UserExists returns true if a user with the given auth uuid exists

@@ -30,5 +30,5 @@ type Profile struct {
 func (p *Profile) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context.(*gin.Context)
 
-	return isAuthorized(ctx, p.UserID, p)
+	return isAuthorized(ctx, p.UserID)
 }

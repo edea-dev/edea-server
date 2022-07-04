@@ -19,9 +19,9 @@ type Module struct {
 	ShortCode   string    `form:"short_code"`
 	User        User
 	Private     bool   `gorm:"default:false" form:"private"`
-	RepoURL     string `form:"repourl,required"`
+	RepoURL     string `gorm:"uniqueIndex:idx_repo_sub" form:"repourl,required"`
 	Name        string `form:"name,required"`
-	Sub         string `form:"sub"`
+	Sub         string `gorm:"uniqueIndex:idx_repo_sub" form:"sub"`
 	Description string `form:"description"`
 	CategoryID  string `gorm:"type:uuid" form:"category"`
 	Category    Category
@@ -36,5 +36,11 @@ type Module struct {
 func (m *Module) BeforeUpdate(tx *gorm.DB) (err error) {
 	ctx := tx.Statement.Context.(*gin.Context)
 
-	return isAuthorized(ctx, m.UserID, m)
+	var tm Module
+	result := tx.First(&tm, m.ID)
+	if result.Error != nil {
+		return err
+	}
+
+	return isAuthorized(ctx, tm.UserID)
 }

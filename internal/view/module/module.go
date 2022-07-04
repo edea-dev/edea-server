@@ -47,6 +47,18 @@ func Create(c *gin.Context) {
 		return
 	}
 
+	// check if it already exists and redirect to it if it does
+	tm := model.Module{RepoURL: module.RepoURL, Sub: module.Sub}
+	result := model.DB.Where(&tm).First(&tm)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			zap.S().Panic(result.Error)
+		}
+	} else {
+		c.Redirect(http.StatusSeeOther, fmt.Sprintf("/module/%s", tm.ID))
+		return
+	}
+
 	module.ID = uuid.Nil // prevent the client setting an id
 	module.UserID = user.ID
 
@@ -57,13 +69,13 @@ func Create(c *gin.Context) {
 
 	meta, err := merge.Metadata(module)
 	if err != nil {
-		zap.L().Panic("metadata extraction unsuccessful", zap.Error(err))
+		zap.S().Panic(err)
 	}
 
 	b, _ := json.Marshal(meta)
 	module.Metadata = b
 
-	result := model.DB.WithContext(c).Create(module)
+	result = model.DB.WithContext(c).Create(module)
 	if result.Error != nil {
 		zap.L().Panic("could not create new module", zap.Error(result.Error))
 	}
@@ -122,41 +134,83 @@ func View(c *gin.Context) {
 		hasDocs = false
 	}
 
+	meta := make(map[string]interface{})
+	_ = json.Unmarshal(module.Metadata, &meta)
+
 	// all packed up,
 	m := map[string]interface{}{
-		"Module":  module,
-		"User":    user,
-		"Readme":  readme,
-		"Error":   err,
-		"Author":  mup.DisplayName,
-		"HasDocs": hasDocs,
-		"Title":   fmt.Sprintf("EDeA - %s", module.Name),
+		"Module":   module,
+		"User":     user,
+		"Readme":   readme,
+		"Error":    err,
+		"Author":   mup.DisplayName,
+		"HasDocs":  hasDocs,
+		"Title":    fmt.Sprintf("EDeA - %s", module.Name),
+		"Metadata": meta,
 	}
 
 	// and ready to go
 	view.RenderTemplate(c, "module/view.tmpl", "", m)
 }
 
+// View a module
+func UpdateView(c *gin.Context) {
+	categories := []model.Category{}
+	user, module := getModule(c)
+
+	// getModule already writes out the necessary error messages
+	if module == nil {
+		return
+	}
+
+	// get the module author name
+	mup := model.Profile{UserID: module.UserID}
+
+	if result := model.DB.Where(&mup).First(&mup); result.Error != nil {
+		zap.L().Error("could not fetch module author profile", zap.Error(result.Error), zap.String("user_id", module.UserID.String()))
+	}
+
+	result := model.DB.Model(&model.Category{}).Find(&categories)
+	if result.Error != nil {
+		zap.L().Panic("could not fetch categories", zap.Error(result.Error))
+	}
+
+	// all packed up,
+	m := map[string]interface{}{
+		"Module":     module,
+		"User":       user,
+		"Error":      nil,
+		"Author":     mup.DisplayName,
+		"Title":      fmt.Sprintf("EDeA - %s", module.Name),
+		"Categories": categories,
+	}
+
+	// and ready to go
+	view.RenderTemplate(c, "module/update.tmpl", "", m)
+}
+
 // Update a module and reload the page
 func Update(c *gin.Context) {
-	module := new(model.Module)
+	var tm model.Module
+	var module = new(model.Module)
+	moduleID := uuid.MustParse(c.Param("id"))
+
 	if err := c.Bind(module); err != nil {
-		view.RenderErrMarkdown(c, "module/view.md", err)
+		view.RenderErrTemplate(c, "module/update.tmpl", err)
 		return
 	}
 
-	meta, err := merge.Metadata(module)
-	if err != nil {
-		view.RenderErrMarkdown(c, "module/view.md", err)
-		return
+	result := model.DB.First(&tm, moduleID)
+	if result.Error != nil {
+		zap.S().Panic(result.Error)
 	}
 
-	if err := module.Metadata.Scan(meta); err != nil {
-		view.RenderErrMarkdown(c, "module/view.md", err)
-		return
-	}
+	tm.Name = module.Name
+	tm.Description = module.Description
+	tm.Private = module.Private
+	tm.CategoryID = module.CategoryID
 
-	result := model.DB.WithContext(c).Save(module)
+	result = model.DB.WithContext(c).Save(&tm)
 	if result.Error != nil {
 		zap.L().Panic("could not update module", zap.Error(result.Error))
 	}

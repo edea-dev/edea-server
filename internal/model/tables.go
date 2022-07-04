@@ -44,7 +44,7 @@ func CreateCategories() {
 	}
 }
 
-func isAuthorized(c *gin.Context, userID uuid.UUID, _ interface{}) error {
+func isAuthorized(c *gin.Context, userID uuid.UUID) error {
 	u := c.Keys["user"].(*User)
 
 	// log if it's done by an admin

@@ -20,11 +20,23 @@
         <a href="/bench/add/{{.Module.ID}}" role="button" class="btn btn-primary mr-2">Add to Bench</a>
         <a href="/bench/add_configure/{{.Module.ID}}" role="button" class="btn btn-secondary">Configure & Add</a>
         {{if eq .Module.UserID .User.ID}}
-        {{if .HasBook}}
-        <a href="/module/build_book/{{.Module.ID}}" role="button" class="btn btn-warning ml-2">Build Book</a>
-        {{end}}
-        <a href="/module/pull/{{.Module.ID}}" role="button" class="btn btn-warning ml-2">Pull</a>
-        <a href="/module/delete/{{.Module.ID}}" role="button" class="btn btn-danger ml-2">Delete</a>
+        <div class="dropdown">
+          <button type="button" class="btn btn-light dropdown-toggle ms-1" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            {{icon "list"}} Actions
+          </button>
+          <ul class="dropdown-menu">
+            {{if .HasBook}}
+            <li><a href="/module/build_book/{{.Module.ID}}" role="button" class="btn btn-warning ml-2">Build Book</a>
+            </li>
+            {{end}}
+            <li><a href="/module/update/{{.Module.ID}}" role="button" class="dropdown-item">{{icon "cloud-arrow-down"}}
+                Update</a></li>
+            <li><a href="/module/pull/{{.Module.ID}}" role="button" class="dropdown-item">Pull</a></li>
+            <li><a href="/module/delete/{{.Module.ID}}" role="button" class="dropdown-item">{{icon "trash"}} Delete</a>
+            </li>
+          </ul>
+        </div>
         {{end}}
         {{end}}
       </div>
@@ -40,6 +52,49 @@
             Looks like we couldn't find or render the readme.
           </div>
           {{end}}
+          <div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Part count</th>
+                  <th>Unique Parts</th>
+                  <th>Parse time</th>
+                  <th>Area</th>
+                </tr>
+              </thead>
+              <tr>
+                <td>{{.Metadata.count_part}}</td>
+                <td>{{.Metadata.count_unique}}</td>
+                <td>{{.Metadata.parse_time}}</td>
+                <td>TODO</td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <p>BOM</p>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>References</th>
+                  <th>Value</th>
+                  <th>PartNo</th>
+                  <th>Datasheet</th>
+                </tr>
+              </thead>
+              {{range .Metadata.parts}}
+              <tr>
+                <td>
+                  {{range $i, $e := .Reference}}
+                  {{if gt $i 1}}, {{end}}{{.}}
+                  {{end}}
+                </td>
+                <td>{{.Value}}</td>
+                <td>{{.PartNo}}</td>
+                <td>{{.Datasheet}}</td>
+              </tr>
+              {{end}}
+            </table>
+          </div>
         </div>
       </div>
     </div>
