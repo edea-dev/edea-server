@@ -15,7 +15,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         subst="$line"
         subst=${subst//\$WEBROOT/$WEBROOT}
         subst=${subst//\$SOURCE/$SOURCE}
-        cp -r -v $subst || exit 1
+        cp -r $subst || exit 1
     else
         tput smso
         echo $line
