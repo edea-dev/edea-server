@@ -113,6 +113,14 @@ test.describe.serial('user workflow - alice', () => {
         const module_page = page.locator('h1').first();
         await expect(module_page).toContainText("USB-C");
     });
+
+    test('search for modules', async () => {
+        await page.fill('#search', 'gd32');
+        await page.click('button[type=submit]');
+
+        const module_page = page.locator('.content').first();
+        await expect(module_page).toContainText("alice");
+    });
 });
 
 test.describe.serial('user workflow - bob', () => {
