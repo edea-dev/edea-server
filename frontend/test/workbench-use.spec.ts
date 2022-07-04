@@ -68,6 +68,11 @@ test.describe.serial('user workflow - alice', () => {
 
         const module_page = page.locator('h1').first();
         await expect(module_page).toContainText("TPS62135");
+
+        await page.click('text=Actions');
+        await page.click('text="Build Book"');
+        const book = page.locator('id=content').first();
+        await expect(book).toContainText("Lorem ipsum");
     });
 
     test('new module (GD32)', async () => {
@@ -149,5 +154,34 @@ test.describe.serial('user workflow - bob', () => {
 
         const module_page = page.locator('h1').first();
         await expect(module_page).toContainText("HT7533");
+    });
+});
+
+test.describe.serial('visitor workflow - docs', () => {
+    let page: Page;
+
+    test.beforeAll(async ({ browser }) => {
+        page = await browser.newPage();
+
+        await page.goto(edea_url);
+        const logo = page.locator('.navbar-brand');
+        await expect(logo).toHaveAttribute("aria-label", "EDeA")
+    });
+
+    test.afterAll(async () => {
+        await page.close();
+    });
+
+    test('view 5V PoL module docs', async () => {
+        await page.click('#navbarModulesDD');
+        await page.click('a[href="/module/explore"]');
+
+        const card = page.locator('div:has-text("TPS62135") >> xpath=../../.. >> a[text=View]');
+        await card.click();
+
+        await page.click('text=Docs');
+
+        const book = page.locator('id=content').first();
+        await expect(book).toContainText("Lorem ipsum");
     });
 });
