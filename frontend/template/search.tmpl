@@ -6,6 +6,13 @@
       <h1 class="mt-5">Welcome to EDeAhub</h1>
       <p class="lead">Your source for modular OSHW electronics.</p>
     </div>
+    {{if .Error}}
+    <div class="flex-row">
+      <div class="alert alert-danger" role="alert">
+        {{.Error}}
+      </div>
+    </div>
+    {{end}}
     <div class="row">
       <p>Search</p>
     </div>

@@ -15,7 +15,6 @@
     "bootstrap-table": "^1.19.1",
     "jquery": "^3.6.0",
     "meilisearch": "^0.23.0",
-    "playwright": "^1.21.1",
     "sass": "^1.43.4"
   },
   "browserslist": [

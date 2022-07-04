@@ -182,6 +182,12 @@ func Search(c *gin.Context) {
 		q = c.PostForm("q")
 	}
 
+	if meiliClient == nil {
+		m["Error"] = fmt.Errorf("MeiliSeach isn't running")
+		view.RenderTemplate(c, "search.tmpl", "EDeA - Search", m)
+		return
+	}
+
 	if q != "" {
 		// check if the user is logged in to include private results
 		v, ok := c.Keys["user"]
