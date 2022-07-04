@@ -48,7 +48,7 @@ build:
 docker-base:
     FROM alpine:edge
     WORKDIR /build
-    RUN apk add --update py3-numpy py3-pip mdbook
+    RUN apk -U add py3-numpy py3-pip mdbook
 
     ENV EDEA_VERSION=0.1.0
 
