@@ -13,25 +13,25 @@
       </div>
       <div class="flex-col pb-2">
         <a href="/module/history/{{.Module.ID}}" role="button" class="btn btn-light mr-2">History</a>
-        {{if .HasBook}}
+        {{if .HasDocs}}
         <a href="/module/doc/{{.Module.ID}}" role="button" class="btn btn-light mr-2">Docs</a>
         {{end}}
         {{if .User}}
         <a href="/bench/add/{{.Module.ID}}" role="button" class="btn btn-primary mr-2">Add to Bench</a>
         <a href="/bench/add_configure/{{.Module.ID}}" role="button" class="btn btn-secondary">Configure & Add</a>
         {{if eq .Module.UserID .User.ID}}
-        <div class="dropdown">
+        <div class="dropdown" role="button">
           <button type="button" class="btn btn-light dropdown-toggle ms-1" data-bs-toggle="dropdown"
             aria-expanded="false">
             {{icon "list"}} Actions
           </button>
           <ul class="dropdown-menu">
-            {{if .HasBook}}
-            <li><a href="/module/build_book/{{.Module.ID}}" role="button" class="btn btn-warning ml-2">Build Book</a>
+            {{if .HasDocs}}
+            <li><a href="/module/build_book/{{.Module.ID}}" role="button" class="dropdown-item">Build Book</a>
             </li>
             {{end}}
             <li><a href="/module/update/{{.Module.ID}}" role="button" class="dropdown-item">{{icon "cloud-arrow-down"}}
-                Update</a></li>
+                Edit</a></li>
             <li><a href="/module/pull/{{.Module.ID}}" role="button" class="dropdown-item">Pull</a></li>
             <li><a href="/module/delete/{{.Module.ID}}" role="button" class="dropdown-item">{{icon "trash"}} Delete</a>
             </li>

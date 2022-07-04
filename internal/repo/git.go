@@ -34,9 +34,9 @@ type Project struct {
 
 // Module references the schematic and pcb for this module
 type Module struct {
-	Readme    string `yaml:"readme"`
-	Directory string `yaml:"dir"`
-	Doc       string `yaml:"doc"`
+	Readme    string `yaml:"readme"` // readme file or folder which contains readme.md
+	Directory string `yaml:"dir"`    // path to the kicad project file or folder which contains it
+	Doc       string `yaml:"doc"`    // path to book.toml
 	// TODO: add configuration here
 }
 

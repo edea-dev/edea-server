@@ -525,7 +525,7 @@ func BuildBook(c *gin.Context) {
 		return
 	}
 
-	// render the readme real quick
+	// get the repo cache
 	g := &repo.Git{URL: module.RepoURL}
 	var docPath string
 	var err error
@@ -536,7 +536,7 @@ func BuildBook(c *gin.Context) {
 
 	repoPath, err := g.Dir()
 
-	s := filepath.Join(repoPath, docPath)
+	repoDocPath := filepath.Join(repoPath, docPath)
 
 	ctx, cancel := context.WithTimeout(c, 60*time.Second)
 	defer cancel()
@@ -552,11 +552,9 @@ func BuildBook(c *gin.Context) {
 		}
 	}
 
-	argv := []string{"build", s, "-d", dest}
-
+	// build the html pages with mdbook
+	argv := []string{"build", repoDocPath, "-d", dest}
 	bookCmd := exec.CommandContext(ctx, "mdbook", argv...)
-
-	// run the merge
 	logOutput, err := bookCmd.CombinedOutput()
 
 	// show the user the tool output in case of an error while building the book
