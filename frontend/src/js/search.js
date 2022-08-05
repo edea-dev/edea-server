@@ -63,6 +63,8 @@ async function categories() {
 
 	if (cats.length > 0) {
 		let row = body.insertRow(-1)
+		row.id = "filter_row"
+
 		let i = 0;
 		cats.forEach(cat => {
 			let cell = row.insertCell(i)
@@ -77,18 +79,15 @@ async function categories() {
 			select.name = cat
 			select.setAttribute("multiple", "")
 
-			let optgroup = document.createElement('optgroup')
-
 			// add an option for each value
 			categories[cat].forEach(value => {
 				let opt = document.createElement('option')
 				opt.value = value
 				opt.innerText = value
-				optgroup.appendChild(opt)
+				select.appendChild(opt)
 			})
 
 			// add everything together
-			select.appendChild(optgroup)
 			cell.appendChild(select)
 
 			// TODO: add some more controls to it
@@ -99,3 +98,34 @@ async function categories() {
 }
 
 categories();
+
+async function do_search() {
+	var filter_row = document.getElementById("filter_row")
+
+	var filter_ops = []
+
+	for (var i = 0; i < filter_row.cells.length; i++) {
+		let e = filter_row.cells[i].getElementsByTagName('select')[0]
+		let collection = e.selectedOptions
+
+		if (collection.length == 0) {
+			continue
+		}
+
+		var op_values = []
+
+		for (var j = 0; j < collection.length; j++) {
+			op_values.push(collection[j].value)
+		}
+
+		filter_ops.push({ 'field': e.name, 'op': '=', 'values': op_values })
+	}
+
+	const results = await fetch(
+		'/api/search_module',
+		{ method: 'POST', body: JSON.stringify(filter_ops) }
+	).then((response) => response.json())
+
+	console.log(results)
+	// TODO: display the results
+}
