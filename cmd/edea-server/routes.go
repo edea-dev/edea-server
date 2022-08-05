@@ -58,6 +58,9 @@ func routes(router *gin.Engine) {
 
 	r.GET("/favicon.ico", faviconHandler)
 
+	r.GET("/api/search_fields", search.GetParametersForCategory)
+	r.POST("/api/search_module", search.SearchModule)
+
 	// static files
 	router.Static("/css", "./static/css")
 	router.Static("/js", "./static/js")
