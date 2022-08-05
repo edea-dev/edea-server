@@ -54,13 +54,22 @@ if (searchParams.has('q')) {
 
 searchbox_handler();
 
+function select_range_handler(event) {
+	console.log(event)
+}
+
+
 function _create_button(button_label, aria_label, color) {
 	let btn = document.createElement("button")
 	btn.classList.add("btn", "btn-outline-" + color)
 	btn.setAttribute("aria-label", aria_label)
 	btn.innerHTML = button_label
+	btn.addEventListener('click', enable_update_filters_btn)
+	btn.addEventListener('click', select_range_handler)
 	return btn
 }
+
+const filterfield_prefix = "filterf_"
 
 async function categories() {
 	const categories = await fetch(`/api/search_fields`).then((response) => response.json())
@@ -73,9 +82,9 @@ async function categories() {
 		let i = 0;
 		cats.forEach(cat => {
 			let outer_div = document.createElement("div")
-			outer_div.classList.add("col-3")  // change container width here when necessary
+			outer_div.classList.add("filterbox", "col-3")  // change container width here when necessary
 
-			let form_control_element_name = "filterf_" + cat
+			let form_control_element_name = filterfield_prefix + cat
 
 			let label = document.createElement('label')
 			label.innerText = cat  // TODO add human readable category name here
@@ -89,6 +98,7 @@ async function categories() {
 			select.setAttribute("multiple", "")
 			select.setAttribute("aria-label", "filter options for " + cat)
 			select.classList.add("form-select", "form-select-sm", "mb-1")
+			select.addEventListener('change', enable_update_filters_btn)
 
 			// add an option for each value
 			categories[cat].forEach(value => {
@@ -119,15 +129,41 @@ async function categories() {
 
 }
 
+function disable_update_filters_btn() {
+	update_filters_already_enabled = false
+	let filter_button = document.getElementById("filter_apply_btn")
+	filter_button.disabled = true
+	filter_button.classList.add("btn-outline-light")
+	filter_button.classList.remove("btn-primary")
+	filter_button.removeEventListener('click', do_search)
+}
+
+
+let update_filters_already_enabled = false
+
+function enable_update_filters_btn(event) {
+	if (update_filters_already_enabled) {
+		return
+	}
+	update_filters_already_enabled = true
+	let filter_button = document.getElementById("filter_apply_btn")
+	filter_button.disabled = false
+	filter_button.classList.remove("btn-outline-light")
+	filter_button.classList.add("btn-primary")
+	filter_button.addEventListener('click', do_search)
+}
+
 categories();
+let search_results = []
 
 async function do_search() {
-	var filter_row = document.getElementById("filter_row")
+	disable_update_filters_btn()
+	var filter_row = document.getElementsByClassName("filterbox")
 
 	var filter_ops = []
 
-	for (var i = 0; i < filter_row.cells.length; i++) {
-		let e = filter_row.cells[i].getElementsByTagName('select')[0]
+	for (var i = 0; i < filter_row.length; i++) {
+		let e = filter_row[i].getElementsByTagName('select')[0]
 		let collection = e.selectedOptions
 
 		if (collection.length == 0) {
@@ -137,10 +173,10 @@ async function do_search() {
 		var op_values = []
 
 		for (var j = 0; j < collection.length; j++) {
-			op_values.add(collection[j].value)
+			op_values.push(collection[j].value)
 		}
 
-		filter_ops.add({ 'field': e.name, 'op': '=', 'values': op_values })
+		filter_ops.push({ 'field': e.name.replace(filterfield_prefix, ''), 'op': '=', 'values': op_values })
 	}
 
 	const results = await fetch(
@@ -148,6 +184,6 @@ async function do_search() {
 		{ method: 'POST', body: JSON.stringify(filter_ops) }
 	).then((response) => response.json())
 
-	console.log(results)
+	search_results = results
 	// TODO: display the results
 }
