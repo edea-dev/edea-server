@@ -1,42 +1,79 @@
 {{template "header" .}}
 <main role="main">
   <!-- min-vh-100 is a hack to make footer stick below the screen. for some reason the standard way (mt-auto) did not work -->
-  <div class="container" id="content">
-    <div class="jumbotron bg-gradient-secondary d-none d-lg-block mb-2">
-      <h1 class="mt-5">Welcome to EDeAhub</h1>
-      <p class="lead">Your source for modular OSHW electronics.</p>
-    </div>
-    {{if .Error}}
-    <div class="flex-row">
-      <div class="alert alert-danger" role="alert">
-        {{.Error}}
+  <form>
+    <div class="container" id="content">
+      {{if .Error}}
+      <div class="flex-row">
+        <div class="alert alert-danger" role="alert">
+          {{.Error}}
+        </div>
       </div>
-    </div>
-    {{end}}
-    <div class="row">
-      <p>Search</p>
-    </div>
-    <div class="row">
-      <div class="col">
-        <input name="searchbox" focus oninput="searchbox_handler()"></input>
-        <div id="hits">
-          <table id="hits">
-            <thead>
+      {{end}}
+      <div class="row">
+        <div class="col-12">
+          <h1>Free-Text Search</h1>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="enter search term here" aria-label="search input"
+              aria-describedby="send-search-btn" focus oninput="searchbox_handler" name="searchbox">
+            <button class="btn btn-outline-secondary" type="button" id="send-search-btn">Find</button>
+          </div>
+        </div>
+      </div>
+      <div class="row" id="filters-row">
+        <div class="col-12">
+          <h2>Filters</h2>
+        </div>
+        <div class="col-3">
 
-            </thead>
-            <tbody>
+          <label for="cat_01234" class="form-label">
+            Category Name
+          </label>
 
-            </tbody>
-          </table>
+          <select class="form-select form-select-sm mb-1" multiple aria-label="filter select test" size="7"
+            name="cat_01234">
+            <option selected>Open this select menu</option>
+            <option value="1">One</option>
+            <option value="2">Two</option>
+            <option value="3">Three</option>
+          </select>
+
+          <div class="input-group input-group-sm mb-3">
+            <button class="btn btn-outline-secondary" type="button"
+              aria-label="Also select all values less than or equal to selected">&#x2264;</button>
+            <button class="btn btn-outline-primary form-control" type="button"
+              aria-label="Reset this filter">&#x21bb;</button>
+            <button class="btn btn-outline-secondary" type="button"
+              aria-label="Also select all values larger than or equal to selected">&#x2265;</button>
+          </div>
+        </div>
+
+        <table class="table" id="filters">
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="row" id="hits-row">
+        <div class="col-12">
+          <h2>Results</h2>
+        </div>
+        <div class="col">
+          <div id="hits">
+            <table id="hits-table">
+              <thead>
+
+              </thead>
+              <tbody>
+
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
-    <div class="row">
-      <p>Filters</p>
-      <table class="table" id="filters">
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
+  </form>
 </main>
 {{template "footer" .}}
