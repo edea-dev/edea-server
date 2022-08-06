@@ -52,7 +52,7 @@ if (searchParams.has('q')) {
 	element.value = searchParams.get('q');
 }
 
-searchbox_handler();
+// searchbox_handler(); // TODO fix this
 
 function select_range_handler(event) {
 	event.preventDefault()
@@ -87,6 +87,37 @@ function select_range_handler(event) {
 	}
 }
 
+async function async_add_module_to_bench(event) {
+	event.preventDefault()
+	const target_link = event.srcElement.href
+	const button_elem = event.srcElement
+	button_elem.blur()
+	button_elem.disabled = true
+
+	const response_ok = await fetch(target_link).then((response) => {
+    if (!response.ok) {
+      return false;
+    }
+    return true; }).catch((error) => {
+    return false;
+  });
+
+	const module_counter = document.getElementById("modules-on-bench-counter")
+	if (response_ok) {
+		if (typeof(module_counter) != "undefined") {
+			module_counter.innerText = 1 + Number(module_counter.innerText)
+			const added_message = document.createElement("span")
+			added_message.classList.add("badge", "bg-secondary")
+			added_message.innerText = "Added!"
+			button_elem.parentElement.insertBefore(added_message, button_elem.nextSibling)
+		}
+	} else {
+		const error_message = document.createElement("span")
+		error_message.classList.add("badge", "bg-danger")
+		error_message.innerText = "Error"
+		button_elem.parentElement.insertBefore(error_message, button_elem.nextSibling)
+	}
+}
 
 function _create_button(button_label, aria_label, color, disabled = false) {
 	let btn = document.createElement("button")
@@ -107,9 +138,9 @@ function _create_button(button_label, aria_label, color, disabled = false) {
 const filterfield_prefix = "filterf_"
 
 async function categories() {
-	const filterfield_id = "filters-row"
-	if (typeof(document.getElementById(filterfield_id)) == "undefined") {
-		return
+	const filters_container = document.getElementById("filters-row")
+	if (typeof(filters_container) == "undefined") {
+		return;
 	}
 	const filters = await fetch(`/api/filters`).then((response) => response.json())
 	var filter_dict = {}
@@ -117,8 +148,6 @@ async function categories() {
 		filter_dict[filters[i].Key] = filters[i]
 	}
 	const categories = await fetch(`/api/search_fields`).then((response) => response.json())
-	var filters_container = document.getElementById(filterfield_id)
-
 	const cats = Object.keys(categories)
 
 	if (cats.length > 0) {
@@ -285,17 +314,24 @@ async function do_search() {
 		result_text.innerHTML = r.Description
 		result_body.appendChild(result_text)
 
-		let new_link = document.createElement("a")
-		new_link.classList.add("btn", "btn-outline-primary", "btn-sm", "mx-2")
-		new_link.setAttribute("role", "button")
-		new_link.innerHTML = "bottom text"
-		result_body.appendChild(new_link)
+		let module_link = document.createElement("a")
+		module_link.classList.add("btn", "btn-outline-primary", "btn-sm", "mx-2")
+		module_link.innerHTML = "Go to Module"  // consider loading it async in a pane?
+		module_link.href = "/module/" + r.ID
+		result_body.appendChild(module_link)
 
-		let new_link2 = document.createElement("a")
-		new_link2.classList.add("btn", "btn-outline-secondary", "btn-sm", "mx-2")
-		new_link.setAttribute("role", "button")
-		new_link2.innerHTML = "add to bench"
-		result_body.appendChild(new_link2)
+		let author_profile = document.createElement("a")
+		author_profile.classList.add("btn", "btn-outline-primary", "btn-sm", "mx-2")
+		author_profile.innerHTML = "Go to Author's Modules"
+		author_profile.href = "/module/user/" + r.UserID
+		result_body.appendChild(author_profile)
+
+		let add_to_bench_link = document.createElement("button")
+		add_to_bench_link.classList.add("btn", "btn-outline-secondary", "btn-sm", "mx-2")
+		add_to_bench_link.innerHTML = "Add to my Bench"
+		add_to_bench_link.href = "/bench/add/" + r.ID
+		add_to_bench_link.addEventListener('click', async_add_module_to_bench)
+		result_body.appendChild(add_to_bench_link) // TODO: make this asynchronous
 
 		let result_footer = document.createElement("p")
 		result_footer.classList.add("card-text", "text-muted", "small", "mt-3")
