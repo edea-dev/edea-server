@@ -107,6 +107,11 @@ function _create_button(button_label, aria_label, color, disabled=false) {
 const filterfield_prefix = "filterf_"
 
 async function categories() {
+	const filters = await fetch(`/api/filters`).then((response) => response.json())
+	var filter_dict = {}
+	for (var i = 0; i < filters.length; i++) {
+		filter_dict[filters[i].Key] = filters[i]
+	}
 	const categories = await fetch(`/api/search_fields`).then((response) => response.json())
 	var filters_container = document.getElementById("filters-row")
 
@@ -122,7 +127,13 @@ async function categories() {
 			let form_control_element_name = filterfield_prefix + cat
 
 			let label = document.createElement('label')
-			label.innerText = cat  // TODO add human readable category name here
+			var cat_name = cat
+			var cat_label_found = false
+			if (typeof(filter_dict[cat]) != 'undefined') {
+				cat_name = filter_dict[cat].Name
+				cat_label_found = true
+			}
+			label.innerText = cat_name
 			label.setAttribute("for", form_control_element_name)
 			label.classList.add("form-label")
 
@@ -224,7 +235,7 @@ async function do_search() {
 			op_values.push(collection[j].value)
 		}
 
-		filter_ops.push({ 'field': e.name.replace(filterfield_prefix, ''), 'op': '=', 'values': op_values })
+		filter_ops.push({ 'field': e.name.substring(filterfield_prefix.length), 'op': '=', 'values': op_values })
 	}
 
 	const results = await fetch(
