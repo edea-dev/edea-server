@@ -50,6 +50,7 @@ func CreateFilters() {
 		{Key: "v_in_min", Name: "Vin Min", Description: "Minimum Input Voltage"},
 		{Key: "v_in_max", Name: "Vin Max", Description: "Maximum Input Voltage"},
 		{Key: "v_out_min", Name: "Vout Min", Description: "Minimum Output Voltage"},
+		{Key: "v_out_typ", Name: "Vout Typ", Description: "Typical Output Voltage"},
 		{Key: "v_out_max", Name: "Vout Max", Description: "Maximum Output Voltage"},
 
 		{Key: "i_in_min", Name: "Iin Min", Description: "Minimum Input Current"},
