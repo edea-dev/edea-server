@@ -36,7 +36,6 @@ require (
 	github.com/cloudflare/circl v1.2.0 // indirect
 	github.com/dlclark/regexp2 v1.7.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/gin-contrib/cors v1.4.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gliderlabs/ssh v0.3.3 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -176,6 +177,8 @@ func Search(c *gin.Context) {
 	var filter, q string
 	m := make(map[string]interface{})
 
+	isAjax := strings.Contains(c.GetHeader("accept"), "application/json")
+
 	// allow GET and POST
 	if c.Request.Method == "GET" {
 		q = c.Query("q")
@@ -185,7 +188,11 @@ func Search(c *gin.Context) {
 
 	if meiliClient == nil {
 		m["Error"] = fmt.Errorf("MeiliSeach isn't running")
-		view.RenderTemplate(c, "search.tmpl", "EDeA - Search", m)
+		if isAjax {
+			c.JSON(http.StatusInternalServerError, m)
+		} else {
+			view.RenderTemplate(c, "search.tmpl", "EDeA - Search", m)
+		}
 		return
 	}
 
@@ -208,15 +215,21 @@ func Search(c *gin.Context) {
 		if err != nil {
 			zap.L().Error("search error", zap.Error(err), zap.String("query", q))
 			c.String(http.StatusInternalServerError, "err")
+			return
 		}
 
 		// check if it's an AJAX request
-		if c.ContentType() == "application/json" {
+		if isAjax {
 			c.JSON(http.StatusOK, searchRes)
 			return
 		}
 
 		m["Result"] = searchRes
+	}
+
+	if isAjax {
+		c.Status(http.StatusNoContent)
+		return
 	}
 
 	view.RenderTemplate(c, "search.tmpl", "EDeA - Search", m)

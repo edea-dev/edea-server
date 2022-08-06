@@ -1,20 +1,20 @@
 
-// MeiliSearch
-const searchClient = new MeiliSearch({
-	host: 'http://pinus:7700',
-	apiKey: 'meiliedea',
-})
-
-const fp_index = searchClient.index('edea')
-
 async function searchbox_handler() {
 	var element = document.querySelector("input[name='searchbox']")
-	const search = await fp_index.search(element.value)
+	const formData = new FormData();
+	formData.append('q', element.value)
+
+	const search = await fetch(
+		"/search", {
+		method: 'POST',
+		body: formData,
+		headers: {
+			'Accept': 'application/json',
+		},
+	}).then((r) => r.json())
 
 	if (search.hits.length > 0) {
 		var hits = document.querySelector("table[id='hits'] tbody")
-
-		console.log(search.hits);
 
 		var body = document.createElement('tbody');
 
@@ -62,7 +62,7 @@ function select_range_handler(event) {
 
 	if (btn.attributes["aria-label"].value.includes("less than")) {
 		for (var i = 0; i < select_element.options.length; i++) {
-			if (! select_element.options[i].selected) {
+			if (!select_element.options[i].selected) {
 				select_element.options[i].selected = true
 			} else {
 				break
@@ -70,7 +70,7 @@ function select_range_handler(event) {
 		}
 	} else if (btn.attributes["aria-label"].value.includes("larger than")) {
 		for (var i = select_element.options.length - 1; i >= 0; i--) {
-			if (! select_element.options[i].selected) {
+			if (!select_element.options[i].selected) {
 				select_element.options[i].selected = true
 			} else {
 				break
@@ -88,12 +88,12 @@ function select_range_handler(event) {
 }
 
 
-function _create_button(button_label, aria_label, color, disabled=false) {
+function _create_button(button_label, aria_label, color, disabled = false) {
 	let btn = document.createElement("button")
 	btn.classList.add("btn")
 	btn.setAttribute("aria-label", aria_label)
 	btn.innerHTML = button_label
-	if (! disabled) {
+	if (!disabled) {
 		btn.addEventListener('click', enable_update_filters_btn)
 		btn.addEventListener('click', select_range_handler)
 		btn.classList.add("btn-outline-" + color)
@@ -129,7 +129,7 @@ async function categories() {
 			let label = document.createElement('label')
 			var cat_name = cat
 			var cat_label_found = false
-			if (typeof(filter_dict[cat]) != 'undefined') {
+			if (typeof (filter_dict[cat]) != 'undefined') {
 				cat_name = filter_dict[cat].Name
 				cat_label_found = true
 			}
@@ -166,14 +166,14 @@ async function categories() {
 			let control_div = document.createElement("div")
 			control_div.classList.add("input-group", "input-group-sm", "mb-3")
 
-			control_div.appendChild(_create_button("&nbsp;&#x2264;&nbsp;", "select all values less than or equal to selected", "secondary", disabled=(num_cats < 2)))
-			let midbtn = _create_button("&nbsp;&#x21bb;&nbsp;", "clear this filter", "primary", disabled=false)
+			control_div.appendChild(_create_button("&nbsp;&#x2264;&nbsp;", "select all values less than or equal to selected", "secondary", disabled = (num_cats < 2)))
+			let midbtn = _create_button("&nbsp;&#x21bb;&nbsp;", "clear this filter", "primary", disabled = false)
 			if (num_selected == 0) {
 				midbtn.disabled = true
 			}
 			midbtn.classList.add("form-control")
 			control_div.appendChild(midbtn)
-			control_div.appendChild(_create_button("&nbsp;&#x2265;&nbsp;", "select all values larger than or equal to selected", "secondary", disabled=(num_cats < 2)))
+			control_div.appendChild(_create_button("&nbsp;&#x2265;&nbsp;", "select all values larger than or equal to selected", "secondary", disabled = (num_cats < 2)))
 
 			outer_div.appendChild(control_div)
 
@@ -246,11 +246,11 @@ async function do_search() {
 	search_results = results  // put it into a global for easier debugging from dev console
 	let results_container = document.getElementById("hits-row")
 
-	for (var i=0; i < results_container.children.length -1; i++) {
+	for (var i = 0; i < results_container.children.length - 1; i++) {
 		results_container.removeChild(results_container.lastChild)
 	}
 
-	for (var i=0; i < results.length; i++) {
+	for (var i = 0; i < results.length; i++) {
 		let r = results[i]
 		let result_container_div = document.createElement("div")
 		result_container_div.classList.add("col-12", "search-result", "mb-3")
@@ -300,7 +300,7 @@ async function do_search() {
 		result_footer.innerHTML += ", PCB area: &lt;tbd&gt; mm&#xb2;"
 		result_footer.innerHTML += ", last updated " + r.UpdatedAt  // TODO make it more human readable
 		result_body.appendChild(result_footer)
-		
+
 		results_container.appendChild(result_container_div)
 	}
 }
