@@ -74,9 +74,9 @@ func ExploreUser(c *gin.Context) {
 		id = uuid.MustParse(userID)
 	}
 
-	p := &model.Profile{UserID: id}
+	var p model.Profile
 
-	result := model.DB.Find(&p)
+	result := model.DB.Find(&p, "user_id = ?", id)
 	if result.Error != nil {
 		zap.L().Panic("no such user", zap.Error(result.Error))
 	}
