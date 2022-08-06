@@ -122,13 +122,24 @@ func SearchModule(c *gin.Context) {
 
 	// query the db with the selectors
 	var modules []model.Module
-	tx := model.DB.Model(&model.Module{}).Where(sb.String(), qc...).Find(&modules)
+	tx := model.DB.Model(&model.Module{}).Where(sb.String(), qc...).Preload("Category").Preload("User").Find(&modules)
 	if err := tx.Error; err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, modules)
+}
+
+func Filters(c *gin.Context) {
+	var filters []model.Filter
+	tx := model.DB.Find(&filters)
+	if tx.Error != nil {
+		_ = c.AbortWithError(http.StatusInternalServerError, tx.Error)
+		return
+	}
+
+	c.JSON(http.StatusOK, filters)
 }
 
 func GetParametersForCategory(c *gin.Context) {

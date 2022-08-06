@@ -23,7 +23,7 @@ var DB *gorm.DB
 
 // CreateTables initially creates the tables in the database
 func CreateTables() {
-	err := DB.AutoMigrate(&User{}, &Profile{}, &Module{}, &Repository{}, &BenchModule{}, &Category{}, &Bench{})
+	err := DB.AutoMigrate(&User{}, &Profile{}, &Module{}, &Repository{}, &BenchModule{}, &Category{}, &Bench{}, &Filter{})
 	if err != nil {
 		zap.L().Fatal("could not run automigrations", zap.Error(err))
 	}
@@ -37,6 +37,27 @@ func CreateCategories() {
 		{Name: "MCU", Description: "Microcontroller modules"},
 		{Name: "Test", Description: "Test modules - do not use"},
 		{Name: "Connector", Description: "Connector modules"},
+	}
+	result := DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&categories)
+	if result.Error != nil {
+		zap.L().Fatal("could not create categories", zap.Error(result.Error))
+	}
+}
+
+func CreateFilters() {
+	// set up a few default filters
+	var categories = []Filter{
+		{Key: "v_in_min", Name: "Vin Min", Description: "Minimum Input Voltage"},
+		{Key: "v_in_max", Name: "Vin Max", Description: "Maximum Input Voltage"},
+		{Key: "v_out_min", Name: "Vout Min", Description: "Minimum Output Voltage"},
+		{Key: "v_out_max", Name: "Vout Max", Description: "Maximum Output Voltage"},
+
+		{Key: "i_in_min", Name: "Iin Min", Description: "Minimum Input Current"},
+		{Key: "i_in_max", Name: "Iin Max", Description: "Maximum Input Current"},
+		{Key: "i_out_min", Name: "Iout Min", Description: "Minimum Output Current"},
+		{Key: "i_out_max", Name: "Iout Max", Description: "Maximum Output Current"},
+
+		{Key: "i_q_typ", Name: "Iq Typ", Description: "Typical Quiescent Current"},
 	}
 	result := DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&categories)
 	if result.Error != nil {

@@ -20,11 +20,11 @@ import (
 // User mapping from IDs to the authentication provider data
 type User struct {
 	ID        uuid.UUID `gorm:"type:uuid;primarykey;default:uuid_generate_v4()"`
-	AuthUUID  string    `gorm:"unique"` // unique id from authentication provider
-	Handle    string    `gorm:"unique"` // user handle as it will be used in the url
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	IsAdmin   bool `gorm:"default:false"`
+	AuthUUID  string    `gorm:"unique" json:"-"` // unique id from authentication provider, omit when serializing by default
+	Handle    string    `gorm:"unique"`          // user handle as it will be used in the url
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+	IsAdmin   bool      `gorm:"default:false" json:"-"`
 }
 
 func (u *User) MarshalLogObject(enc zapcore.ObjectEncoder) error {

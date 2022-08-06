@@ -60,6 +60,7 @@ func routes(router *gin.Engine) {
 
 	r.GET("/api/search_fields", search.GetParametersForCategory)
 	r.POST("/api/search_module", search.SearchModule)
+	r.GET("/api/filters", search.Filters)
 
 	// static files
 	router.Static("/css", "./static/css")

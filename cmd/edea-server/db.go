@@ -63,6 +63,7 @@ func db() error {
 
 	model.CreateTables()
 	model.CreateCategories()
+	model.CreateFilters()
 
 	return nil
 }
