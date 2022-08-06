@@ -114,11 +114,11 @@ async function categories() {
 			let control_div = document.createElement("div")
 			control_div.classList.add("input-group", "input-group-sm", "mb-3")
 
-			control_div.appendChild(_create_button("&#x2264;", "select all values less than or equal to selected", "secondary"))
-			let midbtn = _create_button("&#x21bb;", "clear this filter", "primary")
+			control_div.appendChild(_create_button("&nbsp;&#x2264;&nbsp;", "select all values less than or equal to selected", "secondary"))
+			let midbtn = _create_button("&nbsp;&#x21bb;&nbsp;", "clear this filter", "primary")
 			midbtn.classList.add("form-control")
 			control_div.appendChild(midbtn)
-			control_div.appendChild(_create_button("&#x2265;", "select all values larger than or equal to selected", "secondary"))
+			control_div.appendChild(_create_button("&nbsp;&#x2265;&nbsp;", "select all values larger than or equal to selected", "secondary"))
 
 			outer_div.appendChild(control_div)
 
@@ -184,6 +184,64 @@ async function do_search() {
 		{ method: 'POST', body: JSON.stringify(filter_ops) }
 	).then((response) => response.json())
 
-	search_results = results
-	// TODO: display the results
+	search_results = results  // put it into a global for easier debugging from dev console
+	let results_container = document.getElementById("hits-row")
+
+	for (var i=0; i < results_container.children.length; i++) {
+		results_container.removeChild(results_container.lastChild)
+	}
+
+	for (var i=0; i < results.length; i++) {
+		let r = results[i]
+		let result_container_div = document.createElement("div")
+		result_container_div.classList.add("col-12", "search-result", "mb-3")
+
+		let result_card = document.createElement("div")
+		result_card.classList.add("card")
+		result_container_div.appendChild(result_card)
+
+		let result_header = document.createElement("div")
+		result_header.classList.add("card-header")
+		result_header.innerHTML = "&lt; add tags or categories here maybe? &gt;" // TODO
+		result_card.appendChild(result_header)
+
+		let result_body = document.createElement("div")
+		result_body.classList.add("card-body")
+		result_card.appendChild(result_body)
+
+		let result_title = document.createElement("h5")
+		result_title.classList.add("card-title")
+		result_title.innerHTML = r.Name
+		if (r.User.Handle != "") {
+			result_title.innerHTML += " <small> by <i>" + r.User.Handle + "</i></small>"
+		}
+		result_body.appendChild(result_title)
+
+		let result_text = document.createElement("p")
+		result_text.classList.add("card-text")
+		result_text.innerHTML = r.Description
+		result_body.appendChild(result_text)
+
+		let new_link = document.createElement("a")
+		new_link.classList.add("btn", "btn-outline-primary", "btn-sm", "mx-2")
+		new_link.setAttribute("role", "button")
+		new_link.innerHTML = "bottom text"
+		result_body.appendChild(new_link)
+
+		let new_link2 = document.createElement("a")
+		new_link2.classList.add("btn", "btn-outline-secondary", "btn-sm", "mx-2")
+		new_link.setAttribute("role", "button")
+		new_link2.innerHTML = "add to bench"
+		result_body.appendChild(new_link2)
+
+		let result_footer = document.createElement("p")
+		result_footer.classList.add("card-text", "text-muted", "small", "mt-3")
+		result_footer.innerHTML = "BOM: " + r.Metadata.count_part
+		result_footer.innerHTML += " (" + r.Metadata.count_unique + " unique)"
+		result_footer.innerHTML += ", PCB area: &lt;tbd&gt; mm&#xb2;"
+		result_footer.innerHTML += ", last updated " + r.UpdatedAt  // TODO make it more human readable
+		result_body.appendChild(result_footer)
+		
+		results_container.appendChild(result_container_div)
+	}
 }
