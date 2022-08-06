@@ -107,13 +107,17 @@ function _create_button(button_label, aria_label, color, disabled = false) {
 const filterfield_prefix = "filterf_"
 
 async function categories() {
+	const filterfield_id = "filters-row"
+	if (typeof(document.getElementById(filterfield_id)) == "undefined") {
+		return
+	}
 	const filters = await fetch(`/api/filters`).then((response) => response.json())
 	var filter_dict = {}
 	for (var i = 0; i < filters.length; i++) {
 		filter_dict[filters[i].Key] = filters[i]
 	}
 	const categories = await fetch(`/api/search_fields`).then((response) => response.json())
-	var filters_container = document.getElementById("filters-row")
+	var filters_container = document.getElementById(filterfield_id)
 
 	const cats = Object.keys(categories)
 
