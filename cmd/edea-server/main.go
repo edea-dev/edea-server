@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"gitlab.com/edea-dev/edea-server/internal/config"
@@ -44,6 +45,10 @@ func main() {
 		SkipPaths:  []string{"/css", "/js", "/img", "/fonts", "/icons"},
 	}))
 	r.Use(gin.CustomRecoveryWithWriter(nil, middleware.Recovery))
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{config.Cfg.Search.Host}
+	r.Use(cors.New(corsConfig))
 
 	routes(r)
 

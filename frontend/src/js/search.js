@@ -1,8 +1,8 @@
 
 // MeiliSearch
 const searchClient = new MeiliSearch({
-	host: 'http://192.168.0.2:7700',
-	apiKey: '',
+	host: 'http://pinus:7700',
+	apiKey: 'meiliedea',
 })
 
 const fp_index = searchClient.index('edea')
