@@ -235,7 +235,7 @@ async function do_search() {
 	search_results = results  // put it into a global for easier debugging from dev console
 	let results_container = document.getElementById("hits-row")
 
-	for (var i=0; i < results_container.children.length; i++) {
+	for (var i=0; i < results_container.children.length -1; i++) {
 		results_container.removeChild(results_container.lastChild)
 	}
 
