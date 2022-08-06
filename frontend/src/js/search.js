@@ -55,17 +55,52 @@ if (searchParams.has('q')) {
 searchbox_handler();
 
 function select_range_handler(event) {
-	console.log(event)
+	event.preventDefault()
+
+	let btn = event.srcElement
+	let select_element = btn.parentElement.parentElement.children[1]
+
+	if (btn.attributes["aria-label"].value.includes("less than")) {
+		for (var i = 0; i < select_element.options.length; i++) {
+			if (! select_element.options[i].selected) {
+				select_element.options[i].selected = true
+			} else {
+				break
+			}
+		}
+	} else if (btn.attributes["aria-label"].value.includes("larger than")) {
+		for (var i = select_element.options.length - 1; i >= 0; i--) {
+			if (! select_element.options[i].selected) {
+				select_element.options[i].selected = true
+			} else {
+				break
+			}
+		}
+	} else if (btn.attributes["aria-label"].value.includes("clear")) {
+		for (var i = 0; i < select_element.options.length; i++) {
+			if (select_element.options[i].selected) {
+				select_element.options[i].selected = false
+			}
+		}
+		btn.disabled = true
+		btn.blur()
+	}
 }
 
 
-function _create_button(button_label, aria_label, color) {
+function _create_button(button_label, aria_label, color, disabled=false) {
 	let btn = document.createElement("button")
-	btn.classList.add("btn", "btn-outline-" + color)
+	btn.classList.add("btn")
 	btn.setAttribute("aria-label", aria_label)
 	btn.innerHTML = button_label
-	btn.addEventListener('click', enable_update_filters_btn)
-	btn.addEventListener('click', select_range_handler)
+	if (! disabled) {
+		btn.addEventListener('click', enable_update_filters_btn)
+		btn.addEventListener('click', select_range_handler)
+		btn.classList.add("btn-outline-" + color)
+	} else {
+		btn.classList.add("btn-outline-light")
+		btn.setAttribute("disabled", true)
+	}
 	return btn
 }
 
@@ -101,11 +136,17 @@ async function categories() {
 			select.addEventListener('change', enable_update_filters_btn)
 
 			// add an option for each value
+			var num_cats = 0
+			var num_selected = 0
 			categories[cat].forEach(value => {
 				let opt = document.createElement('option')
 				opt.value = value
 				opt.innerText = value
 				select.appendChild(opt)
+				num_cats++
+				if (opt.selected) {
+					num_selected++
+				}
 			})
 
 			// add everything together
@@ -114,11 +155,14 @@ async function categories() {
 			let control_div = document.createElement("div")
 			control_div.classList.add("input-group", "input-group-sm", "mb-3")
 
-			control_div.appendChild(_create_button("&nbsp;&#x2264;&nbsp;", "select all values less than or equal to selected", "secondary"))
-			let midbtn = _create_button("&nbsp;&#x21bb;&nbsp;", "clear this filter", "primary")
+			control_div.appendChild(_create_button("&nbsp;&#x2264;&nbsp;", "select all values less than or equal to selected", "secondary", disabled=(num_cats < 2)))
+			let midbtn = _create_button("&nbsp;&#x21bb;&nbsp;", "clear this filter", "primary", disabled=false)
+			if (num_selected == 0) {
+				midbtn.disabled = true
+			}
 			midbtn.classList.add("form-control")
 			control_div.appendChild(midbtn)
-			control_div.appendChild(_create_button("&nbsp;&#x2265;&nbsp;", "select all values larger than or equal to selected", "secondary"))
+			control_div.appendChild(_create_button("&nbsp;&#x2265;&nbsp;", "select all values larger than or equal to selected", "secondary", disabled=(num_cats < 2)))
 
 			outer_div.appendChild(control_div)
 
@@ -138,10 +182,14 @@ function disable_update_filters_btn() {
 	filter_button.removeEventListener('click', do_search)
 }
 
-
 let update_filters_already_enabled = false
 
 function enable_update_filters_btn(event) {
+	// enable reset filter button
+	if (event.srcElement.nodeName == "SELECT") {
+		event.srcElement.parentElement.lastChild.children[1].disabled = false
+	}
+
 	if (update_filters_already_enabled) {
 		return
 	}
@@ -236,7 +284,7 @@ async function do_search() {
 
 		let result_footer = document.createElement("p")
 		result_footer.classList.add("card-text", "text-muted", "small", "mt-3")
-		result_footer.innerHTML = "BOM: " + r.Metadata.count_part
+		result_footer.innerHTML = "BOM: " + r.Metadata.count_part + " parts"
 		result_footer.innerHTML += " (" + r.Metadata.count_unique + " unique)"
 		result_footer.innerHTML += ", PCB area: &lt;tbd&gt; mm&#xb2;"
 		result_footer.innerHTML += ", last updated " + r.UpdatedAt  // TODO make it more human readable
