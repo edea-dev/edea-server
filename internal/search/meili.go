@@ -86,7 +86,7 @@ func BenchToEntry(b model.Bench) Entry {
 // ModuleToEntry converts a Module model to a Search Entry
 func ModuleToEntry(m model.Module) Entry {
 	meta := make(map[string]interface{})
-	json.Unmarshal(m.Metadata, &meta)
+	_ = json.Unmarshal(m.Metadata, &meta)
 	return Entry{
 		ID:          m.ID.String(),
 		Type:        "module",
@@ -101,7 +101,8 @@ func ModuleToEntry(m model.Module) Entry {
 }
 
 // ReIndexDB searches for all public entries and puts them into the database
-//     This route is mainly for testing
+//
+//	This route is mainly for testing
 func ReIndexDB(c *gin.Context) {
 	var benches []model.Bench
 	var modules []model.Module
@@ -131,8 +132,8 @@ func ReIndexDB(c *gin.Context) {
 		zap.L().Panic("could not add/update the search index in bulk", zap.Error(result.Error))
 	}
 
-	zap.L().Debug("bulk update", zap.Int64("meili_update_id", updateRes.UID))
-	c.String(http.StatusOK, "bulk update update_id: %d", updateRes.UID)
+	zap.L().Debug("bulk update", zap.Int64("meili_update_id", updateRes.TaskUID))
+	c.String(http.StatusOK, "bulk update update_id: %d", updateRes.TaskUID)
 }
 
 // UpdateEntry adds or updates a single search entry
@@ -148,7 +149,7 @@ func UpdateEntry(e Entry) error {
 		return fmt.Errorf("could not add/update the search index: %w", err)
 	}
 
-	zap.L().Debug("single entry update", zap.Int64("meili_update_id", updateRes.UID))
+	zap.L().Debug("single entry update", zap.Int64("meili_update_id", updateRes.TaskUID))
 	return nil
 }
 
