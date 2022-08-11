@@ -333,12 +333,20 @@ async function do_search() {
 		add_to_bench_link.addEventListener('click', async_add_module_to_bench)
 		result_body.appendChild(add_to_bench_link) // TODO: make this asynchronous
 
-		let result_footer = document.createElement("p")
-		result_footer.classList.add("card-text", "text-muted", "small", "mt-3")
-		result_footer.innerHTML = "BOM: " + r.Metadata.count_part + " parts"
-		result_footer.innerHTML += " (" + r.Metadata.count_unique + " unique)"
-		result_footer.innerHTML += ", PCB area: &lt;tbd&gt; mm&#xb2;"
-		result_footer.innerHTML += ", last updated " + r.UpdatedAt  // TODO make it more human readable
+		let result_footer = document.createElement("ul")
+		result_footer.classList.add(
+			"list-inline", "card-text", "text-muted", "small", "mt-3")
+		const footer_contents = [
+			"BOM: " + r.Metadata.count_part + " parts (" + r.Metadata.count_unique + " unique)",
+			"PCB area: &lt;tbd&gt; mm&#xb2;",
+			'last updated <time datetime="' + r.UpdatedAt + '">' + prettyDate(r.UpdatedAt) + "</time>"
+		]
+		footer_contents.forEach(entry => {
+			let list_item = document.createElement("li")
+			list_item.classList.add("list-inline-item")
+			list_item.innerHTML = entry
+			result_footer.appendChild(list_item)
+		})
 		result_body.appendChild(result_footer)
 
 		results_container.appendChild(result_container_div)
