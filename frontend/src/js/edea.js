@@ -34,7 +34,7 @@ function prettyDate(time) {
     var date = new Date(time),
         diff = (((new Date()).getTime() - date.getTime()) / 1000),
         day_diff = Math.floor(diff / 86400);
-    const intldate = 
+
     var year = date.getFullYear(),
         month = date.getMonth()+1,
         day = date.getDate();
