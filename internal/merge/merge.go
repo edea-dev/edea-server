@@ -14,7 +14,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"gitlab.com/edea-dev/edea-server/internal/config"
 	"gitlab.com/edea-dev/edea-server/internal/model"
 	"gitlab.com/edea-dev/edea-server/internal/repo"
 	"gitlab.com/edea-dev/edea-server/internal/util"
@@ -60,8 +59,6 @@ func Merge(benchName string, modules []model.BenchModule) ([]byte, error) {
 	argv = append(argv, moduleSpec...)
 
 	mergeCmd := exec.CommandContext(ctx, "python3", argv...)
-
-	mergeCmd.Dir = config.Cfg.Tools.Merge
 
 	// run the merge
 	logOutput, err := mergeCmd.CombinedOutput()

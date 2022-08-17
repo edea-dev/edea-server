@@ -25,7 +25,7 @@ type Module struct {
 	Description string `form:"description"`
 	CategoryID  string `gorm:"type:uuid" form:"category"`
 	Category    Category
-	Metadata    datatypes.JSON
+	Metadata    datatypes.JSONMap
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

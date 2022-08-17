@@ -16,20 +16,20 @@ services:
       - DB_DSN=host=edea-db user=edea password=edea dbname=edea port=5432 sslmode=disable
       - MERGE_TOOL=merge-tool/edea_merge_tool
       - PLOTPCB=cmd/plotpcb/plotpcb.py
-      - REPO_CACHE_BASE=./tmp/git
-      - BOOK_CACHE_BASE=./tmp/doc
+      - REPO_CACHE_BASE=/tmp/git
+      - BOOK_CACHE_BASE=/tmp/doc
       - AUTH_PROVIDER_URL=http://localhost:3000
       - AUTH_CLIENT_ID=LGqqvVYdSGmv8FZmvHRYq9aYgxyx8ULd
       - AUTH_CLIENT_SECRET=SUXHrS77iEyZfNoAeZE5LYb8yRSTGW4LBftNRDG2xFYcnH62qo279bGBzyLW7Qzr
-      - AUTH_REDIRECT_URL=http://localhost:3000/callback
-      - AUTH_LOGOUT_URL=http://localhost:3000/logout_callback
-      - AUTH_POST_LOGOUT_URL=http://localhost:3000/
+      - AUTH_REDIRECT_URL=http://tynan:3000/callback
+      - AUTH_LOGOUT_URL=http://tynan:3000/logout_callback
+      - AUTH_POST_LOGOUT_URL=http://tynan:3000/
       - USE_AUTH_MOCK=true
       - SEARCH_HOST=http://edea-meilisearch:7700
       - SEARCH_INDEX=edea
       - SEARCH_API_KEY=meiliedea
   db:
-    image: docker.io/postgres:14.2-alpine
+    image: docker.io/postgres:14.3-alpine
     container_name: edea-db
     volumes:
       - data:/var/lib/postgresql/data
@@ -42,7 +42,7 @@ services:
     ports:
       - 5432:5432
   search:
-    image: docker.io/getmeili/meilisearch:v0.26.1
+    image: docker.io/getmeili/meilisearch:v0.28.1
     container_name: edea-meilisearch
     volumes:
       - data:/var/lib/meilisearch/data

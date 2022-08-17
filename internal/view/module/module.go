@@ -72,8 +72,7 @@ func Create(c *gin.Context) {
 		zap.S().Panic(err)
 	}
 
-	b, _ := json.Marshal(meta)
-	module.Metadata = b
+	module.Metadata = meta
 
 	result = model.DB.WithContext(c).Create(module)
 	if result.Error != nil {
@@ -138,19 +137,15 @@ func View(c *gin.Context) {
 		hasDocs = false
 	}
 
-	meta := make(map[string]interface{})
-	_ = json.Unmarshal(module.Metadata, &meta)
-
 	// all packed up,
 	m := map[string]interface{}{
-		"Module":   module,
-		"User":     user,
-		"Readme":   readme,
-		"Error":    err,
-		"Author":   mup.DisplayName,
-		"HasDocs":  hasDocs,
-		"Title":    fmt.Sprintf("EDeA - %s", module.Name),
-		"Metadata": meta,
+		"Module":  module,
+		"User":    user,
+		"Readme":  readme,
+		"Error":   err,
+		"Author":  mup.DisplayName,
+		"HasDocs": hasDocs,
+		"Title":   fmt.Sprintf("EDeA - %s", module.Name),
 	}
 
 	// and ready to go
@@ -316,9 +311,7 @@ func Pull(c *gin.Context) {
 		return
 	}
 
-	b, _ := json.Marshal(meta)
-
-	module.Metadata = b
+	module.Metadata = meta
 
 	result = model.DB.WithContext(c).Save(module)
 	if result.Error != nil {
@@ -454,7 +447,7 @@ func plotPCB(mod *model.Module, revision string) (*Board, error) {
 		zap.L().Panic("could not write temp pcb file contents", zap.Error(err))
 	}
 
-	argv := []string{config.Cfg.Tools.PlotPCB, f.Name()}
+	argv := []string{"plotpcb", f.Name()}
 
 	plotCmd := exec.CommandContext(ctx, "python3", argv...)
 
@@ -598,9 +591,7 @@ func PullAllRepos(c *gin.Context) {
 			continue
 		}
 
-		b, _ := json.Marshal(meta)
-
-		mod.Metadata = b
+		mod.Metadata = meta
 
 		result = model.DB.WithContext(c).Save(mod)
 		if result.Error != nil {

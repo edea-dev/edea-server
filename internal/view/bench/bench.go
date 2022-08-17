@@ -19,6 +19,7 @@ import (
 	"gitlab.com/edea-dev/edea-server/internal/view"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func viewHelper(id, tmpl string, c *gin.Context) {
@@ -71,21 +72,37 @@ func viewHelper(id, tmpl string, c *gin.Context) {
 
 	// load further information
 	var benchMods []model.BenchModule
-	result = model.DB.Preload("Module").Where("bench_id = ?", id).Find(&benchMods)
+	result = model.DB.Preload("Module").Preload("Module.User").Preload(clause.Associations).Where("bench_id = ?", id).Find(&benchMods)
 	if result.Error != nil {
 		zap.L().Panic("could not get the bench modules", zap.Error(result.Error))
+	}
+
+	var totalArea float64
+	var totalComponents int
+
+	for _, bm := range benchMods {
+		area, ok := bm.Module.Metadata["area"]
+		if ok {
+			totalArea += area.(float64)
+		}
+		partCount, ok := bm.Module.Metadata["count_part"]
+		if ok {
+			totalComponents += int(partCount.(float64))
+		}
 	}
 
 	// get bench macro parameters (future)
 
 	// all packed up,
 	m := map[string]interface{}{
-		"Bench":   bench,
-		"User":    user,
-		"Modules": benchMods,
-		"Author":  mup.DisplayName,
-		"Title":   fmt.Sprintf("EDeA - %s", bench.Name),
-		"Error":   nil,
+		"Bench":           bench,
+		"User":            user,
+		"Modules":         benchMods,
+		"Author":          mup.DisplayName,
+		"Title":           fmt.Sprintf("EDeA - %s", bench.Name),
+		"Error":           nil,
+		"TotalArea":       totalArea,
+		"TotalComponents": totalComponents,
 	}
 
 	// and ready to go

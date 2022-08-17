@@ -50,10 +50,10 @@
 									{{if eq (len .Modules) 1 }} 1 module {{else}} {{len .Modules}} modules{{end}},
 								</div>
 								<div class="col" id="total-area">
-									1234 mm²,
+									{{ printf "%.2f" .TotalArea }} mm²,
 								</div>
 								<div class="col" id="total-components">
-									73 components.
+									{{ .TotalComponents }} components.
 								</div>
 							</div>
 						</div>
@@ -68,14 +68,14 @@
 								<div class="d-flex w-100 justify-content-between">
 									{{if .Module.Name}}
 									<h5 class="mb-1">{{.Module.Name}}</h5>
-									<small>67 mm²</small>
+									<small>{{if .Module.Metadata.area}} {{printf "%.02f" .Module.Metadata.area}} mm² {{end}}</small>
 									{{else}}
 									<h5 class="mb-1">This module was removed by its author</h5>
 									{{end}}
 								</div>
 								{{if .Module.Name}}
 								<p class="mb-1">{{.Module.Description}}</p>
-								<small>by XY</small>
+								<small>by {{.Module.User.Handle}}</small>
 								{{else}}
 								<p class="mb-1">Your configuration is still here until you can find a replacement or until you chose to remove this module.</p>
 								{{end}}

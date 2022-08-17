@@ -4,7 +4,7 @@ WORKDIR /build
 RUN apk add postgresql-client go make bash yarn ncurses git
 
 deps:
-    FROM golang:1.18-alpine
+    FROM golang:1.19-alpine
     RUN apk add --update git
     WORKDIR /build
     COPY go.mod go.sum ./
@@ -75,7 +75,7 @@ docker:
     END
 
 tester:
-    FROM mcr.microsoft.com/playwright:v1.21.0-focal
+    FROM mcr.microsoft.com/playwright:v1.25.0-focal
     ARG ref
 
     WORKDIR /app

@@ -65,10 +65,10 @@
                 </tr>
               </thead>
               <tr>
-                <td>{{.Metadata.count_part}}</td>
-                <td>{{.Metadata.count_unique}}</td>
-                <td>{{.Metadata.parse_time}}</td>
-                <td>TODO</td>
+                <td>{{.Module.Metadata.count_part}}</td>
+                <td>{{.Module.Metadata.count_unique}}</td>
+                <td>{{printf "%.2f" .Module.Metadata.parse_time}} s</td>
+                <td>{{printf "%.2f" .Module.Metadata.area}} mm²</td>
               </tr>
             </table>
           </div>
@@ -83,7 +83,7 @@
                   <th>Datasheet</th>
                 </tr>
               </thead>
-              {{range .Metadata.parts}}
+              {{range .Module.Metadata.parts}}
               <tr>
                 <td>
                   {{range $i, $e := .Reference}}
