@@ -14,6 +14,7 @@ require (
 	github.com/gorilla/schema v1.2.0
 	github.com/jackc/pgx/v4 v4.17.0
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/matthewhartstonge/argon2 v0.2.1
 	github.com/meilisearch/meilisearch-go v0.20.1
 	github.com/yuin/goldmark v1.4.13
 	github.com/yuin/goldmark-highlighting v0.0.0-20220208100518-594be1970594
@@ -78,7 +79,7 @@ require (
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
-	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
+	golang.org/x/crypto v0.0.0-20220817201139-bc19a97f63c8 // indirect
 	golang.org/x/net v0.0.0-20220812174116-3211cb980234 // indirect
 	golang.org/x/sys v0.0.0-20220817070843-5a390386f1f2 // indirect
 	golang.org/x/text v0.3.7 // indirect

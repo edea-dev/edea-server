@@ -18,10 +18,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/matthewhartstonge/argon2"
 	"gitlab.com/edea-dev/edea-server/internal/config"
 	"gitlab.com/edea-dev/edea-server/internal/view"
 	"go.uber.org/zap"
 	jose "gopkg.in/square/go-jose.v2"
+	"gopkg.in/yaml.v3"
 )
 
 /*
@@ -41,32 +43,7 @@ var (
 	keySet     *jose.JSONWebKeySet
 	mockSigner jose.Signer
 	// user info map
-	mockUsers = map[string]mockUser{
-		"alice": {
-			Subject:       "alice",
-			Profile:       "alice",
-			Email:         "alice@acme.co",
-			EmailVerified: true,
-			IsAdmin:       false,
-			Password:      "alicealice",
-		},
-		"bob": {
-			Subject:       "bob",
-			Profile:       "bob",
-			Email:         "bob@acme.co",
-			EmailVerified: true,
-			IsAdmin:       false,
-			Password:      "bob",
-		},
-		"admin": {
-			Subject:       "admin",
-			Profile:       "admin",
-			Email:         "admin@acme.co",
-			EmailVerified: true,
-			IsAdmin:       true,
-			Password:      "12345",
-		},
-	}
+	mockUsers   map[string]mockUser
 	CallbackURL string
 	Endpoint    string // where our mock OIDC server resides
 
@@ -187,6 +164,25 @@ func InitMockAuth() {
 		if err != nil {
 			zap.L().Panic("could not create new signer", zap.Error(err))
 		}
+
+		// load the users from users.yml
+
+		info, err = os.Stat("users.yml")
+		if os.IsNotExist(err) || info.IsDir() {
+			zap.L().Fatal("mock auth specified but no users.yml available", zap.Error(err))
+		}
+
+		f, err := os.Open("users.yml")
+		if err != nil {
+			zap.L().Fatal("could not open users.yml", zap.Error(err))
+		}
+
+		dec := yaml.NewDecoder(f)
+		if err := dec.Decode(&mockUsers); err != nil {
+			zap.L().Fatal("could not parse users.yml", zap.Error(err))
+		}
+
+		zap.S().Infof("mock users: %#v", mockUsers)
 	}
 }
 
@@ -210,6 +206,7 @@ func LoginFormHandler(c *gin.Context) {
 
 // LoginPostHandler processes the login request
 func LoginPostHandler(c *gin.Context) {
+	var err error
 	state := c.PostForm("state")
 	user := c.PostForm("user")
 	pass := c.PostForm("password")
@@ -217,11 +214,20 @@ func LoginPostHandler(c *gin.Context) {
 
 	// do a basic auth check, this is the place to add a user database
 	uo, ok := mockUsers[user]
-	if ok && uo.Password == pass {
+
+	if ok {
+		// check password against encoded hash
+		ok, err = argon2.VerifyEncoded([]byte(pass), []byte(uo.Password))
+		if err != nil {
+			zap.L().Panic("invalid hash in users.yml", zap.String("user", uo.Subject), zap.Error(err))
+		}
 		if uo.Profile != user {
 			zap.S().Panicf("invalid user/password combination for %s", user)
 		}
-	} else {
+	}
+
+	if !ok {
+		// password didn't match
 		c.AbortWithStatus(http.StatusForbidden)
 		view.RenderTemplate(c, "403.tmpl", "Forbidden", nil)
 		return
@@ -319,7 +325,7 @@ func Userinfo(c *gin.Context) {
 	s, err := generateToken(user, time.Hour, true)
 
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -339,7 +345,7 @@ func Token(c *gin.Context) {
 	g, ok := codes[code]
 	if !ok {
 		zap.L().Debug("token exchange unauthorized")
-		c.AbortWithError(http.StatusUnauthorized, errors.New("unauthorized"))
+		_ = c.AbortWithError(http.StatusUnauthorized, errors.New("unauthorized"))
 		return
 	}
 
@@ -353,13 +359,13 @@ func Token(c *gin.Context) {
 
 	auth, err := generateToken(mockUsers[g.sub], accessTokenLifetime, false)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	id, err := generateToken(mockUsers[g.sub], idTokenLifetime, true)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 

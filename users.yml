@@ -1,0 +1,21 @@
+alice:
+    subject: alice
+    profile: alice
+    email: alice@acme.co
+    email_verified: true
+    is_admin: false
+    password: $argon2id$v=19$m=4096,t=3,p=1$MHFvSXhSazRmYmFHbG5OUA$WyBxCmURSBjWPoqM/jzcKWlegvViXdCjnNbJaCrTG/Q # alicealice
+bob:
+    subject: bob
+    profile: bob
+    email: bob@acme.co
+    email_verified: true
+    is_admin: false
+    password: $argon2id$v=19$m=4096,t=3,p=1$TkZxSWdQQzNoRHRYNFRtQQ$PyFcHGlWwsWGc0dSxhfl8SKTdEl68LRGIQYNMlq1iOo # bob
+admin:
+    subject: admin
+    profile: admin
+    email: admin@acme.co
+    email_verified: true
+    is_admin: true
+    password: $argon2id$v=19$m=4096,t=3,p=1$Q2t6VHNtVmF5NVJBbXJlaA$lgL9XQjMxdMDHEXQgLgvTuM0BignC3zmunS2WykluPY # admin

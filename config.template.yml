@@ -2,9 +2,6 @@ server:
   host: localhost
   port: 3000
 dsn: host=127.0.0.1 user=edea password=edea dbname=edea port=5432 sslmode=disable
-api:
-  githubtoken:
-merge_tool: /home/user/git/edea/tool/edea_merge_tool
 cache:
   repo:
     base: /home/user/git/edea/backend/tmp/git
@@ -14,16 +11,14 @@ cache:
     schema: ./tmp/sch
     layout: ./tmp/pcb
 auth:
-  oidc: # rename to oidc for auth0
-    use: true
-    provider_url:
-    client_id:
-    client_secret:
-    redirect_url:
-    session_secret:
-    logout_url:
-    post_logout_url:
-  use_mock: false
+  oidc:
+    provider_url: http://your-hostname:3000
+    client_id: a-random-id
+    client_secret: the-client-secret
+    redirect_url: http://your-hostname:3000/callback
+    logout_url: http://your-hostname:3000/logout_callback
+    post_logout_url: http://your-hostname:3000/
+  use_mock: true
 search:
   host: http://127.0.0.1:7700
   index: edea

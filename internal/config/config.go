@@ -20,11 +20,8 @@ type Config struct {
 		Port string `yaml:"port" envconfig:"SERVER_PORT"`
 		Host string `yaml:"host" envconfig:"SERVER_HOST"`
 	} `yaml:"server"`
-	Dev bool   `yaml:"dev" envconfig:"IS_DEV"`
-	DSN string `yaml:"dsn" envconfig:"DB_DSN"`
-	API struct {
-		GitHubToken string `yaml:"githubtoken" envconfig:"GITHUB_API_TOKEN"`
-	} `yaml:"api"`
+	Dev   bool   `yaml:"dev" envconfig:"IS_DEV"`
+	DSN   string `yaml:"dsn" envconfig:"DB_DSN"`
 	Cache struct {
 		Repo struct {
 			Base string `yaml:"base" envconfig:"REPO_CACHE_BASE"`
