@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	meilisearch "github.com/meilisearch/meilisearch-go"
+	"gitlab.com/edea-dev/edea-server/internal/config"
 	"gitlab.com/edea-dev/edea-server/internal/model"
 	"gitlab.com/edea-dev/edea-server/internal/view"
 	"go.uber.org/zap"
@@ -126,12 +127,12 @@ func ReIndexDB(c *gin.Context) {
 	}
 
 	// clear whole index before inserting new documents
-	_, err := meiliClient.Index("edea").DeleteAllDocuments()
+	_, err := meiliClient.Index(config.Cfg.Search.Index).DeleteAllDocuments()
 	if err != nil {
 		zap.L().Panic("could not clear index", zap.Error(err))
 	}
 
-	updateRes, err := meiliClient.Index("edea").AddDocuments(documents) // => { "updateId": 0 }
+	updateRes, err := meiliClient.Index(config.Cfg.Search.Index).AddDocuments(documents) // => { "updateId": 0 }
 	if err != nil {
 		zap.L().Panic("could not add/update the search index in bulk", zap.Error(result.Error))
 	}
@@ -148,7 +149,7 @@ func UpdateEntry(e Entry) error {
 		return nil
 	}
 
-	updateRes, err := meiliClient.Index("edea").UpdateDocuments([]Entry{e})
+	updateRes, err := meiliClient.Index(config.Cfg.Search.Index).UpdateDocuments([]Entry{e})
 	if err != nil {
 		return fmt.Errorf("could not add/update the search index: %w", err)
 	}
@@ -165,7 +166,7 @@ func DeleteEntry(e Entry) error {
 		return nil
 	}
 
-	ok, err := meiliClient.Index("edea").Delete(e.ID)
+	ok, err := meiliClient.Index(config.Cfg.Search.Index).Delete(e.ID)
 	if err != nil {
 		return fmt.Errorf("could not delete the entry: %w", err)
 	}
@@ -209,7 +210,7 @@ func Search(c *gin.Context) {
 			filter = "public = true"
 		}
 
-		searchRes, err := meiliClient.Index("edea").Search(q,
+		searchRes, err := meiliClient.Index(config.Cfg.Search.Index).Search(q,
 			&meilisearch.SearchRequest{
 				AttributesToHighlight: []string{"*"},
 				Filter:                filter,
