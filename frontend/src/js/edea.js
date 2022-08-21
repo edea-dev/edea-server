@@ -39,11 +39,7 @@ function prettyDate(time) {
         month = date.getMonth()+1,
         day = date.getDate();
 
-    if (isNaN(day_diff) || day_diff < 0 || day_diff >= 31) {
-
-        // if (day_diff <= 364) {
-        //     return new Intl.DateTimeFormat(date, {});
-        // }
+    if (isNaN(day_diff) || day_diff < 0 || day_diff >= 2000) {
         return (
             year.toString()+'-'
             +((month<10) ? '0'+month.toString() : month.toString())+'-'
@@ -66,6 +62,8 @@ function prettyDate(time) {
         || (day_diff == 1 && "Yesterday")
         || (day_diff < 7 && day_diff + " days ago")
         || (day_diff < 31 && Math.ceil(day_diff / 7) + " weeks ago")
+        || (day_diff < 400 && Math.ceil(day_diff * 12 / 365) + " months ago")
+        || (Math.ceil(day_diff / 365) + " years ago")
     );
     return r;
 }
