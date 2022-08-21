@@ -1,13 +1,18 @@
 {{template "header" .}}
-  <main role="main">
-    <div class="container" id="content">
-      <div class="jumbotron bg-gradient-secondary d-none d-lg-block mb-2">
-        <h1 class="mt-5">Welcome to EDeAhub</h1>
-        <p class="lead">Your source for modular OSHW electronics.</p>
-	  </div>
-	  <div class="flex-row">
-		<p>Once it looks good, this can be used as default view.</p>
-	  </div>
+<main role="main">
+  <div class="container" id="content">
+    <div class="jumbotron bg-gradient-secondary d-none d-lg-block mb-2">
+      <h1 class="mt-5">Welcome to EDeAhub</h1>
+      <p class="lead">Your source for modular OSHW electronics.</p>
     </div>
-  </main>
+    <div class="flex-row">
+      <p>EDeA is a hub for searching and sharing of (KiCad) circuit modules. It allows you to build a base project from
+        components made and tested by our community.</p>
+      <p>Just look around or log in with the test credentials alice/&lt;password here&gt; and build your workbench.</p>
+      <p>The database will be reset once in a while, so don't rely on it for production use just yet, if you want to
+        host your own instance check out the project on gitlab: <a
+          href="https://gitlab.com/edea/edea-server">https://gitlab.com/edea/edea-server</a></p>
+    </div>
+  </div>
+</main>
 {{template "footer" .}}

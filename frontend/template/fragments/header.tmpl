@@ -52,6 +52,7 @@
             </a>
             <ul class="dropdown-menu" aria-labelledby="navbarModulesDD">
               <li><a class="dropdown-item" href="/module/explore">Browse Catalog</a></li>
+              <li><a class="dropdown-item" href="/module/search">Parametric Search</a></li>
               <li>
               {{if .User}}
               <a class="dropdown-item" href="/module/new">
@@ -103,7 +104,7 @@
           </li>
         </ul>
         <form action="/search" method="GET" class="d-flex">
-          <input class="form-control me-sm-2" type="search" name="q" id="search" placeholder="Search for Modules"
+          <input class="form-control me-sm-2" type="search" name="q" id="search" placeholder="Search for anything"
             aria-label="Search">
           <button class="btn btn-secondary me-md-2 px-3" type="submit">
             {{icon "search"}}

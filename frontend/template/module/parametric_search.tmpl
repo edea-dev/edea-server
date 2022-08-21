@@ -12,17 +12,20 @@
       {{end}}
       <div class="row">
         <div class="col-12">
-          <h1>Module & Workbench Search</h1>
+          <h1>Module Search</h1>
         </div>
       </div>
-      <div class="row">
+      <div class="row justify-content-between">
         <div class="col">
-          <div class="input-group mb-3">
-            <input type="text" class="form-control" placeholder="enter search term here" aria-label="search input"
-              aria-describedby="send-search-btn" focus oninput="searchbox_handler" name="q" id="searchbox">
-            <button class="btn btn-outline-secondary" type="button" id="send-search-btn">Find</button>
-          </div>
+          <h2>Filters</h2>
         </div>
+        <div class="col-8 d-lg-grid">
+          <button class="btn btn-outline-light" disabled type="button" aria-label="apply filter" id="filter_apply_btn">Apply
+            Filter</button>
+        </div>
+      </div>
+      <div class="row" id="filters-row">
+        <!-- placeholder. insert filter boxes here when rendered server-side. -->
       </div>
       <div class="row" id="hits-row">
         <div class="col-12">
@@ -30,14 +33,9 @@
         </div>
         <div class="col">
           <div id="hits">
-            <table id="hits-table" class="table table-hover">
+            <table id="hits-table">
               <thead>
-                <tr>
-                  <th>Type</th>
-                  <th>Name</th>
-                  <th>Author</th>
-                  <th>Description</th>
-                </tr>
+
               </thead>
               <tbody>
 
@@ -49,5 +47,5 @@
     </div>
   </form>
 </main>
-<script src="/js/search.js"></script>
+<script src="/js/parametric_search.js"></script>
 {{template "footer" .}}

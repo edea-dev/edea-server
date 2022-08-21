@@ -40,6 +40,7 @@ func routes(router *gin.Engine) {
 	r.GET("/module/history/:id", module.ViewHistory) // show revision history of a module
 	r.GET("/module/diff/:id", module.Diff)
 	a.GET("/module/build_book/:id", module.BuildBook)
+	r.GET("/module/search", view.Template("module/parametric_search.tmpl", "EDeA - Module Search"))
 
 	a.GET("/bench/current", bench.Current)                                   // view current bench
 	a.GET("/bench/new", view.Template("bench/new.tmpl", "EDeA - New Bench")) // new bench form

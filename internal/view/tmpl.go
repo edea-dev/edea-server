@@ -106,8 +106,10 @@ func TemplateM(tmplName string, m map[string]interface{}) gin.HandlerFunc {
 
 // RenderErrTemplate renders a page with error information
 func RenderErrTemplate(c *gin.Context, tmpl string, err error) {
-	data := map[string]interface{}{
-		"Error": err.Error(),
+	data := make(map[string]interface{})
+
+	if err != nil {
+		data["Error"] = err.Error()
 	}
 
 	RenderTemplate(c, tmpl, "EDeA - Error", data)

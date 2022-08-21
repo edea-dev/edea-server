@@ -495,7 +495,10 @@ func getModule(c *gin.Context) (user *model.User, module *model.Module) {
 	}
 
 	if result.Error != nil {
-		zap.L().Panic("could not get the module", zap.Error(result.Error))
+		zap.L().Error("could not get the module", zap.Error(result.Error))
+		c.Status(http.StatusNotFound)
+		view.RenderErrTemplate(c, "module/404.tmpl", result.Error)
+		return nil, nil
 	}
 
 	// nope, no module

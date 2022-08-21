@@ -125,6 +125,12 @@ func ReIndexDB(c *gin.Context) {
 		documents = append(documents, ModuleToEntry(m))
 	}
 
+	// clear whole index before inserting new documents
+	_, err := meiliClient.Index("edea").DeleteAllDocuments()
+	if err != nil {
+		zap.L().Panic("could not clear index", zap.Error(err))
+	}
+
 	updateRes, err := meiliClient.Index("edea").AddDocuments(documents) // => { "updateId": 0 }
 	if err != nil {
 		zap.L().Panic("could not add/update the search index in bulk", zap.Error(result.Error))
