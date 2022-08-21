@@ -1,11 +1,40 @@
 {{template "header" .}}
-  <main role="main"> <!-- min-vh-100 is a hack to make footer stick below the screen. for some reason the standard way (mt-auto) did not work -->
-    <div class="container"  id="content">
-      <div class="jumbotron bg-primary text-white">
-        <h1 class="mt-5">EDeA Generic View / Page Layout</h1>
-        <p class="lead">This is where you would find help, if there was any...</p>
-      </div>
-      <p>Unfortunately you're on your own, for now.</p>
+<main role="main">
+  <!-- min-vh-100 is a hack to make footer stick below the screen. for some reason the standard way (mt-auto) did not work -->
+  <div class="container" id="content">
+    <div class="bg-primary text-white d-none d-lg-block mb-2 p-4 pb-0 align-items-center rounded-3 border shadow-lg">
+      <h1 class="mt-5">EDeA - Help</h1>
+      <p class="lead">An Open Platform for Easily Reusable Subcircuits</p>
     </div>
-  </main>
+    <h2>What is this all about?</h2>
+    <p>It's a portal for sharing and using sub-circuit modules for electronics, for the longer explanatoin <a
+        href="https://blog.edea.dev/introduction/">see our blog-post</a>.</p>
+    <p>EDeA consists of multiple components, the hub you're looking at for sharing and discovering modules and the <a
+        href="https://gitlab.com/edea-dev/edea">edea tool</a> which extracts information out of KiCad projects and also
+      merges modules together.</p>
+
+    <h2>The workflow</h2>
+    <p>When starting a new project, after you've defined your initial constraints and goals, you can start by creating a
+      workbench to add modules to. To find what you need there's the <a href="/module/search">Parametric Module
+        Search</a> and also the <a href="/search">full-text search</a> if you don't exactly know what's there.</p>
+    <p>After you've added some modules to your bench you can merge and download the finished KiCad project and get
+      started on integrating the various parts.</p>
+
+    <h2>Adding your own projects</h2>
+    <p>Sharing is caring and what would a community be without each other? To add your own projects, simply register an
+      account (depending on the instance it also works e.g. with your github or gitlab login) and write a
+      <code>edea.yml</code> file. The format is defined <a href="#">here (TBD)</a> but you can also look at our <a
+        href="https://gitlab.com/edea-dev/test-modules">test-modules</a> for the structure. Multi-project repositories
+      are supported just like single-project ones. Once you've added a <code>edea.yml</code> file to your repository,
+      you can add it via <a href="/module/new">Modules -> Add New Module</a>. Just fill in the name, description, etc.
+      and it's good to go. If you don't think it's ready for public use yet, just set it to private, you can always set
+      it to public later on. Changes to the repository are not visible automatically so you have to press the Pull
+      button in the menu when viewing the module.
+    </p>
+    <h2>Workbenches</h2>
+    <p>Workbenches simply are your private (or public if you want) collection of modules for a new project. A starting
+      template so to say. The workbench overview also gives you some information about all the modules you selected like
+      total area, component count and so on.</p>
+  </div>
+</main>
 {{template "footer" .}}
