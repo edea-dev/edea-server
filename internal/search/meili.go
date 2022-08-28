@@ -166,12 +166,9 @@ func DeleteEntry(e Entry) error {
 		return nil
 	}
 
-	ok, err := meiliClient.Index(config.Cfg.Search.Index).Delete(e.ID)
+	_, err := meiliClient.Index(config.Cfg.Search.Index).DeleteDocument(e.ID)
 	if err != nil {
 		return fmt.Errorf("could not delete the entry: %w", err)
-	}
-	if !ok {
-		return fmt.Errorf("meili: could not delete the entry: %s", e.ID)
 	}
 
 	return nil
