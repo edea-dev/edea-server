@@ -12,15 +12,15 @@ require (
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/schema v1.2.0
-	github.com/jackc/pgx/v4 v4.17.0
+	github.com/jackc/pgx/v4 v4.17.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/matthewhartstonge/argon2 v0.2.1
 	github.com/meilisearch/meilisearch-go v0.20.1
 	github.com/yuin/goldmark v1.4.13
 	github.com/yuin/goldmark-highlighting v0.0.0-20220208100518-594be1970594
 	github.com/yuin/goldmark-meta v1.1.0
-	go.uber.org/zap v1.22.0
-	golang.org/x/oauth2 v0.0.0-20220808172628-8227340efae7
+	go.uber.org/zap v1.23.0
+	golang.org/x/oauth2 v0.0.0-20220822191816-0ebed06d0094
 	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/datatypes v1.0.7
@@ -31,7 +31,7 @@ require (
 
 require (
 	github.com/Microsoft/go-winio v0.5.2 // indirect
-	github.com/ProtonMail/go-crypto v0.0.0-20220812175011-7fcef0dbe794 // indirect
+	github.com/ProtonMail/go-crypto v0.0.0-20220824120805-4b6e5c587895 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/cloudflare/circl v1.2.0 // indirect
@@ -45,7 +45,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.11.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
-	github.com/goccy/go-json v0.9.10 // indirect
+	github.com/goccy/go-json v0.9.11 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
@@ -70,18 +70,18 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/pelletier/go-toml/v2 v2.0.3 // indirect
+	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.39.0 // indirect
-	github.com/xanzy/ssh-agent v0.3.1 // indirect
+	github.com/xanzy/ssh-agent v0.3.2 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
-	golang.org/x/crypto v0.0.0-20220817201139-bc19a97f63c8 // indirect
-	golang.org/x/net v0.0.0-20220812174116-3211cb980234 // indirect
-	golang.org/x/sys v0.0.0-20220817070843-5a390386f1f2 // indirect
+	golang.org/x/crypto v0.0.0-20220826181053-bd7e27e6170d // indirect
+	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b // indirect
+	golang.org/x/sys v0.0.0-20220825204002-c680a09ffe64 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect

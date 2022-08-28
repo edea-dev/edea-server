@@ -88,7 +88,7 @@ func routes(router *gin.Engine) {
 	a.GET("/_module/_bulk_update", module.PullAllRepos)
 
 	// the login action redirects to the OIDC provider, with mock auth we have to provide this ourselves
-	if config.Cfg.Auth.UseMock {
+	if config.Cfg.Auth.MiniOIDCServer.UseBuiltin {
 		router.GET("/auth", auth.LoginFormHandler)
 		router.POST("/auth", auth.LoginPostHandler)
 		router.GET("/.well-known/openid-configuration", auth.WellKnown)

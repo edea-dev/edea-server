@@ -33,8 +33,8 @@ func initAuth() {
 		provider.PostLoginRedirectURIField = "post_login_redirect_uri"
 	}
 
-	if config.Cfg.Auth.UseMock {
-		zap.L().Warn("using mock authentication provider")
+	if config.Cfg.Auth.MiniOIDCServer.UseBuiltin {
+		zap.L().Warn("using builtin authentication provider")
 		auth.InitMockAuth()
 	}
 

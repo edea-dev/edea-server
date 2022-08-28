@@ -88,13 +88,13 @@ func (a *OIDC) newAuthenticator() (*authenticator, error) {
 func CallbackHandler(c *gin.Context) {
 	state, err := c.Cookie("state")
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	if c.Query("state") != state {
 		zap.L().Error("expected different state", zap.String("expected", state), zap.String("actual", c.Query("state")))
-		c.AbortWithError(http.StatusBadRequest, errors.New("invalid state parameter"))
+		_ = c.AbortWithError(http.StatusBadRequest, errors.New("invalid state parameter"))
 		return
 	}
 
@@ -107,14 +107,14 @@ func CallbackHandler(c *gin.Context) {
 
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
-		c.AbortWithError(http.StatusInternalServerError, errors.New("no id_token field in oauth2 token"))
+		_ = c.AbortWithError(http.StatusInternalServerError, errors.New("no id_token field in oauth2 token"))
 		return
 	}
 
 	tok, err := verifier.Verify(c, rawIDToken)
 
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to verify id token: %w", err))
+		_ = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to verify id token: %w", err))
 		return
 	}
 
@@ -123,7 +123,7 @@ func CallbackHandler(c *gin.Context) {
 		zap.S().Debugf("user %s does not exist yet", tok.Subject)
 		claims := &model.AuthClaims{}
 		if err := tok.Claims(claims); err != nil {
-			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to parse claims: %w\n%+v", err, *tok))
+			_ = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to parse claims: %w\n%+v", err, *tok))
 			return
 		}
 
@@ -133,7 +133,7 @@ func CallbackHandler(c *gin.Context) {
 	}
 
 	// add the jwt as session cookie, for mock auth we allow insecure connections
-	isSecure := !config.Cfg.Auth.UseMock
+	isSecure := !config.Cfg.Auth.MiniOIDCServer.UseBuiltin
 	zap.S().Infof("got request, secure: %v", isSecure)
 	c.SetCookie("jwt", rawIDToken, 3600, "/", "", isSecure, false)
 
@@ -155,7 +155,7 @@ func LoginHandler(c *gin.Context) {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	state := base64.URLEncoding.EncodeToString(b)
@@ -171,7 +171,7 @@ func LogoutHandler(c *gin.Context) {
 	logoutURL, err := url.Parse(cfg.LogoutURL)
 
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -196,7 +196,7 @@ func LogoutHandler(c *gin.Context) {
 		b := make([]byte, 32)
 		_, err := rand.Read(b)
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
 		state := base64.URLEncoding.EncodeToString(b)

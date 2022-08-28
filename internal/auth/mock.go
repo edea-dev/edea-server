@@ -93,6 +93,25 @@ type oidcToken struct {
 	Expires       int64  `json:"exp,omitempty"`
 }
 
+type wellKnown struct {
+	Issuer                           string   `json:"issuer"`
+	AuthorizationEndpoint            string   `json:"authorization_endpoint"`
+	TokenEndpoint                    string   `json:"token_endpoint"`
+	JwksURI                          string   `json:"jwks_uri"`
+	UserinfoEndpoint                 string   `json:"userinfo_endpoint"`
+	IDTokenSigningAlgValuesSupported []string `json:"id_token_signing_alg_values_supported"`
+}
+
+func stringInArray(s string, a []string) bool {
+	for _, v := range a {
+		if s == v {
+			return true
+		}
+	}
+
+	return false
+}
+
 // InitMockAuth initialises a keyset and provides a new mock authenticator
 func InitMockAuth() {
 	var priv jose.JSONWebKey
@@ -233,8 +252,7 @@ func LoginPostHandler(c *gin.Context) {
 		return
 	}
 
-	// TODO: make redirect url a []string
-	if redirectURI != cfg.RedirectURL {
+	if !stringInArray(redirectURI, config.Cfg.Auth.MiniOIDCServer.RedirectURLs) {
 		zap.L().Error("got invalid redirect_uri from client", zap.String("redirect_uri", redirectURI))
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -266,14 +284,14 @@ func LoginPostHandler(c *gin.Context) {
 
 // WellKnown provides the URLs of our endpoints, should be accessible at "/.well-known/openid-configuration"
 func WellKnown(c *gin.Context) {
-	c.String(http.StatusOK, `{
-		"issuer": "%[1]s",
-		"authorization_endpoint": "%[1]s/auth",
-		"token_endpoint": "%[1]s/token",
-		"jwks_uri": "%[1]s/keys",
-		"userinfo_endpoint": "%[1]s/userinfo",
-		"id_token_signing_alg_values_supported": ["ES256"]
-	}`, cfg.ProviderURL)
+	c.JSONP(http.StatusOK, wellKnown{
+		Issuer:                           cfg.ProviderURL,
+		AuthorizationEndpoint:            cfg.ProviderURL + "/auth",
+		TokenEndpoint:                    cfg.ProviderURL + "/token",
+		JwksURI:                          cfg.ProviderURL + "/keys",
+		UserinfoEndpoint:                 cfg.ProviderURL + "/userinfo",
+		IDTokenSigningAlgValuesSupported: []string{"ES256"},
+	})
 }
 
 // Keys endpoint provides our JSON Web Key Set (should be at /keys)
@@ -380,7 +398,32 @@ func Token(c *gin.Context) {
 // has been invalidated
 func LogoutEndpoint(c *gin.Context) {
 	// TODO: blacklist jti of the access token here for the remaining duration
+	// loggedOutJTIs[""] = true
 	u := c.PostForm("post_logout_redirect_uri")
-	zap.S().Infof("got to logout, redirecting to: %s", u)
+	clientID := c.PostForm("client_id")
+	idTokenHint := c.PostForm("client_id_token_hint")
+
+	if clientID != config.Cfg.Auth.OIDC.ClientID {
+		c.AbortWithStatus(http.StatusBadRequest)
+		zap.L().Debug("logout unknown client id", zap.String("client_id", clientID))
+		return
+	}
+
+	// check if the post logout url is valid
+	if !stringInArray(u, config.Cfg.Auth.MiniOIDCServer.PostLogoutURLs) {
+		c.AbortWithStatus(http.StatusBadRequest)
+		zap.L().Debug("logout unknown redirect url", zap.String("logout_redirect_url", u))
+		return
+	}
+
+	// verify claims
+	idToken, err := verifier.Verify(c, idTokenHint)
+	if err != nil {
+		zap.L().Error("could not verify jwt", zap.Error(err))
+	}
+
+	zap.S().Infof("id token: %#v, token hint: %s", idToken, idTokenHint)
+
+	zap.S().Debugf("got to logout, redirecting to: %s", u)
 	c.Redirect(http.StatusTemporaryRedirect, u)
 }

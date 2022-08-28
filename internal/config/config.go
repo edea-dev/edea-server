@@ -39,7 +39,11 @@ type Config struct {
 			LogoutURL     string `yaml:"logout_url" envconfig:"AUTH_LOGOUT_URL"`
 			PostLogoutURL string `yaml:"post_logout_url" envconfig:"AUTH_POST_LOGOUT_URL"`
 		} `yaml:"oidc"`
-		UseMock bool `yaml:"use_mock" envconfig:"USE_AUTH_MOCK"`
+		MiniOIDCServer struct {
+			UseBuiltin     bool     `yaml:"use_builtin" envconfig:"MINIOIDC_START_SERVER"`
+			PostLogoutURLs []string `yaml:"post_logout_urls" envconfig:"MINIOIDC_POST_LOGOUT_URLS"`
+			RedirectURLs   []string `yaml:"redirect_urls" envconfig:"MINIOIDC_REDIRECT_URLS"`
+		} `yaml:"oidc_server"`
 	} `yaml:"auth"`
 	Search struct {
 		Host   string `yaml:"host" envconfig:"SEARCH_HOST"`

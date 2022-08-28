@@ -4,7 +4,8 @@ This contains the program `edead` which handles the API, serving the portal web 
 
 ## Running it
 
-### Grab the latest tagged release:
+### Grab the latest tagged release
+
  from [here](-/tags) (to be done), unpack it, adjust the database connection information in `config.yml` and run it like this:
 
 ```sh
@@ -13,8 +14,7 @@ This contains the program `edead` which handles the API, serving the portal web 
 
 This should output helpful log information to the standard output in case something goes wrong.
 
-
-### Or if you have a working Go installation, you can just run:
+### Or if you have a working Go installation, you can just run
 
 ```sh
 go get gitlab.com/edea-dev/edead/cmd/edead

@@ -70,7 +70,12 @@ auth:
     redirect_url: http://your-hostname:3000/callback
     logout_url: http://your-hostname:3000/logout_callback
     post_logout_url: http://your-hostname:3000/
-  use_mock: true
+  oidc_server: 
+    use_builtin: true
+    post_logout_urls:
+      - http://your-hostname:3000/logout_callback
+    redirect_urls:
+      - http://your-hostname:3000/callback
 ```
 
 Now we get to the authentication. edea-server includes it's own OIDC compatible, but not compliant (it's only the bare minimum) authentication server. This is good enough for just a few users you trust but wholly inadequate for hosting many users. `users.yml` contains the test users, more can simply be added. To generate the password hashes run `echo -n "password" | argon2 testsalt -id -e`. The salt is embedded in the output so you can also generate a random salt for each user for better security.
@@ -78,7 +83,8 @@ Now we get to the authentication. edea-server includes it's own OIDC compatible,
 There's hosted and open source solutions like [Ory](https://www.ory.sh) which have free plans for testing and open source projects but are also self-hostable. The OpenID website has a [list of certified solutions](https://openid.net/developers/certified/) that should also work.
 
 You can specify many providers with different keys if you want, but only the one with the name `oidc` will be used. In the above example it's configured using the builtin provider though.
-If `use_mock: true` is set, it will run the builtin provider when `edea-server` starts.
+If `use_builtin: true` is set, it will run the builtin provider when `edea-server` starts. You can also specify more URLs for `redirect_urls` and `post_logout_urls` if you want to use the same config for testing and production.
+Just make sure that the URLs under `oidc` are the correct ones for your currently running instance.
 
 Make sure that you're actually setting the hostname and not an IP address for the various URLs though as it won't work otherwise.
 
