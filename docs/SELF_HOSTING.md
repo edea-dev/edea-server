@@ -28,7 +28,7 @@ make deps # build the frontend files
 make build # build the executable
 ```
 
-For running the portal you only need the server binary, the static folder with the assets and a configuration file.
+For running the portal you only need the server binary, the static and frontend/template folders and a configuration file.
 
 ## Configuration
 
