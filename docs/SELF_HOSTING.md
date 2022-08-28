@@ -101,15 +101,14 @@ It just needs the search host, the index name and an `api_key` with the permissi
 To set this up via curl:
 
 ```sh
-# create an index with filterable attributes
+# create the index
 curl \
   -X POST 'http://localhost:7700/keys' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer MASTER_KEY' \
   --data-binary '{
     "uid": "edea",
-    "primaryKey": "id",
-    "filterableAttributes": ["user_id", "public"]
+    "primaryKey": "id"
   }'
 
 # create an api key with the right permissions
@@ -122,6 +121,15 @@ curl \
     "actions": ["search", "documents.add", "documents.get", "documents.delete", "tasks.get", "version"],
     "indexes": ["edea"],
     "expiresAt": "2030-01-01T00:00:00Z"
+  }'
+
+# make the index filterable by the user_id and public attributes
+curl \
+  -X PATCH 'http://localhost:7700/indexes/edea/settings' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer MASTER_KEY' \
+  --data-binary '{
+  "filterableAttributes": ["user_id", "public"]
   }'
 ```
 
