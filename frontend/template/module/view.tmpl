@@ -4,26 +4,28 @@
     <div class="bg-primary text-white d-none d-lg-block mb-2 p-4 pb-0 align-items-center rounded-3 border shadow-lg">
       <!-- .d-sm-none hides the element on mobile entirely. use it only for design. -->
       <h1 class="mt-5">{{.Module.Name}} by {{.Author}}</h1>
-      <p class="lead">{{.Module.Description}}</p>
+      <p class="lead"><span class="badge bg-dark">{{.Module.Category.Name}}</span> {{.Module.Description}}</p>
     </div>
 
-    <div class="flex-row d-flex justify-content-between">
-      <div class="flex-col">
-        <h4><span class="badge bg-light">{{.Module.Category.Name}}</span></h4>
-      </div>
-      <div class="flex-col pb-2">
-        <a href="/module/history/{{.Module.ID}}" role="button" class="btn btn-light mr-2">History</a>
+    <div class="flex-row d-flex justify-content-end pb-2">
+      <div class="flex-col mx-2">
+        <a href="/module/history/{{.Module.ID}}" role="button" class="btn btn-light">History</a>
         {{if .HasDocs}}
-        <a href="/module/doc/{{.Module.ID}}" role="button" class="btn btn-light mr-2">Docs</a>
+      </div><div class="flex-col mx-2">
+        <a href="/module/doc/{{.Module.ID}}" role="button" class="btn btn-light">Docs</a>
+      </div><div class="flex-col mx-2">
         {{end}}
         {{if .User}}
-        <a href="/bench/add/{{.Module.ID}}" role="button" class="btn btn-primary mr-2">Add to Bench</a>
+      </div><div class="flex-col mx-2">
+        <a href="/bench/add/{{.Module.ID}}" role="button" class="btn btn-primary">Add to Bench</a>
+      </div><div class="flex-col mx-2">
         <a href="/bench/add_configure/{{.Module.ID}}" role="button" class="btn btn-secondary">Configure & Add</a>
         {{if eq .Module.UserID .User.ID}}
+      </div><div class="flex-col mx-2">
         <div class="dropdown" role="button">
           <button type="button" class="btn btn-light dropdown-toggle ms-1" data-bs-toggle="dropdown"
             aria-expanded="false">
-            {{icon "list"}} Actions
+            {{icon "list"}} More Actions
           </button>
           <ul class="dropdown-menu">
             {{if .HasDocs}}
