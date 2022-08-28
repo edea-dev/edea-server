@@ -240,7 +240,7 @@ async function do_search() {
 
 		let result_header = document.createElement("div")
 		result_header.classList.add("card-header")
-		result_header.innerHTML = "&lt; add tags or categories here maybe? &gt;" // TODO
+		result_header.innerHTML = r.Category.Name
 		result_card.appendChild(result_header)
 
 		let result_body = document.createElement("div")
@@ -284,7 +284,7 @@ async function do_search() {
 			"list-inline", "card-text", "text-muted", "small", "mt-3")
 		const footer_contents = [
 			"BOM: " + r.Metadata.count_part + " parts (" + r.Metadata.count_unique + " unique)",
-			"PCB area: &lt;tbd&gt; mm&#xb2;",
+			"PCB area: " + Math.trunc(r.Metadata.area) + " mm&#xb2;",
 			'last updated <time datetime="' + r.UpdatedAt + '">' + prettyDate(r.UpdatedAt) + "</time>"
 		]
 		footer_contents.forEach(entry => {
