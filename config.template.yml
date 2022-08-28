@@ -18,7 +18,12 @@ auth:
     redirect_url: http://your-hostname:3000/callback
     logout_url: http://your-hostname:3000/logout_callback
     post_logout_url: http://your-hostname:3000/
-  use_mock: true
+  oidc_server:
+    use_builtin: true
+    post_logout_urls:
+      - http://your-hostname:3000/logout_callback
+    redirect_urls:
+      - http://your-hostname:3000/callback
 search:
   host: http://127.0.0.1:7700
   index: edea
