@@ -98,6 +98,32 @@ search:
 Finally, this brings us to the Meilisearch settings. While the feature is optional, the configuration section is not, so don't forget to add it even if the values are empty or invalid.
 
 It just needs the search host, the index name and an `api_key` with the permissions `search`, `documents.add`, `documents.get`, `documents.delete`, `tasks.get` and `version`.
+To set this up via curl:
+
+```sh
+# create an index with filterable attributes
+curl \
+  -X POST 'http://localhost:7700/keys' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer MASTER_KEY' \
+  --data-binary '{
+    "uid": "edea",
+    "primaryKey": "id",
+    "filterableAttributes": ["user_id", "public"]
+  }'
+
+# create an api key with the right permissions
+curl \
+  -X POST 'http://localhost:7700/keys' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer MASTER_KEY' \
+  --data-binary '{
+    "description": "edea index key",
+    "actions": ["search", "documents.add", "documents.get", "documents.delete", "tasks.get", "version"],
+    "indexes": ["edea"],
+    "expiresAt": "2030-01-01T00:00:00Z"
+  }'
+```
 
 ## Installing the edea tool
 
