@@ -34,10 +34,10 @@ type Project struct {
 
 // Module references the schematic and pcb for this module
 type Module struct {
-	Readme    string `yaml:"readme"` // readme file or folder which contains readme.md
-	Directory string `yaml:"dir"`    // path to the kicad project file or folder which contains it
-	Doc       string `yaml:"doc"`    // path to book.toml
-	// TODO: add configuration here
+	Readme    string                 `yaml:"readme"` // readme file or folder which contains readme.md
+	Directory string                 `yaml:"dir"`    // path to the kicad project file or folder which contains it
+	Doc       string                 `yaml:"doc"`    // path to book.toml
+	Params    map[string]interface{} `yaml:"params"` // module parameters, used for search
 }
 
 type Commit struct {
@@ -74,6 +74,28 @@ func (g *Git) SubModuleDir(sub string) (string, error) {
 	}
 
 	return path, nil
+}
+
+func (g *Git) EdeaParams(sub string) (map[string]interface{}, error) {
+	p := &Project{}
+
+	// read and parse the module configuration out of the repo
+	s, err := g.File("edea.yml", false)
+	if err != nil {
+		return nil, errors.New("module does not contain an edea.yml file")
+	}
+	if err := yaml.Unmarshal([]byte(s), p); err != nil {
+		return nil, err
+	}
+
+	m, ok := p.Modules[sub]
+	if !ok {
+		return nil, errors.New("no such sub-module")
+	}
+
+	zap.S().Infof("params: %#v", m)
+
+	return m.Params, nil
 }
 
 // SubModuleReadme searches for a readme.md file in the repository and returns it if found

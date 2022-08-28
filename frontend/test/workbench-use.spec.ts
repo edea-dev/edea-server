@@ -55,6 +55,7 @@ test.describe.serial('user workflow - alice', () => {
     });
 
     test('new module (5vpol)', async () => {
+        await page.goto(edea_url);
         await page.click('#navbarModulesDD');
         await page.click('a[href="/module/new"]');
 
@@ -76,6 +77,7 @@ test.describe.serial('user workflow - alice', () => {
     });
 
     test('new module (GD32)', async () => {
+        await page.goto(edea_url);
         await page.click('#navbarModulesDD');
         await page.click('a[href="/module/new"]');
 
@@ -99,6 +101,7 @@ test.describe.serial('user workflow - alice', () => {
     });
 
     test('new module (USB-C)', async () => {
+        await page.goto(edea_url);
         await page.click('#navbarModulesDD');
         await page.click('a[href="/module/new"]');
 
@@ -118,7 +121,7 @@ test.describe.serial('user workflow - alice', () => {
         await page.fill('#search', 'gd32');
         await page.click('button[type=submit]');
 
-        const module_page = page.locator('.content').first();
+        const module_page = page.locator('#hits-table').first();
         await expect(module_page).toContainText("alice");
     });
 });
@@ -184,7 +187,7 @@ test.describe.serial('visitor workflow - docs', () => {
         await page.click('#navbarModulesDD');
         await page.click('a[href="/module/explore"]');
 
-        const card = page.locator('div:has-text("TPS62135") >> xpath=../../.. >> a[text=View]');
+        const card = page.locator('a:below(:has-text("TPS62135"))').locator('text=View').first();
         await card.click();
 
         await page.click('text=Docs');

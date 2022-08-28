@@ -164,5 +164,12 @@ func Metadata(module *model.Module) (map[string]interface{}, error) {
 	}
 	m := make(map[string]interface{})
 	err = json.Unmarshal(logOutput, &m)
+
+	// read the params from edea.yml too
+	g := &repo.Git{URL: module.RepoURL}
+	m["params"], _ = g.EdeaParams(module.Sub)
+
+	zap.S().Infof("metadata: %#v", m)
+
 	return m, err
 }

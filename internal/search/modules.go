@@ -148,8 +148,11 @@ SELECT json_object_agg(field, values)
 FROM (SELECT key AS field, array_agg(value) AS values
 		FROM (SELECT f.key, f.value
 			FROM (SELECT metadata -> 'params' AS params
-					FROM modules) t,
+					FROM modules
+					WHERE metadata -> 'params'::text != 'null') t,
 					jsonb_each(t.params) f
+			WHERE t.params is not null
+			GROUP BY f.value, f.key
 			ORDER BY f.value) s
 		GROUP BY key) j;
 `
