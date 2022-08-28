@@ -23,6 +23,7 @@ uoidc-jwks.json
 /frontend/yarn-error.log
 /frontend/.sass-cache
 /frontend/playwright-report
+frontend/package-lock.json
 
 # pkgbuild artifacts
 /pkg/arch/edead
@@ -30,3 +31,4 @@ uoidc-jwks.json
 
 # don't store the current config
 /config.yml
+
