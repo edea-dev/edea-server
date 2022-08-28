@@ -80,7 +80,7 @@ func main() {
 	}()
 
 	// start out auth provider after the http server is running
-	// it needs the mock auth paths already available in case it is used
+	// it needs the builtin oidc auth paths already available in case it is used
 	initAuth()
 
 	c := make(chan os.Signal, 1)

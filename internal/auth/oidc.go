@@ -132,7 +132,7 @@ func CallbackHandler(c *gin.Context) {
 		zap.S().Debugf("user %s already exists", tok.Subject)
 	}
 
-	// add the jwt as session cookie, for mock auth we allow insecure connections
+	// add the jwt as session cookie, for builtin oidc auth we allow insecure connections
 	isSecure := !config.Cfg.Auth.MiniOIDCServer.UseBuiltin
 	zap.S().Infof("got request, secure: %v", isSecure)
 	c.SetCookie("jwt", rawIDToken, 3600, "/", "", isSecure, false)

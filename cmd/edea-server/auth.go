@@ -35,7 +35,7 @@ func initAuth() {
 
 	if config.Cfg.Auth.MiniOIDCServer.UseBuiltin {
 		zap.L().Warn("using builtin authentication provider")
-		auth.InitMockAuth()
+		auth.InitOIDCServer()
 	}
 
 	if err := auth.Init(provider); err != nil {

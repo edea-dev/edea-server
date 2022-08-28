@@ -13,7 +13,7 @@ modd
 !edead/
 
 # JWKS keyset produced by the mock authentication provider
-mock-jwks.json
+uoidc-jwks.json
 
 # static files compiled from the frontend sources
 /static/

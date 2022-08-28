@@ -40,12 +40,12 @@ A good guide that explains the whole flow: https://connect2id.com/learn/openid-c
 */
 
 var (
-	keySet     *jose.JSONWebKeySet
-	mockSigner jose.Signer
+	keySet *jose.JSONWebKeySet
+	signer jose.Signer
 	// user info map
-	mockUsers   map[string]mockUser
+	users       map[string]User
 	CallbackURL string
-	Endpoint    string // where our mock OIDC server resides
+	Endpoint    string // where our OIDC server resides
 
 	// the amount of time a client has to exchange a code for a token
 	grantLifetime = time.Minute
@@ -62,7 +62,7 @@ type grant struct {
 	exp time.Time
 }
 
-type mockUser struct {
+type User struct {
 	Subject       string `json:"sub"`
 	Profile       string `json:"profile"`
 	Email         string `json:"email"`
@@ -112,19 +112,19 @@ func stringInArray(s string, a []string) bool {
 	return false
 }
 
-// InitMockAuth initialises a keyset and provides a new mock authenticator
-func InitMockAuth() {
+// InitOIDCServer initialises a keyset and provides a new authenticator
+func InitOIDCServer() {
 	var priv jose.JSONWebKey
 
 	if keySet == nil {
 		// load existing keyset if it exists
-		info, err := os.Stat("mock-jwks.json")
+		info, err := os.Stat("uoidc-jwks.json")
 		if !os.IsNotExist(err) && !info.IsDir() {
 			s := struct {
 				Priv   jose.JSONWebKey
 				KeySet jose.JSONWebKeySet
 			}{}
-			f, err := os.Open("mock-jwks.json")
+			f, err := os.Open("uoidc-jwks.json")
 			if err != nil {
 				zap.L().Fatal("could not read jwks from disk", zap.Error(err))
 			}
@@ -159,7 +159,7 @@ func InitMockAuth() {
 			keySet = &jose.JSONWebKeySet{Keys: []jose.JSONWebKey{priv.Public()}}
 
 			// write the keyset to disk so we can load it later on
-			f, err := os.Create("mock-jwks.json")
+			f, err := os.Create("uoidc-jwks.json")
 			if err != nil {
 				zap.L().Fatal("could not save jwks to disk", zap.Error(err))
 			}
@@ -179,7 +179,7 @@ func InitMockAuth() {
 
 		// build a signer from our private key
 		opt := (&jose.SignerOptions{}).WithType("JWT").WithHeader("kid", priv.KeyID)
-		mockSigner, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.ES256, Key: priv.Key}, opt)
+		signer, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.ES256, Key: priv.Key}, opt)
 		if err != nil {
 			zap.L().Panic("could not create new signer", zap.Error(err))
 		}
@@ -188,7 +188,7 @@ func InitMockAuth() {
 
 		info, err = os.Stat("users.yml")
 		if os.IsNotExist(err) || info.IsDir() {
-			zap.L().Fatal("mock auth specified but no users.yml available", zap.Error(err))
+			zap.L().Fatal("builtin oidc auth specified but no users.yml available", zap.Error(err))
 		}
 
 		f, err := os.Open("users.yml")
@@ -197,11 +197,9 @@ func InitMockAuth() {
 		}
 
 		dec := yaml.NewDecoder(f)
-		if err := dec.Decode(&mockUsers); err != nil {
+		if err := dec.Decode(&users); err != nil {
 			zap.L().Fatal("could not parse users.yml", zap.Error(err))
 		}
-
-		zap.S().Infof("mock users: %#v", mockUsers)
 	}
 }
 
@@ -220,7 +218,7 @@ func LoginFormHandler(c *gin.Context) {
 		"RedirectURI": c.Query("redirect_uri"),
 	}
 
-	view.RenderTemplate(c, "mock_login.tmpl", "EDeA - Login", m)
+	view.RenderTemplate(c, "builtin_login.tmpl", "EDeA - Login", m)
 }
 
 // LoginPostHandler processes the login request
@@ -232,7 +230,7 @@ func LoginPostHandler(c *gin.Context) {
 	redirectURI := c.PostForm("redirect_uri")
 
 	// do a basic auth check, this is the place to add a user database
-	uo, ok := mockUsers[user]
+	uo, ok := users[user]
 
 	if ok {
 		// check password against encoded hash
@@ -260,7 +258,7 @@ func LoginPostHandler(c *gin.Context) {
 
 	u, err := url.Parse(redirectURI)
 	if err != nil {
-		zap.L().Panic("could not parse callback url for mock auth", zap.Error(err))
+		zap.L().Panic("could not parse callback url for builtin oidc auth", zap.Error(err))
 	}
 
 	ref := u.Query()
@@ -299,7 +297,7 @@ func Keys(c *gin.Context) {
 	c.JSONP(http.StatusOK, keySet)
 }
 
-func generateToken(user mockUser, expires time.Duration, info bool) (string, error) {
+func generateToken(user User, expires time.Duration, info bool) (string, error) {
 	now := time.Now()
 	exp := now.Add(expires)
 
@@ -319,7 +317,7 @@ func generateToken(user mockUser, expires time.Duration, info bool) (string, err
 
 	b, _ := json.Marshal(&tok)
 
-	sig, _ := mockSigner.Sign(b)
+	sig, _ := signer.Sign(b)
 	return sig.CompactSerialize()
 }
 
@@ -334,7 +332,7 @@ func Userinfo(c *gin.Context) {
 
 	zap.L().Debug("userinfo bearer", zap.String("token", raw))
 
-	user, ok := mockUsers[raw]
+	user, ok := users[raw]
 	if !ok {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
@@ -375,13 +373,13 @@ func Token(c *gin.Context) {
 		return
 	}
 
-	auth, err := generateToken(mockUsers[g.sub], accessTokenLifetime, false)
+	auth, err := generateToken(users[g.sub], accessTokenLifetime, false)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	id, err := generateToken(mockUsers[g.sub], idTokenLifetime, true)
+	id, err := generateToken(users[g.sub], idTokenLifetime, true)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
