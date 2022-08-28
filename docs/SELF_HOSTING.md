@@ -144,7 +144,7 @@ In case it is not yet available or if you want a development version, follow tho
 git clone https://gitlab.com/edea-dev/edea
 cd edea
 poetry build
-pip install edea-0.1.0-py3-none-any.whl
+pip install dist/edea-0.1.0-py3-none-any.whl
 ```
 
 The resulting `.whl` file can also be copied to a server and installed there, or it can be installed in a virtual environment for a user-only install.
