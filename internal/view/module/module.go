@@ -542,7 +542,7 @@ func BuildBook(c *gin.Context) {
 	zap.L().Debug("book destination", zap.String("path", dest))
 
 	if _, err := os.Stat(dest); os.IsNotExist(err) {
-		err := os.Mkdir(dest, 0755)
+		err := os.MkdirAll(dest, 0755)
 		if err != nil {
 			zap.L().Panic("could not create book dir", zap.Error(err))
 		}

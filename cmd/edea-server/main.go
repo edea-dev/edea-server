@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	ginzap "github.com/gin-contrib/zap"
@@ -18,14 +19,24 @@ import (
 	"gitlab.com/edea-dev/edea-server/internal/repo"
 	"gitlab.com/edea-dev/edea-server/internal/search"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 func main() {
 	var wait time.Duration
 
 	zc := zap.NewDevelopmentConfig()
-	zc.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+
+	switch strings.ToLower(os.Getenv("LOG")) {
+	case "info":
+		zc.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
+	case "warn":
+		zc.Level = zap.NewAtomicLevelAt(zap.WarnLevel)
+	case "error":
+		zc.Level = zap.NewAtomicLevelAt(zap.ErrorLevel)
+	default:
+		zc.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
+	}
+
 	zl, _ := zc.Build()
 	defer zl.Sync()
 

@@ -5,31 +5,36 @@ services:
     volumes:
       - data:/data
     ports:
-      - 3000:3000
+      - 3000:80
     environment:
       - POSTGRES_DB=edea
       - POSTGRES_USER=edea
       - POSTGRES_PASSWORD=edea
       - MEILI_MASTER_KEY=meiliedea
       - SERVER_HOST=0.0.0.0
-      - SERVER_PORT=3000
+      - SERVER_PORT=80
       - DB_DSN=host=edea-db user=edea password=edea dbname=edea port=5432 sslmode=disable
       - MERGE_TOOL=merge-tool/edea_merge_tool
       - PLOTPCB=cmd/plotpcb/plotpcb.py
       - REPO_CACHE_BASE=/tmp/git
       - BOOK_CACHE_BASE=/tmp/doc
-      - AUTH_PROVIDER_URL=http://localhost:3000
+      - AUTH_PROVIDER_URL=http://edea-server
       - AUTH_CLIENT_ID=LGqqvVYdSGmv8FZmvHRYq9aYgxyx8ULd
       - AUTH_CLIENT_SECRET=SUXHrS77iEyZfNoAeZE5LYb8yRSTGW4LBftNRDG2xFYcnH62qo279bGBzyLW7Qzr
-      - AUTH_REDIRECT_URL=http://tynan:3000/callback
-      - AUTH_LOGOUT_URL=http://tynan:3000/logout_callback
-      - AUTH_POST_LOGOUT_URL=http://tynan:3000/
-      - USE_AUTH_MOCK=true
+      - AUTH_REDIRECT_URL=http://edea-server/callback
+      - AUTH_LOGOUT_URL=http://edea-server/logout_callback
+      - AUTH_POST_LOGOUT_URL=http://edea-server/
+      - MINIOIDC_START_SERVER=true
+      - MINIOIDC_REDIRECT_URLS=http://edea-server/callback
+      - MINIOIDC_POST_LOGOUT_URLS=http://edea-server/
+      - MINIOIDC_USERS=/run/secrets/users
       - SEARCH_HOST=http://edea-meilisearch:7700
       - SEARCH_INDEX=edea
       - SEARCH_API_KEY=meiliedea
+    secrets:
+      - users
   db:
-    image: docker.io/postgres:14.3-alpine
+    image: docker.io/postgres:14.5-alpine
     container_name: edea-db
     volumes:
       - data:/var/lib/postgresql/data
@@ -56,3 +61,7 @@ services:
 
 volumes:
   data:
+
+secrets:
+  users:
+    file: ./users.yml

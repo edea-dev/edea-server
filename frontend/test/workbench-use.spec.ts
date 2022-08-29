@@ -3,6 +3,7 @@ import { test, expect, Page, PlaywrightTestConfig } from '@playwright/test';
 const config: PlaywrightTestConfig = {
     // Concise 'dot' for CI, default 'list' when running locally
     reporter: process.env.CI ? 'dot' : 'list',
+    timeout: 10000,
 };
 
 export default config;
@@ -10,7 +11,7 @@ export default config;
 // take host to test against from env
 let edea_url = process.env.TEST_HOST
 if (!edea_url) {
-    edea_url = "http://tynan:3000"
+    edea_url = "https://test.edea.dev"
 }
 
 test.describe.serial('user workflow - alice', () => {

@@ -66,7 +66,6 @@ docker:
     COPY +frontend/frontend/template ./frontend/template
     COPY +frontend/static ./static
     
-    EXPOSE 80 3000
     ENTRYPOINT /build/edea-server
     IF [ "$ref" = "" ]
        SAVE IMAGE --push edea-server:latest
@@ -74,8 +73,12 @@ docker:
         SAVE IMAGE --push $ref
     END
 
+docker-test:
+    FROM +docker
+    COPY users.yml .
+
 tester:
-    FROM mcr.microsoft.com/playwright:v1.25.0-focal
+    FROM mcr.microsoft.com/playwright:v1.25.1-focal
     ARG ref
 
     WORKDIR /app
@@ -92,15 +95,20 @@ tester:
 integration-test:
     COPY docker-compose.yml ./
     COPY ci.env ./ci.env
-    WITH DOCKER --load=edea-server:latest=+docker \
+    COPY users.yml ./users.yml
+    WITH DOCKER --load=edea-server:latest=+docker-test \
                 --load=tester:latest=+tester \
                 --compose docker-compose.yml \
                 --service db \
                 --service search
         RUN while ! pg_isready --host=localhost --port=5432 --dbname=edea --username=edea; do sleep 1; done ;\
             docker run --env-file ci.env --network build_default --name edea-server -d edea-server:latest; \
-            docker run --env-file ci.env --network build_default tester:latest || docker logs edea-server; \
+            docker run --env-file ci.env --network build_default tester:latest || (echo fail > fail; docker logs edea-server); \
             docker stop edea-server;
+    END
+    IF [ -f fail ]
+        RUN echo "Integration tests have failed" \
+            && exit 1
     END
 
 all:

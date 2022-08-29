@@ -43,6 +43,7 @@ type Config struct {
 			UseBuiltin     bool     `yaml:"use_builtin" envconfig:"MINIOIDC_START_SERVER"`
 			PostLogoutURLs []string `yaml:"post_logout_urls" envconfig:"MINIOIDC_POST_LOGOUT_URLS"`
 			RedirectURLs   []string `yaml:"redirect_urls" envconfig:"MINIOIDC_REDIRECT_URLS"`
+			UsersFile      string   `yaml:"users" envconfig:"MINIOIDC_USERS"`
 		} `yaml:"oidc_server"`
 	} `yaml:"auth"`
 	Search struct {

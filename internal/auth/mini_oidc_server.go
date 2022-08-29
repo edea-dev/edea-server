@@ -184,14 +184,19 @@ func InitOIDCServer() {
 			zap.L().Panic("could not create new signer", zap.Error(err))
 		}
 
-		// load the users from users.yml
+		var usersFile = "users.yml"
 
-		info, err = os.Stat("users.yml")
+		// load the users from users.yml
+		if config.Cfg.Auth.MiniOIDCServer.UsersFile != "" {
+			usersFile = config.Cfg.Auth.MiniOIDCServer.UsersFile
+		}
+
+		info, err = os.Stat(usersFile)
 		if os.IsNotExist(err) || info.IsDir() {
 			zap.L().Fatal("builtin oidc auth specified but no users.yml available", zap.Error(err))
 		}
 
-		f, err := os.Open("users.yml")
+		f, err := os.Open(usersFile)
 		if err != nil {
 			zap.L().Fatal("could not open users.yml", zap.Error(err))
 		}
