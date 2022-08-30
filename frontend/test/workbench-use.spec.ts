@@ -197,3 +197,36 @@ test.describe.serial('visitor workflow - docs', () => {
         await expect(book).toContainText("Lorem ipsum");
     });
 });
+
+test.describe.serial('visitor workflow - parametric search', () => {
+    let page: Page;
+
+    test.beforeAll(async ({ browser }) => {
+        page = await browser.newPage();
+
+        await page.goto(edea_url);
+        const logo = page.locator('.navbar-brand');
+        await expect(logo).toHaveAttribute("aria-label", "EDeA")
+    });
+
+    test.afterAll(async () => {
+        await page.close();
+    });
+
+    test('use parametric search', async () => {
+        await page.click('#navbarModulesDD');
+        await page.click('a[href="/module/search"]');
+
+        await page.locator(`select[name='filterf_u_arch']`).selectOption('ARM Cortex-M3');
+
+        const apply_btn = page.locator('#filter_apply_btn');
+        await apply_btn.click();
+
+        // button should be disabled after pressing apply
+        await expect(apply_btn).toBeDisabled();
+
+        // check if we have at least one result card
+        const results = page.locator('div.search-result > .card');
+        await expect(results).not.toBeEmpty();
+    });
+});
