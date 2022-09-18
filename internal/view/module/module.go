@@ -458,7 +458,7 @@ func plotDiff(dirA, dirB, dest string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	argv := []string{"-m", "edea", "diff", "-adir", dirA, "-bdir", dirB, "-odir", dest}
+	argv := []string{"-m", "edea", "--diff", "-adir", dirA, "-bdir", dirB, "-odir", dest}
 
 	plotCmd := exec.CommandContext(ctx, "python3", argv...)
 
