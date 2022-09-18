@@ -479,7 +479,7 @@ func (g *Git) ExportPlotDirAt(dest, dir, revision string) (string, error) {
 
 	path := filepath.Join(dest, revision)
 
-	if err := os.Mkdir(dest, 0700); err != nil {
+	if err := os.MkdirAll(path, 0700); err != nil {
 		return "", err
 	}
 

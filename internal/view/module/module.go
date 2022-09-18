@@ -445,7 +445,7 @@ func Diff(c *gin.Context) {
 	}
 
 	// and ready to go
-	view.RenderTemplate(c, "module/view_diff.tmpl", "", m)
+	view.RenderTemplate(c, "module/view_diff.tmpl", "EDeA - Diff", m)
 }
 
 func plotDiff(dirA, dirB, dest string) error {
@@ -460,6 +460,8 @@ func plotDiff(dirA, dirB, dest string) error {
 
 	argv := []string{"-m", "edea", "--diff", "-adir", dirA, "-bdir", dirB, "-odir", dest}
 
+	zap.L().Debug("edea diff", zap.String("command", strings.Join(argv, " ")))
+
 	plotCmd := exec.CommandContext(ctx, "python3", argv...)
 
 	// run the plotting operation
@@ -470,7 +472,7 @@ func plotDiff(dirA, dirB, dest string) error {
 		zap.L().Debug("plot pcb output", zap.ByteString("output", logOutput))
 		_ = os.RemoveAll(dest)
 		return util.HintError{
-			Hint: fmt.Sprintf("Something went wrong during the diff, below is the log which should provide more information:\n%s", logOutput),
+			Hint: fmt.Sprintf("Error while running edea diff:\n%s", logOutput),
 			Err:  err,
 		}
 	}

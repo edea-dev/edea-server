@@ -31,7 +31,7 @@ type Config struct {
 		} `yaml:"book"`
 		Plot struct {
 			Base string `yaml:"base" envconfig:"PLOT_CACHE_BASE"` // edea diff destination folder
-		} `yaml:"book"`
+		} `yaml:"plot"`
 	} `yaml:"cache"`
 	Auth struct {
 		OIDC struct {

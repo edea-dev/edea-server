@@ -18,7 +18,8 @@
 
         <div class="flex-row">
             {{range $name := .Files}}
-            <img src="/cache/diff/{{.Dir}}/{{$name}}" />
+            <p>{{ $name }}</p>
+            <img src="/cache/diff/{{$.Dir}}/{{$name}}" />
             {{end}}
         </div>
     </div>

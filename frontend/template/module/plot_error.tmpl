@@ -1,0 +1,18 @@
+{{template "header" .}}
+<main role="main">
+    <div class="container" id="content">
+        <div class="jumbotron bg-primary text-white">
+            <h1 class="mt-5">An Error occured while diffing</h1>
+        </div>
+        <h4>Something went wrong during the diff process, this most likely means an issue with the provided files in
+            the module.</h4>
+        {{if .Hint}}<p>{{.Hint}}</p>{{end}}
+        <code>
+            {{.Error}}
+        </code>
+        <code>
+            {{.Output}}
+        </code>
+    </div>
+</main>
+{{template "footer" .}}
