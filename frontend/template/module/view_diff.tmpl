@@ -17,28 +17,8 @@
         </div>
 
         <div class="flex-row">
-            <p>W: {{.PCBA.Width}} H: {{.PCBA.Height}}</p>
-            {{range $name, $svg := .PCBA.Layers}}
-            {{print $svg}}
-            {{end}}
-        </div>
-        <div class="flex-row">
-            <p>W: {{.PCBB.Width}} H: {{.PCBB.Height}}</p>
-            {{range $name, $svg := .PCBB.Layers}}
-            {{print $svg}}
-            {{end}}
-
-        </div>
-        <div class="flex-row">
-            {{range $file, $b := .SCHA}}
-            {{print $file}}
-            {{print $b}}
-            {{end}}
-        </div>
-        <div class="flex-row">
-            {{range $file, $b := .SCHB}}
-            {{print $file}}
-            {{print $b}}
+            {{range $name := .Files}}
+            <img src="/cache/diff/{{.Dir}}/{{$name}}" />
             {{end}}
         </div>
     </div>

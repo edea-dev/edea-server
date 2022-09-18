@@ -3,12 +3,10 @@ package repo
 // SPDX-License-Identifier: EUPL-1.2
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -17,7 +15,6 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
-	"gitlab.com/edea-dev/edea-server/internal/util"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
@@ -454,54 +451,46 @@ func (g *Git) FileByExtAt(dir, ext, revision string) ([]byte, error) {
 	return nil, err
 }
 
-// SchematicHelper pulls all the schematic files and the symbol cache from the repository
+// ExportPlotDirAt pulls all the plotted svg files from the repository
 // at the specified revision and copies them to a temporary folder
-func (g *Git) SchematicHelper(dir, revision string) (map[string]string, error) {
+func (g *Git) ExportPlotDirAt(dest, dir, revision string) (string, error) {
 	// ... retrieves the branch pointed by HEAD
 	r, err := g.open()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	ref, err := r.ResolveRevision(plumbing.Revision(revision))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// ... retrieving the commit object
 	commit, err := r.CommitObject(*ref)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// ... retrieve the tree from the commit
 	tree, err := commit.Tree()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	dest, err := os.MkdirTemp("", "*")
-	if err != nil {
-		return nil, err
+	path := filepath.Join(dest, revision)
+
+	if err := os.Mkdir(dest, 0700); err != nil {
+		return "", err
 	}
 
-	// clean up afterwards
-	defer os.RemoveAll(dest)
-
-	var libFile string
-	var sch []string
+	// var svgs []string
 
 	// find the first file by extension
 	err = tree.Files().ForEach(func(f *object.File) error {
 		if filepath.Dir(f.Name) == dir {
-			if strings.HasSuffix(filepath.Base(f.Name), "-cache.lib") {
-				libFile, err = gitFileToTemp(f, dest)
-				if err != nil {
-					return err
-				}
-			} else if filepath.Ext(f.Name) == ".sch" {
-				fn, err := gitFileToTemp(f, dest)
-				sch = append(sch, fn)
+			if filepath.Ext(f.Name) == ".svg" {
+				_, err := gitFileToTemp(f, path)
+				// svgs = append(svgs, fn)
 				if err != nil {
 					return err
 				}
@@ -510,49 +499,7 @@ func (g *Git) SchematicHelper(dir, revision string) (map[string]string, error) {
 		return nil
 	})
 
-	if libFile == "" {
-		return nil, fmt.Errorf("no -cache.lib file was found")
-	}
-
-	svgs := make(map[string]string)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-	defer cancel()
-
-	for _, fn := range sch {
-		argv := []string{"-l", libFile, "-f", fn}
-
-		plotCmd := exec.CommandContext(ctx, "plotkicadsch", argv...)
-
-		// run the plotting operation
-		logOutput, err := plotCmd.CombinedOutput()
-		if err != nil {
-			return nil, util.HintError{
-				Hint: fmt.Sprintf("could not plot %s:\n%s", fn, string(logOutput)),
-				Err:  err,
-			}
-		}
-
-		svgName := fmt.Sprintf("%s.svg", strings.TrimSuffix(filepath.Base(fn), filepath.Ext(fn)))
-		svg := filepath.Join(filepath.Dir(fn), svgName)
-
-		cleanerCmd := exec.CommandContext(ctx, "svgcleaner", svg, svg)
-		out, err := cleanerCmd.CombinedOutput()
-		if err != nil {
-			zap.L().Error("could not run svgcleaner", zap.ByteString("output", out))
-		}
-
-		b, err := os.ReadFile(svg)
-		if err != nil {
-			return nil, util.HintError{
-				Hint: fmt.Sprintf("could not read svg %s", svg),
-				Err:  err,
-			}
-		}
-		svgs[svgName] = string(b)
-	}
-
-	return svgs, err
+	return path, err
 }
 
 func gitFileToTemp(f *object.File, dest string) (string, error) {

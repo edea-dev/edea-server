@@ -4,9 +4,9 @@ package module
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
 	"os/exec"
@@ -386,33 +386,61 @@ func Diff(c *gin.Context) {
 
 	zap.S().Debugf("diffing %s and %s", commit1, commit2)
 
-	pcba, err := plotPCB(module, commit1)
-	if err != nil {
-		zap.L().Panic("could not plot pcb at A", zap.Error(err), zap.String("commit", commit1))
-	}
-	pcbb, err := plotPCB(module, commit1)
-	if err != nil {
-		zap.L().Panic("could not plot pcb at B", zap.Error(err), zap.String("commit", commit2))
-	}
-
 	g := &repo.Git{URL: module.RepoURL}
 
-	scha, err := g.SchematicHelper(module.Sub, commit1)
+	subPlotDir := filepath.Join(module.Sub, "plot")
+
+	tmpDest, err := os.MkdirTemp("", "plot-diff")
+	if err != nil {
+		zap.L().Panic("could not create temp dir for diff", zap.Error(err))
+	}
+	defer os.RemoveAll(tmpDest)
+
+	plotA, err := g.ExportPlotDirAt(tmpDest, subPlotDir, commit1)
 	if err != nil {
 		zap.L().Panic("failed to plot sch a", zap.Error(err))
 	}
 
-	schb, err := g.SchematicHelper(module.Sub, commit2)
+	plotB, err := g.ExportPlotDirAt(tmpDest, subPlotDir, commit2)
 	if err != nil {
 		zap.L().Panic("failed to plot sch b", zap.Error(err))
 	}
 
+	modDiffDir := filepath.Join(module.ID.String(), fmt.Sprintf("%s-%s", commit1, commit2))
+	destCacheDir := filepath.Join(config.Cfg.Cache.Plot.Base, modDiffDir)
+
+	if s, err := os.Stat(destCacheDir); err == nil {
+		if s.IsDir() {
+			zap.L().Debug("plot diff cache already exists", zap.String("dir", destCacheDir))
+		}
+	} else {
+		if os.IsNotExist(err) {
+			err := plotDiff(plotA, plotB, destCacheDir)
+			if err != nil {
+				view.RenderErrTemplate(c, "module/plot_error.tmpl", err)
+				return
+			}
+		}
+	}
+
+	// get all files from dir
+	var files []string
+	err = filepath.WalkDir(destCacheDir, func(path string, d fs.DirEntry, err error) error {
+		if !d.IsDir() {
+			files = append(files, d.Name())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		zap.L().Panic("could not walk plot diff dest dir", zap.Error(err))
+	}
+
 	m := map[string]interface{}{
 		"Module": module,
-		"PCBA":   pcba,
-		"PCBB":   pcbb,
-		"SCHA":   scha,
-		"SCHB":   schb,
+		"Dir":    modDiffDir,
+		"Files":  files,
 		"Title":  fmt.Sprintf("EDeA - %s", module.Name),
 	}
 
@@ -420,34 +448,17 @@ func Diff(c *gin.Context) {
 	view.RenderTemplate(c, "module/view_diff.tmpl", "", m)
 }
 
-func plotPCB(mod *model.Module, revision string) (*Board, error) {
+func plotDiff(dirA, dirB, dest string) error {
+	err := os.MkdirAll(dest, 0700)
+	if err != nil {
+		zap.L().Panic("could not create plot diff output dir, check plot cache setting", zap.Error(err), zap.String("plot-cache-dir", config.Cfg.Cache.Plot.Base))
+	}
+
 	// processing projects should not take longer than a minute
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	g := &repo.Git{URL: mod.RepoURL}
-
-	// read and parse the module configuration out of the repo
-	pcb, err := g.FileByExtAt(mod.Sub, ".kicad_pcb", revision)
-	if err != nil {
-		return nil, util.HintError{
-			Hint: fmt.Sprintf("No kicad_pcb file has been found for %s at %s", mod.Sub, revision),
-			Err:  err,
-		}
-	}
-
-	// write the PCB file to disk so we can call kicad via our python script to plot it
-	f, err := os.CreateTemp("", revision+".*.kicad_pcb")
-	if err != nil {
-		zap.L().Panic("could not create temp pcb file", zap.Error(err))
-	}
-	defer os.Remove(f.Name())
-
-	if _, err := f.Write(pcb); err != nil {
-		zap.L().Panic("could not write temp pcb file contents", zap.Error(err))
-	}
-
-	argv := []string{"plotpcb", f.Name()}
+	argv := []string{"-m", "edea", "diff", "-adir", dirA, "-bdir", dirB, "-odir", dest}
 
 	plotCmd := exec.CommandContext(ctx, "python3", argv...)
 
@@ -456,17 +467,15 @@ func plotPCB(mod *model.Module, revision string) (*Board, error) {
 
 	// return the output of the tool and the error for the user to debug issues
 	if err != nil {
-		zap.L().Info("plot pcb output", zap.ByteString("output", logOutput))
-		return nil, util.HintError{
-			Hint: fmt.Sprintf("Something went wrong during the pcb plotting, below is the log which should provide more information:\n%s", logOutput),
+		zap.L().Debug("plot pcb output", zap.ByteString("output", logOutput))
+		_ = os.RemoveAll(dest)
+		return util.HintError{
+			Hint: fmt.Sprintf("Something went wrong during the diff, below is the log which should provide more information:\n%s", logOutput),
 			Err:  err,
 		}
 	}
 
-	b := new(Board)
-	json.Unmarshal(logOutput, b)
-
-	return b, nil
+	return nil
 }
 
 func getModule(c *gin.Context) (user *model.User, module *model.Module) {

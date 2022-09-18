@@ -70,6 +70,7 @@ func routes(router *gin.Engine) {
 	router.Static("/img", "./static/img")
 	router.Static("/fonts", "./static/fonts")
 	router.Static("/icons", "./static/icons")
+	router.Static("/cache/diff", config.Cfg.Cache.Plot.Base)
 
 	// mdbooks are built and served from here
 	router.Static("/module/doc", config.Cfg.Cache.Book.Base)

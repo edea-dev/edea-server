@@ -167,6 +167,22 @@ test.describe.serial('user workflow - bob', () => {
         const module_page = page.locator('h1').first();
         await expect(module_page).toContainText("HT7533");
     });
+
+    test('new module (NCV68261)', async () => {
+        await page.click('#navbarModulesDD');
+        await page.click('a[href="/module/new"]');
+
+        await page.fill('#name', 'NCV68261 RP-Protector');
+        await page.fill('#sub', 'NCV68261');
+        await page.fill('#repourl', 'https://gitlab.com/edea-dev/test-modules.git');
+        await page.fill('#description', 'OnSemi NCV68261 Ideal Diode and High Side Switch NMOS Controller');
+        await page.selectOption('#category', { label: 'Power' });
+
+        await page.click('text=Submit');
+
+        const module_page = page.locator('h1').first();
+        await expect(module_page).toContainText("NCV68261");
+    });
 });
 
 test.describe.serial('visitor workflow - docs', () => {
@@ -228,5 +244,39 @@ test.describe.serial('visitor workflow - parametric search', () => {
         // check if we have at least one result card
         const results = page.locator('div.search-result > .card');
         await expect(results).not.toBeEmpty();
+    });
+});
+
+test.describe.serial('visitor workflow - view plot diff', () => {
+    let page: Page;
+
+    test.beforeAll(async ({ browser }) => {
+        page = await browser.newPage();
+
+        await page.goto(edea_url);
+        const logo = page.locator('.navbar-brand');
+        await expect(logo).toHaveAttribute("aria-label", "EDeA")
+    });
+
+    test.afterAll(async () => {
+        await page.close();
+    });
+
+    test('view NCV68261 git history', async () => {
+        await page.click('#navbarModulesDD');
+        await page.click('a[href="/module/explore"]');
+
+        const card = page.locator('a:below(:has-text("NCV68261"))').locator('text=View').first();
+        await card.click();
+
+        await page.click('text=History');
+
+        const diffLink = page.locator('text=Diff with HEAD').last();
+        await diffLink.click();
+
+        const images = page.locator('img');
+
+        // expect a lot of images to be there, TODO: think of something better
+        expect(await images.evaluateAll((imgs, min) => imgs.length >= min, 10));
     });
 });

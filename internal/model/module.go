@@ -4,6 +4,7 @@ package model
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -34,7 +35,10 @@ type Module struct {
 
 // BeforeUpdate checks if the current user is allowed to do that
 func (m *Module) BeforeUpdate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context.(*gin.Context)
+	ctx, ok := tx.Statement.Context.(*gin.Context)
+	if !ok {
+		return errors.New("no user in query context")
+	}
 
 	var tm Module
 	result := tx.First(&tm, m.ID)

@@ -57,6 +57,10 @@ func GetModulePath(mod *model.Module) (string, error) {
 	g := &Git{URL: mod.RepoURL}
 	p := &Project{}
 
+	if err := g.Pull(); err != nil {
+		zap.L().Panic("could not pull latest changes", zap.Error(err), zap.String("url", mod.RepoURL))
+	}
+
 	// read and parse the module configuration out of the repo
 	s, err := g.File("edea.yml", false)
 	if err != nil {

@@ -29,6 +29,9 @@ type Config struct {
 		Book struct {
 			Base string `yaml:"base" envconfig:"BOOK_CACHE_BASE"` // mdbook destination folder
 		} `yaml:"book"`
+		Plot struct {
+			Base string `yaml:"base" envconfig:"PLOT_CACHE_BASE"` // edea diff destination folder
+		} `yaml:"book"`
 	} `yaml:"cache"`
 	Auth struct {
 		OIDC struct {
