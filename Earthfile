@@ -25,6 +25,43 @@ edea-tool:
 
     SAVE ARTIFACT edea/dist/edea-${EDEA_VERSION}-py3-none-any.whl
 
+alpine-pkgs:
+    FROM alpine:edge
+
+    RUN apk add --update --no-cache --no-progress alpine-sdk coreutils bash
+    RUN apk add --update --no-cache --no-progress sudo
+
+    RUN mkdir -p /var/cache/distfiles
+    RUN chmod a+w /var/cache/distfiles
+    RUN chgrp abuild /var/cache/distfiles
+    RUN chmod g+w /var/cache/distfiles
+
+    RUN echo 'PACKAGER="Automated Builder <builder@calcifer.ee>"' >> /etc/abuild.conf
+    RUN echo 'MAINTAINER="$PACKAGER"' >> /etc/abuild.conf
+    RUN echo "%abuild ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/abuild
+
+    RUN adduser -D bob
+    RUN addgroup bob abuild
+
+    RUN mkdir -p /home/bob/pkgs
+    COPY dist/deps /home/bob/pkgs
+    WORKDIR /home/bob/pkgs
+    RUN chown -R bob:bob /home/bob/pkgs
+
+    USER bob
+
+    RUN abuild-keygen -a -i -n
+
+    RUN git config --global user.name "Automated Builder"
+    RUN git config --global user.email "builder@calcifer.ee"
+
+    RUN sudo apk update
+    RUN cd py3-pyvips; abuild -r
+    
+    # build additional packages here in the future
+
+    SAVE ARTIFACT /home/bob/packages/pkgs/x86_64/py3-pyvips-2.2.1-r0.apk /py3-pyvips-2.2.1-r0.apk
+
 frontend:
     FROM +deps
     WORKDIR /build
@@ -48,8 +85,11 @@ build:
 docker-base:
     FROM alpine:edge
     WORKDIR /build
-    RUN apk -U add py3-numpy py3-pip py3-pydantic py3-pillow librsvg librsvg-dev vips vips-dev py3-wheel gcc python3-dev
+    RUN apk -U add py3-numpy py3-pip py3-pydantic py3-pillow vips
     RUN apk add mdbook --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
+
+    COPY +alpine-pkgs/py3-pyvips-2.2.1-r0.apk .
+    RUN apk add --allow-untrusted py3-pyvips-2.2.1-r0.apk
 
     ENV EDEA_VERSION=0.1.0
 
@@ -78,7 +118,7 @@ docker-test:
     COPY users.yml .
 
 tester:
-    FROM mcr.microsoft.com/playwright:v1.25.1-focal
+    FROM mcr.microsoft.com/playwright:v1.25.2-focal
     ARG ref
 
     WORKDIR /app
