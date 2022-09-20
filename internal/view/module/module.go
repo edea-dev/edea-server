@@ -304,6 +304,23 @@ func Pull(c *gin.Context) {
 		zap.L().Panic("could not pull latest changes", zap.Error(err))
 	}
 
+	// new head, delete all visual diff caches referencing this
+	destCacheDir := filepath.Join(config.Cfg.Cache.Plot.Base, module.ID.String())
+
+	err := filepath.WalkDir(destCacheDir, func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			if strings.Contains(d.Name(), "HEAD") {
+				return os.RemoveAll(path)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		zap.L().Panic("could not remove visual diff cache", zap.Error(err), zap.String("module", moduleID))
+	}
+
 	meta, err := merge.Metadata(module)
 	if err != nil {
 		zap.L().Error("metadata extraction unsuccessful", zap.Error(err))
@@ -424,10 +441,44 @@ func Diff(c *gin.Context) {
 	}
 
 	// get all files from dir
-	var files []string
+	var files = make(map[string]struct {
+		Full string
+		Crop string
+	})
+
 	err = filepath.WalkDir(destCacheDir, func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() {
-			files = append(files, d.Name())
+			ext := filepath.Ext(d.Name())
+			if ext != ".png" {
+				return nil
+			}
+			name := strings.TrimSuffix(d.Name(), ext)
+
+			// TODO: is there a better way?
+			if strings.HasSuffix(name, ".crop") {
+				name = strings.TrimSuffix(name, ".crop")
+				s, ok := files[name]
+				if ok {
+					s.Crop = d.Name()
+				} else {
+					s = struct {
+						Full string
+						Crop string
+					}{Crop: d.Name()}
+				}
+				files[name] = s
+			} else {
+				s, ok := files[name]
+				if ok {
+					s.Full = d.Name()
+				} else {
+					s = struct {
+						Full string
+						Crop string
+					}{Full: d.Name()}
+				}
+				files[name] = s
+			}
 		}
 
 		return nil

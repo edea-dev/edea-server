@@ -16,12 +16,15 @@
             </div>
         </div>
 
-        <div class="flex-row">
-            {{range $name := .Files}}
-            <p>{{ $name }}</p>
-            <img src="/cache/diff/{{$.Dir}}/{{$name}}" />
-            {{end}}
-        </div>
+        <table class="table table-striped">
+        {{range $name, $v := .Files}}
+        <tr>
+            <td>{{ $name }}</td>
+            <td><img src="/cache/diff/{{$.Dir}}/{{$v.Full}}" style="max-width: 50%;" /></td>
+            <td><img src="/cache/diff/{{$.Dir}}/{{$v.Crop}}" /></td>
+        </tr>
+        {{end}}
+        </table>
     </div>
     <script>
         document.getElementsByTagName("svg").forEach(e => {
